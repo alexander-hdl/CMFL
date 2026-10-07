@@ -334,4 +334,5 @@
 | [`research/11-matematika-vychisleniya.md`](research/11-matematika-vychisleniya.md) | Счёт: таблица умножения, числовая прямая, приложения |
 | [`research/12-xp-pen-i-kompyuter.md`](research/12-xp-pen-i-kompyuter.md) | XP-PEN и компьютер: письмо, комиксы, клавиатура |
 | [`plan/trenazhery.html`](plan/trenazhery.html) | Исходник тренажёров «Тренировочная арена» |
+| [`prompts/`](prompts/README.md) | Задания для Fable: учебные игры в духе Minecraft («Блокоград»), Clash Royale («Оборона таблицы») и Stardew Valley («Ферма у реки») |
 | [`plan/komiksy.html`](plan/komiksy.html) | Исходник «Студии комиксов» для пера XP-PEN |
