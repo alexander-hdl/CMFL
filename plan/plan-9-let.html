@@ -69,6 +69,7 @@
   --red-bg: #3a2023;
   --green: #63d39b;
   --green-bg: #163327;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
   --margin-line: rgba(255, 128, 119, 0.4);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   color-scheme: dark;
@@ -311,6 +312,11 @@ section > *, .card > * { min-width: 0; }
 .dy-del, .dy-yes, .dy-no { font: inherit; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 8px; padding: 2px 8px; cursor: pointer; min-height: 30px; }
 .dy-confirm { white-space: nowrap; }
 .dy-summary { white-space: pre-wrap; background: var(--paper); border: 1px dashed var(--line); border-radius: 10px; padding: 10px; font-size: var(--s-xs); font-family: var(--f-body); }
+.ds-name { fill: var(--ink); font-size: 13px; font-weight: 600; font-family: var(--f-body); }
+.ds-fill { fill: var(--s1); } .ds-fill.thin { fill-opacity: 0.4; }
+.ds-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: var(--s-sm); }
+.ds-list b { font-weight: 600; }
+.ds-tablev summary { cursor: pointer; font-size: var(--s-sm); }
 
 footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: var(--s-xs); color: var(--muted); display: grid; gap: 8px; }
 
@@ -344,6 +350,7 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
     <a href="#diary">Дневник</a>
     <a href="#tablet">Планшет</a>
     <a href="#reading">Чтение</a>
+    <a href="#discover">Открытия</a>
     <a href="#phrases">Фразы</a>
     <a href="#specialist">Логопед</a>
   </div>
@@ -729,6 +736,7 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
       <li><span><b>Можно не дочитывать</b> и пропускать скучное. Скучная книга бросается без чувства вины.</span></li>
       <li><span><b>Книга на тумбочке, а не в шкафу.</b> Читаем, когда планшет уже убран.</span></li>
       <li><span><b>Не экзамен:</b> никаких «перескажи главу» и «20 страниц за планшет». Лучше: «Кого бы ты взял в команду?»</span></li>
+      <li><span><b>Квест и театр.</b> В <a href="https://claude.ai/artifact/NUnVhvzy88WsXPZpf4yvSm" target="_blank" rel="noopener">тренажёрах</a> на вкладке «Чтение» есть «Книга-квест», где он сам выбирает, куда идти, и «Суфлёр»: сценки на двоих и выпуски «как у блогера», которые вы снимаете на телефон. Три дубля одной сценки — то же повторное чтение, только ради зрителей.</span></li>
     </ol>
   </div>
   <div class="card books">
@@ -765,6 +773,57 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
         <li><b>«Радионяня. Весёлая грамматика»</b> — книга и аудио</li>
       </ul>
     </div>
+  </div>
+</section>
+
+<section id="discover" aria-labelledby="disc-h">
+  <div class="section-head">
+    <h2 id="disc-h">Дневник открытий: к чему лежит душа</h2>
+    <p>В 9 лет тесты на способности почти ничего не предсказывают. Работает другое: пробовать много разного и замечать, что затягивает. После нового занятия — одна минута: что это было, хочет ли он ещё, что вы заметили. Через пару месяцев видно, куда его тянет.</p>
+  </div>
+
+  <div class="card" id="ds-form">
+    <div class="dy-grid">
+      <label class="dy-f" for="ds-date">Дата<input type="date" id="ds-date"></label>
+      <label class="dy-f" for="ds-act">Что пробовал<input type="text" id="ds-act" maxlength="60" list="ds-acts" placeholder="например: собирал модель, кружок робототехники"><datalist id="ds-acts"></datalist></label>
+    </div>
+    <div class="dy-f"><span>Какой это интерес (можно два)</span>
+      <div class="filters" role="group" aria-label="Тип интереса" id="ds-types"></div>
+      <p class="muted small-note" id="ds-type-hint"></p>
+    </div>
+    <div class="dy-f"><span>Спросите его: хочешь ещё?</span>
+      <div class="filters" role="group" aria-label="Его оценка" id="ds-kid">
+        <button type="button" data-kid="2" aria-pressed="false">😍 Хочу ещё</button>
+        <button type="button" data-kid="1" aria-pressed="false">🙂 Нормально</button>
+        <button type="button" data-kid="0" aria-pressed="false">😐 Не моё</button>
+      </div>
+    </div>
+    <div class="dy-f"><span>Что вы заметили (признаки силы)</span>
+      <div class="filters" role="group" aria-label="Признаки силы" id="ds-signs"></div>
+    </div>
+    <label class="dy-f" for="ds-note">Заметка (необязательно)<input type="text" id="ds-note" maxlength="140" placeholder="например: просил ещё, сам нашёл видео, как это делают"></label>
+    <div class="row-btn"><button class="btn" type="button" id="ds-save">Сохранить запись</button><span class="dy-msg" id="ds-msg" aria-live="polite"></span></div>
+  </div>
+
+  <div class="card">
+    <h3>Куда тянет</h3>
+    <div class="dy-chart" id="ds-chart"><p class="muted">График появится после первой записи.</p></div>
+    <p class="muted small-note">Интерес — от 0 до 100: до 40 баллов даёт его ответ «хочу ещё», до 60 — признаки силы, которые заметили вы. Бледная полоса значит, что проба пока одна, а этого мало для выводов. Нажмите на строку, чтобы увидеть подробности.</p>
+    <details class="ds-tablev"><summary class="muted">Таблица</summary><div class="dy-tablewrap" id="ds-ttable"></div></details>
+  </div>
+
+  <div class="card">
+    <h3>Что затягивает</h3>
+    <div id="ds-top"><p class="muted">Здесь появятся занятия, к которым он возвращается или в которых видно много признаков силы.</p></div>
+    <h3>Что ещё попробовать</h3>
+    <div id="ds-ideas"></div>
+    <p class="muted small-note">Смотрите на то, что держится месяцами и к чему он возвращается сам. Один восторг ещё ничего не значит, и интересы в 9 лет часто меняются — это нормально. Интерес не «находится», а растёт, когда есть практика и кто-то рядом разделяет увлечение.</p>
+  </div>
+
+  <div class="card">
+    <h3>Все записи</h3>
+    <div id="ds-table"><p class="muted">Записей пока нет.</p></div>
+    <p class="muted small-note" id="ds-store"></p>
   </div>
 </section>
 
@@ -1401,4 +1460,194 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
   } catch (e) {}
 })();
 </script>
+<script>
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function today() { var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function ru(d) { var p = String(d).split("-"); return p.length === 3 ? p[2] + "." + p[1] : d; }
+  function plural(n, one, few, many) { var m10 = n % 10, m100 = n % 100; if (m10 === 1 && m100 !== 11) return one; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few; return many; }
+  // Holland's six interest types in a child's words (see research/03).
+  var TYPES = [
+    { k: "R", n: "Практик", d: "руками: мастерит, чинит, конструкторы, техника, спорт, природа", ideas: ["собрать модель или конструктор по схеме", "починить что-нибудь вместе: велосипед, полку", "секция на пробу: скалолазание, плавание, борьба"] },
+    { k: "I", n: "Исследователь", d: "спрашивает «почему», опыты, энциклопедии, головоломки, шахматы", ideas: ["опыт дома: вулкан из соды, кристаллы из соли", "музей науки или планетарий с заданием «найди три удивительные вещи»", "наблюдать за птицами у кормушки и записывать"] },
+    { k: "A", n: "Художник", d: "рисует, сочиняет, снимает видео, музыка, театр, придумывает миры", ideas: ["нарисовать комикс в «Студии комиксов»", "снять пластилиновый мультфильм на телефон", "сыграть сценку из «Суфлёра» для бабушки"] },
+    { k: "S", n: "Социальный", d: "объясняет младшим, помогает, заботится о людях и животных", ideas: ["научить младшего ребёнка игре или трюку", "помочь в приюте для животных или соседу", "командная игра, где он объясняет правила"] },
+    { k: "E", n: "Организатор", d: "организует игры и проекты, убеждает, торгуется, любит соревноваться", ideas: ["устроить турнир во дворе: правила, сетка, призы", "ярмарка: сделать и продать поделки или лимонад", "спланировать семейный выходной с бюджетом"] },
+    { k: "C", n: "Систематизатор", d: "наводит порядок, коллекции, правила, таблицы, расписания", ideas: ["завести коллекцию и каталог к ней", "составить расписание или таблицу для семейного дела", "настольная стратегия с записью ходов"] }
+  ];
+  var SIGNS = [
+    { k: "self", n: "Делал сам, без напоминаний" },
+    { k: "flow", n: "Терял счёт времени" },
+    { k: "ask", n: "Задавал глубокие вопросы" },
+    { k: "teach", n: "Объяснял или показывал другим" },
+    { k: "grit", n: "Не бросил, когда стало трудно" },
+    { k: "proud", n: "Заряжен и гордится результатом" }
+  ];
+  var KID = { 2: "😍 хочу ещё", 1: "🙂 нормально", 0: "😐 не моё" };
+  var LSK = "cmfl-discover-v1";
+  var entries = [], col = null, mode = "local", sel = { types: [], kid: null, signs: [] };
+  try { var loc = JSON.parse(localStorage.getItem(LSK) || "[]"); if (Array.isArray(loc)) entries = loc.map(clean).filter(Boolean); } catch (e) {}
+  function saveLocal() { try { localStorage.setItem(LSK, JSON.stringify(entries.filter(function (e) { return String(e.id).charAt(0) === "l"; }))); } catch (e) {} }
+  function clean(x) {
+    if (!x || typeof x !== "object") return null;
+    var types = (Array.isArray(x.types) ? x.types : []).filter(function (t) { return TYPES.some(function (T) { return T.k === t; }); }).slice(0, 2);
+    var act = String(x.act || "").trim().slice(0, 60);
+    if (!act || !types.length) return null;
+    return { id: x.id, d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d)) ? String(x.d) : today(), act: act, types: types, kid: x.kid === 0 || x.kid === 1 || x.kid === 2 ? x.kid : 1,
+      signs: (Array.isArray(x.signs) ? x.signs : []).filter(function (s) { return SIGNS.some(function (S) { return S.k === s; }); }), note: String(x.note || "").slice(0, 140), ts: +x.ts || 0 };
+  }
+  function score(e) { return Math.round(e.kid / 2 * 40 + e.signs.length / SIGNS.length * 60); }
+  function typeOf(k) { return TYPES.filter(function (t) { return t.k === k; })[0]; }
+  function stats() {
+    return TYPES.map(function (t) {
+      var es = entries.filter(function (e) { return e.types.indexOf(t.k) >= 0; });
+      var n = es.length;
+      return { t: t, n: n, es: es, score: n ? Math.round(es.reduce(function (s, e) { return s + score(e); }, 0) / n) : 0,
+        want: es.filter(function (e) { return e.kid === 2; }).length, signs: n ? es.reduce(function (s, e) { return s + e.signs.length; }, 0) / n : 0 };
+    }).sort(function (a, b) { return (b.n ? 1 : 0) - (a.n ? 1 : 0) || b.score - a.score || b.n - a.n; });
+  }
 
+  /* form */
+  $("ds-date").value = today();
+  $("ds-types").innerHTML = TYPES.map(function (t) { return '<button type="button" data-t="' + t.k + '" aria-pressed="false">' + esc(t.n) + "</button>"; }).join("");
+  $("ds-signs").innerHTML = SIGNS.map(function (s) { return '<button type="button" data-s="' + s.k + '" aria-pressed="false">' + esc(s.n) + "</button>"; }).join("");
+  function syncForm() {
+    document.querySelectorAll("#ds-types [data-t]").forEach(function (b) { b.setAttribute("aria-pressed", String(sel.types.indexOf(b.getAttribute("data-t")) >= 0)); });
+    document.querySelectorAll("#ds-kid [data-kid]").forEach(function (b) { b.setAttribute("aria-pressed", String(+b.getAttribute("data-kid") === sel.kid)); });
+    document.querySelectorAll("#ds-signs [data-s]").forEach(function (b) { b.setAttribute("aria-pressed", String(sel.signs.indexOf(b.getAttribute("data-s")) >= 0)); });
+    $("ds-type-hint").textContent = sel.types.length ? sel.types.map(function (k) { var t = typeOf(k); return t.n + ": " + t.d + "."; }).join(" ") : "Не уверены — выберите то, что ближе. Подсказка появится здесь.";
+  }
+  document.querySelectorAll("#ds-types [data-t]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.getAttribute("data-t"), i = sel.types.indexOf(k);
+      if (i >= 0) sel.types.splice(i, 1); else { sel.types.push(k); if (sel.types.length > 2) sel.types.shift(); }
+      syncForm();
+    });
+  });
+  document.querySelectorAll("#ds-kid [data-kid]").forEach(function (b) { b.addEventListener("click", function () { sel.kid = +b.getAttribute("data-kid"); syncForm(); }); });
+  document.querySelectorAll("#ds-signs [data-s]").forEach(function (b) {
+    b.addEventListener("click", function () { var k = b.getAttribute("data-s"), i = sel.signs.indexOf(k); if (i >= 0) sel.signs.splice(i, 1); else sel.signs.push(k); syncForm(); });
+  });
+  syncForm();
+  function msg(t, ok) { var m = $("ds-msg"); m.textContent = t; m.className = "dy-msg " + (ok ? "ok" : "err"); }
+  $("ds-save").addEventListener("click", function () {
+    var act = $("ds-act").value.trim();
+    if (!act) { msg("Напишите, что он пробовал.", false); return; }
+    if (!sel.types.length) { msg("Выберите тип интереса.", false); return; }
+    if (sel.kid === null) { msg("Отметьте его ответ: хочет ещё или нет.", false); return; }
+    var entry = { d: $("ds-date").value || today(), act: act.slice(0, 60), types: sel.types.slice(), kid: sel.kid, signs: sel.signs.slice(), note: $("ds-note").value.trim().slice(0, 140), ts: Date.now() };
+    function reset() { $("ds-act").value = ""; $("ds-note").value = ""; sel = { types: [], kid: null, signs: [] }; syncForm(); }
+    if (mode === "db" && col) {
+      $("ds-save").disabled = true;
+      col.add(entry).then(function () { $("ds-save").disabled = false; reset(); msg("Запись сохранена.", true); }, function () {
+        $("ds-save").disabled = false; entry.id = "l" + entry.ts; entries.push(entry); saveLocal(); reset(); render(); msg("Сохранено в этом браузере: общее хранилище сейчас недоступно.", true);
+      });
+    } else { entry.id = "l" + entry.ts; entries.push(entry); saveLocal(); reset(); render(); msg("Запись сохранена.", true); }
+  });
+
+  /* chart: one bar per interest type; single series, so no legend */
+  function renderChart() {
+    var box = $("ds-chart"), st = stats();
+    if (!entries.length) { box.innerHTML = '<p class="muted">График появится после первой записи.</p>'; $("ds-ttable").innerHTML = ""; return; }
+    var W = Math.max(300, Math.round(box.clientWidth || 340)), L = 124, R = 46, rowH = 46, T = 6, H = T + rowH * st.length + 22, bw = W - L - R;
+    function x(v) { return L + v / 100 * bw; }
+    var g = '<svg viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Интерес по шести типам, от 0 до 100">';
+    [0, 50, 100].forEach(function (v) { g += '<line x1="' + x(v) + '" x2="' + x(v) + '" y1="' + T + '" y2="' + (H - 20) + '" class="dy-gl' + (v === 0 ? " base" : "") + '"/><text x="' + x(v) + '" y="' + (H - 6) + '" class="dy-ax" text-anchor="middle">' + v + "</text>"; });
+    st.forEach(function (s, i) {
+      var y = T + i * rowH, by = y + 10, bh = 22, w = s.n ? Math.max(4, x(s.score) - L) : 0, r = Math.min(4, w / 2);
+      g += '<g class="dy-bar" tabindex="0" data-i="' + i + '"><rect class="dy-hit" x="0" y="' + y + '" width="' + W + '" height="' + rowH + '" fill="transparent"/>' +
+        '<text x="0" y="' + (y + 20) + '" class="ds-name">' + esc(s.t.n) + '</text><text x="0" y="' + (y + 36) + '" class="dy-ax">' + (s.n ? s.n + " " + plural(s.n, "проба", "пробы", "проб") : "не пробовали") + "</text>";
+      if (s.n) {
+        g += '<path class="ds-fill' + (s.n < 2 ? " thin" : "") + '" d="M' + L + "," + by + " H" + (L + w - r) + " Q" + (L + w) + "," + by + " " + (L + w) + "," + (by + r) + " V" + (by + bh - r) + " Q" + (L + w) + "," + (by + bh) + " " + (L + w - r) + "," + (by + bh) + " H" + L + ' Z"/>' +
+          '<text x="' + (L + w + 6) + '" y="' + (by + 16) + '" class="dy-val-l">' + s.score + "</text>";
+      }
+      g += "</g>";
+    });
+    box.innerHTML = g + "</svg>" + '<div class="dy-tip" id="ds-tip" hidden></div>';
+    var tip = $("ds-tip");
+    function show(el) {
+      var s = st[+el.getAttribute("data-i")];
+      tip.innerHTML = "";
+      function row(html) { var d = document.createElement("div"); d.className = "dy-tip-r"; d.innerHTML = html; tip.appendChild(d); }
+      var h = document.createElement("div"); h.className = "dy-tip-h"; h.textContent = s.t.n + " — " + s.t.d; tip.appendChild(h);
+      if (!s.n) { var nn = document.createElement("div"); nn.className = "dy-tip-n"; nn.textContent = "Ещё не пробовали. Идеи — ниже, в «Что ещё попробовать»."; tip.appendChild(nn); }
+      else {
+        row("<b>" + s.score + "</b> <span>интерес из 100" + (s.n < 2 ? ", проба пока одна" : "") + "</span>");
+        row("<b>" + s.want + " из " + s.n + "</b> <span>раз сказал «хочу ещё»</span>");
+        row("<b>" + (Math.round(s.signs * 10) / 10).toString().replace(".", ",") + " из " + SIGNS.length + "</b> <span>признаков силы в среднем</span>");
+        var acts = {}; s.es.forEach(function (e) { acts[e.act] = 1; });
+        var nn2 = document.createElement("div"); nn2.className = "dy-tip-n"; nn2.textContent = Object.keys(acts).slice(0, 4).join(", "); tip.appendChild(nn2);
+      }
+      tip.hidden = false;
+      var br = box.getBoundingClientRect(), er = el.getBoundingClientRect();
+      tip.style.left = Math.max(0, Math.min(br.width - tip.offsetWidth, L)) + "px";
+      tip.style.top = Math.min(er.bottom - br.top + 2, Math.max(0, br.height - tip.offsetHeight)) + "px";
+      box.querySelectorAll(".dy-bar").forEach(function (b) { b.classList.toggle("on", b === el); });
+    }
+    function hide() { tip.hidden = true; box.querySelectorAll(".dy-bar").forEach(function (b) { b.classList.remove("on"); }); }
+    box.querySelectorAll(".dy-bar").forEach(function (el) {
+      el.addEventListener("pointerenter", function () { show(el); });
+      el.addEventListener("click", function () { show(el); });
+      el.addEventListener("focus", function () { show(el); });
+      el.addEventListener("blur", hide);
+    });
+    box.addEventListener("pointerleave", hide);
+    $("ds-ttable").innerHTML = '<table class="dy-table"><thead><tr><th>Тип</th><th>Проб</th><th>Интерес</th><th>«Хочу ещё»</th><th>Признаков силы</th></tr></thead><tbody>' +
+      st.map(function (s) { return "<tr><td>" + esc(s.t.n) + "</td><td>" + s.n + "</td><td>" + (s.n ? s.score : "—") + "</td><td>" + (s.n ? s.want + " из " + s.n : "—") + "</td><td>" + (s.n ? (Math.round(s.signs * 10) / 10).toString().replace(".", ",") : "—") + "</td></tr>"; }).join("") + "</tbody></table>";
+  }
+  function renderTop() {
+    var groups = {};
+    entries.forEach(function (e) { var k = e.act.toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " "); var g = groups[k] || (groups[k] = { name: e.act, n: 0, sum: 0, last: "" }); g.n++; g.sum += score(e); if (e.d >= g.last) { g.last = e.d; g.name = e.act; } });
+    var top = Object.keys(groups).map(function (k) { var g = groups[k]; g.avg = Math.round(g.sum / g.n); return g; })
+      .filter(function (g) { return g.n >= 2 || g.avg >= 70; }).sort(function (a, b) { return b.n - a.n || b.avg - a.avg; }).slice(0, 6);
+    $("ds-top").innerHTML = top.length ? '<ul class="ds-list">' + top.map(function (g) { return "<li><b>" + esc(g.name) + "</b> <span class=\"muted\">— " + g.n + " " + plural(g.n, "раз", "раза", "раз") + " · интерес " + g.avg + " · последний раз " + esc(ru(g.last)) + "</span></li>"; }).join("") + "</ul>" +
+      '<p class="muted small-note">Что повторяется и набирает признаки силы — туда стоит дать больше времени: кружок, книги, знакомство с тем, кто этим занимается.</p>'
+      : '<p class="muted">Здесь появятся занятия, к которым он возвращается или в которых видно много признаков силы.</p>';
+    var low = stats().filter(function (s) { return s.n < 2; }).sort(function (a, b) { return a.n - b.n; }).slice(0, 3);
+    $("ds-ideas").innerHTML = low.length ? '<ul class="ds-list">' + low.map(function (s) { return "<li><b>" + esc(s.t.n) + "</b> <span class=\"muted\">(" + (s.n ? "одна проба" : "ещё не пробовали") + ")</span>: " + esc(s.t.ideas.join("; ")) + ".</li>"; }).join("") + "</ul>"
+      : '<p class="muted">Все шесть направлений уже пробовали хотя бы дважды. Теперь глубже в то, что затягивает.</p>';
+    $("ds-acts").innerHTML = Object.keys(groups).map(function (k) { return '<option value="' + esc(groups[k].name) + '">'; }).join("");
+  }
+  function renderTable() {
+    var s = entries.slice().sort(function (a, b) { return a.d < b.d ? 1 : a.d > b.d ? -1 : (b.ts || 0) - (a.ts || 0); });
+    if (!s.length) { $("ds-table").innerHTML = '<p class="muted">Записей пока нет.</p>'; return; }
+    $("ds-table").innerHTML = '<div class="dy-tablewrap"><table class="dy-table"><thead><tr><th>Дата</th><th>Занятие</th><th>Он</th><th>Сила</th><th></th></tr></thead><tbody>' + s.map(function (e) {
+      return "<tr><td>" + esc(ru(e.d)) + "</td><td>" + esc(e.act) + '<span class="dy-where">' + e.types.map(function (k) { return esc(typeOf(k).n); }).join(", ") + "</span>" + (e.note ? '<span class="dy-note">' + esc(e.note) + "</span>" : "") + "</td>" +
+        "<td>" + esc(KID[e.kid]) + "</td><td title=\"" + esc(e.signs.map(function (k) { return SIGNS.filter(function (S) { return S.k === k; })[0].n; }).join(", ")) + "\">" + e.signs.length + "/" + SIGNS.length + "</td>" +
+        '<td><button type="button" class="dy-del" data-del="' + esc(e.id) + '" aria-label="Удалить запись">✕</button></td></tr>';
+    }).join("") + "</tbody></table></div>";
+    document.querySelectorAll("#ds-table [data-del]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-sure") !== "1") { b.setAttribute("data-sure", "1"); b.textContent = "Удалить?"; return; }
+        var id = b.getAttribute("data-del");
+        entries = entries.filter(function (e) { return String(e.id) !== id; }); saveLocal(); render();
+        if (mode === "db" && col && id.charAt(0) !== "l") col.doc(id).delete().catch(function () {});
+      });
+    });
+  }
+  function render() {
+    renderChart(); renderTop(); renderTable();
+    $("ds-store").textContent = mode === "db" ? "Записи хранятся вместе со страницей и видны на любом устройстве, где вы её откроете." : "Записи сохраняются в этом браузере.";
+  }
+  render();
+  var rt = null; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
+
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("db").then(function (db) {
+        if (!db) return;
+        col = db.collection("discoveries"); mode = "db";
+        col.onSnapshot(function (snap) {
+          var fromDb = snap.docs.map(function (d) { var x = d.data() || {}; x.id = d.id; return clean(x); }).filter(Boolean);
+          var localOnly = entries.filter(function (e) { return String(e.id).charAt(0) === "l"; });
+          entries = fromDb.concat(localOnly);
+          render();
+        }, function () { mode = "local"; render(); });
+      }, function () {});
+    }
+  } catch (e) {}
+})();
+</script>
