@@ -316,6 +316,26 @@ details.names summary { cursor: pointer; font-weight: 700; }
 .race-opt { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; cursor: pointer; }
 .race-opt input { width: 22px; height: 22px; accent-color: var(--gold); flex: none; margin-top: 2px; }
 
+/* Book quest */
+.quest-row { display: flex; gap: 8px; align-items: stretch; }
+.quest-item { flex: 1; min-width: 0; display: flex; gap: 10px; justify-content: space-between; align-items: center; background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; text-align: left; }
+.quest-item b { font-weight: 800; } .quest-item .muted { font-size: 0.85rem; }
+.q-del { flex: none; padding: 10px 14px; }
+.quest-text p { margin: 0 0 0.55em; } .quest-text p:last-child { margin-bottom: 0; }
+.quest-text .qw { border-radius: 6px; }
+.quest-text .qw.got { background: #fff0b3; box-shadow: inset 0 -3px 0 #e0a92a; }
+.quest-text .qw.miss { background: #e7e9ee; }
+.q-items { display: flex; gap: 4px; font-size: 1.3rem; }
+.q-items span { opacity: 0.25; filter: grayscale(1); } .q-items span.on { opacity: 1; filter: none; }
+.q-choices { display: grid; gap: 8px; }
+.q-ch, .q-opt { width: 100%; text-align: left; line-height: 1.3; }
+.q-ch:disabled { opacity: 0.6; }
+.q-lock { display: grid; gap: 10px; }
+.gem-line { margin: 0; background: var(--panel-2); border: 2px dashed var(--gold); border-radius: 14px; padding: 10px 14px; }
+.gem-line.got { border-style: solid; }
+.q-gen { display: grid; gap: 10px; border-top: 2px dashed var(--line); padding-top: 14px; }
+.q-all { display: grid; gap: 12px; margin-top: 10px; font-size: 0.95rem; } .q-all p { margin: 4px 0; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -515,7 +535,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     var t = dayKey();
     return {
       math: [data.math.sessions, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].some(function (a) { return (a || []).some(function (s) { return s.d === t; }); }),
-      read: (data.reading.runs || []).some(function (r) { return r.d === t; }),
+      read: (data.reading.runs || []).concat(data.reading.ql || []).some(function (r) { return r.d === t; }),
       words: (data.words.sessions || []).some(function (s) { return s.d === t; })
     };
   }
@@ -1787,9 +1807,10 @@ details.names summary { cursor: pointer; font-weight: 700; }
   function renderRead() {
     var v = $("view-read");
     if (reading.view === "schulte") return renderSchulte();
+    if (reading.view === "quest") return renderQuest();
     if (reading.view === "list") {
       var sBest = (data.reading.schulte || []).reduce(function (m, s) { return m && m < s.sec ? m : s.sec; }, 0);
-      v.innerHTML = '<div class="panel">' +
+      v.innerHTML = questPanelHTML() + '<div class="panel">' +
         "<h2>Чтение вслух</h2>" +
         '<p class="muted">Читаем один короткий текст 2–3 раза подряд. Взрослый засекает время и отмечает слова с ошибкой или пропуском. Сначала точность, потом скорость.</p>' +
         '<div class="text-list">' + textsAll().map(function (t) {
@@ -1815,6 +1836,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
       });
       $("sch-start").addEventListener("click", startSchulte);
       bindStoryPanel();
+      bindQuestPanel();
       return;
     }
     var t = getText(reading.tid);
@@ -2056,6 +2078,325 @@ details.names summary { cursor: pointer; font-weight: 700; }
       window.claude.use("sample").then(function (fn) { sampleFn = fn; if (!fn) { story.unavailable = true; if (current === "read" && reading.view === "list") renderRead(); } }, function () { story.unavailable = true; });
     } else story.unavailable = true;
   } catch (e) { story.unavailable = true; }
+
+  /* ---------- "Книга-квест": choose-your-path reading; the reader decides where to go next ---------- */
+  // Pages are short; some doors open only for a careful reader; words in -тся/-ться on a page can be caught for gems.
+  var QUESTS = [{
+    id: "q-arena", title: "Тайна погасшей арены", start: "p1",
+    items: { c1: "💚", c2: "💛", c3: "💙" },
+    pages: {
+      p1: { t: "Вечер. Ты сидишь с планшетом и доигрываешь последний матч. Вдруг экран мигает. Все бойцы замирают, музыка смолкает.\nПосреди экрана появляется надпись: «Арена в опасности! Нужен герой. Ты согласен?»\nПод надписью две кнопки: зелёная «Да» и красная «Нет». Кажется, это не реклама. Палец сам тянется к зелёной кнопке.",
+        ch: [["Нажать зелёную кнопку «Да»", "p2"], ["Нажать красную и выключить планшет", "e0"]] },
+      e0: { t: "Ты нажимаешь красную кнопку. Экран гаснет. В комнате тихо.\nИз кухни пахнет блинами. Мама зовёт: «Ужинать! Надо торопиться, пока горячие!»\nГде-то в глубине планшета маленький робот вздыхает: «Ничего. Может, завтра».\nТы кладёшь планшет на зарядку и идёшь есть блины. Со сметаной!", end: "Не сегодня" },
+      p2: { t: "Ты нажимаешь «Да». Планшет вспыхивает так ярко, что приходится зажмуриться. Тебя затягивает прямо в экран!\nТы стоишь посреди арены. Но она вся серая, как старая фотография. Трава серая, флаги серые, даже небо серое.\nРядом что-то звякает. Это маленький робот с гаечным ключом вместо руки.\n— Привет, герой! Я Болт, — говорит он. — Беда! Вредный Глюк украл три кристалла света. Без них арена погаснет навсегда.",
+        ch: [["Спросить, где искать кристаллы", "p3"]] },
+      p3: { hub: true, t: "Болт достаёт из кармана карту. Она шуршит и слабо светится.\n— Смотри, — говорит Болт. — Глюк спрятал кристаллы в трёх местах. Один в Лесу кустов, другой в Жаркой пустыне, третий на Ледяной башне. А сам он сидит в логове за ареной.\nБолт поднимает железную бровь:\n— Куда отправимся?",
+        ch: [["В Лес кустов", "f1", { not: "c1" }], ["В Жаркую пустыню", "d1", { not: "c2" }], ["На Ледяную башню", "t1", { not: "c3" }], ["К логову Глюка", "b1"], ["Вернуться домой", "eHome"]] },
+      f1: { t: "Вы входите в Лес кустов. Кусты тут выше тебя, в них легко спрятаться.\nУ входа стоит сухое дерево. На ветке сидят три вороны и смотрят на тебя чёрными глазами. На стволе висит табличка: «Тихо идёшь — дальше пройдёшь».\nВ кустах что-то шуршит. Болт шепчет:\n— Может, это Глюк? Как пойдём?",
+        ch: [["Красться тихо, на цыпочках", "f2"], ["Бежать напролом, чтобы успеть первым", "f3"]] },
+      f2: { t: "Вы крадётесь на цыпочках. Ни одна ветка не хрустит.\nЗа кустами сидит рыжая лиса в смешной шапке. На шее у неё висит зелёный кристалл!\n— Я Шуршунья, — улыбается лиса. — Глюк велел сторожить кристалл. Но я отдам его тому, кто внимательный. Скажи-ка: сколько ворон сидело на сухом дереве у входа в лес?",
+        lock: { q: "Сколько ворон сидело на сухом дереве?", o: ["Две", "Три", "Пять"], a: "Три", back: "f1", to: "f4" } },
+      f3: { t: "Ты бежишь напролом. Ветки хлещут по рукам, листья летят во все стороны. Вороны с криком взлетают с дерева.\nВдруг земля под ногами проваливается. Это яма-ловушка! Ты сидишь на дне и смотришь вверх.\nБолт опускает свою длинную руку-ключ и вытаскивает тебя.\n— Фух, — говорит он. — Шуршунья нас услышала и убежала. Придётся вернуться к карте и прийти сюда снова. Только тихо.",
+        ch: [["Вернуться к карте", "p3"]] },
+      f4: { gain: "c1", t: "— Три! — отвечаешь ты.\n— Верно! — смеётся Шуршунья и отдаёт тебе кристалл.\nОн тёплый и светится зелёным, как молодая трава. В ту же секунду кусты вокруг зеленеют. Лес оживает!\n— Передай Глюку, что я больше ему не помощница, — говорит лиса. — С ним скучно. Он всё время ворчит.",
+        ch: [["Вернуться к карте", "p3"]] },
+      d1: { t: "В пустыне так жарко, что песок обжигает ноги. Болт начинает тихонько дымиться.\nВпереди две дороги. Одна ведёт к высокому кактусу. Возле кактуса совсем нет тени, солнце печёт прямо в макушку.\nДругая дорога ведёт к старому колодцу. Над колодцем есть навес, а под ним прохладная тень.\nНа камне кто-то нацарапал: «Береги робота от жары».",
+        ch: [["Пойти к кактусу", "d2"], ["Пойти к колодцу", "d3"]] },
+      d2: { t: "Вы идёте к кактусу. Солнце жарит всё сильнее. Болт краснеет, потом пищит:\n— Перегрев! Перегрев!\nИ садится прямо на песок. Ты тащишь его обратно, туда, где начинается дорога. Там Болт остывает и вздыхает:\n— Надо было выбирать тень. Давай вернёмся к карте и попробуем ещё раз.",
+        ch: [["Вернуться к карте", "p3"]] },
+      d3: { t: "Под навесом прохладно. Болт перестаёт дымиться и радуется. Ты заглядываешь в колодец и кричишь:\n— Эй! Есть тут кто?\n— Кто, кто, кто… — отвечает колодец.\n— Мне нужен кристалл!\n— Кристалл, кристалл, кристалл… — повторяет голос.\n— Это Эхо, — объясняет Болт. — Оно отдаёт свои вещи тому, кто скажет слово, которое оно повторило последним.",
+        lock: { q: "Какое слово Эхо повторило последним?", o: ["Кто", "Кристалл", "Эй"], a: "Кристалл", to: "d4" } },
+      d4: { gain: "c2", t: "— Кристалл! — говоришь ты.\n— Правильно, правильно, правильно… — радостно повторяет Эхо.\nИз колодца поднимается ведро. В нём лежит жёлтый кристалл, яркий, как солнце. Ты берёшь его, и пустыня вокруг начинает сверкать. Песок становится золотым.\nБолт даже пританцовывает.",
+        ch: [["Вернуться к карте", "p3"]] },
+      t1: { t: "Ледяная башня блестит так, что больно смотреть. Ступени скользкие, приходится держаться за перила.\nНаверху дверь, а на ней сосульки. Они висят в три ряда, по четыре в каждом ряду.\nНа двери написано: «Дверь откроется, если назовёшь, сколько всего сосулек».",
+        lock: { q: "Сколько всего сосулек на двери?", o: ["7", "12", "10"], a: "12", to: "t2" } },
+      t2: { t: "Дверь скрипит и открывается. Внутри холодно, изо рта идёт пар.\nНа самой верхней полке лежит синий кристалл. Тебе до него не достать, даже если подпрыгнуть.\nВдоль стены висят толстые сосульки, похожие на лестницу. Болт стоит рядом и задумчиво стучит ключом по голове.",
+        ch: [["Попросить Болта подсадить", "t3"], ["Залезть по сосулькам", "t4"]] },
+      t3: { gain: "c3", t: "— Болт, подсади меня! — просишь ты.\nРобот встаёт на цыпочки и вытягивает руки, а ты забираешься ему на плечи. Ещё чуть-чуть… Есть! Синий кристалл у тебя в руках.\nОн холодный и светится, как вечернее небо. Стены башни начинают переливаться всеми цветами.\n— Вместе мы выше! — гордо говорит Болт.",
+        ch: [["Вернуться к карте", "p3"]] },
+      t4: { t: "Ты хватаешься за первую сосульку и лезешь вверх. Вторая сосулька трещит. Третья ломается!\nТы летишь вниз и попадаешь на ледяную горку. Ж-ж-жух! Горка крутится, как в аквапарке, и выносит тебя из башни прямо в сугроб.\nСверху спускается Болт.\n— Весело, — говорит он. — Но кристалл остался наверху. Может, в следующий раз попросишь помощи?",
+        ch: [["Вернуться к карте", "p3"]] },
+      b1: { t: "Логово Глюка спрятано за ареной. Внутри мигают лампочки и гудят провода.\nПосреди комнаты прыгает Глюк. Он похож на пушистый комок из разноцветных квадратиков. Глюк всё время дёргается и мигает.\n— Ха! — кричит он. — Опять кто-то пришёл! Арена моя, и свет мой!",
+        ch: [["Поднять три кристалла над головой", "eWin", { need: 3 }], ["Спросить, зачем он всё это сделал", "b2"], ["Убежать к карте", "p3"]] },
+      b2: { t: "— Зачем ты украл свет? — спрашиваешь ты.\nГлюк перестаёт прыгать и садится на пол.\n— Потому что со мной никто не играет, — тихо говорит он. — Все бегают по арене, а меня никто не зовёт. Я думал: если свет погаснет, все придут ко мне.\nГлюк шмыгает носом. Кажется, он сейчас заплачет.",
+        lock: { q: "Почему Глюк забрал свет?", o: ["Ему было одиноко, с ним никто не играл", "Он хотел стать чемпионом", "Он боится яркого света"], a: "Ему было одиноко, с ним никто не играл", to: "eFriend" } },
+      eWin: { t: "Ты поднимаешь над головой три кристалла: зелёный, жёлтый и синий. Они вспыхивают радугой!\nСвет летит во все стороны. Арена загорается, флаги становятся яркими, на трибунах зажигаются огни. Глюк зажмуривается и чихает:\n— Апчхи! Ладно, ладно, сдаюсь!\nБолт хлопает тебя по плечу:\n— Ты настоящий герой!\nЭкран мигает, и ты снова дома, на своём диване. На планшете горит надпись: «Арена спасена. Спасибо, герой!»", end: "Чемпион арены" },
+      eFriend: { t: "— Давай играть вместе! — говоришь ты.\nГлюк замирает. Потом подпрыгивает до потолка и пищит от радости:\n— Правда? Со мной?\nОн хлопает в ладоши, и весь свет возвращается на арену. Она загорается всеми цветами.\nТеперь Глюк играет со всеми. Только иногда он мигает, и тогда все смеются.\nБолт улыбается:\n— Иногда, чтобы победить, не нужно драться.", end: "Друг Глюка" },
+      eHome: { t: "— Болт, я хочу домой, — говоришь ты.\n— Понимаю, — кивает робот. — Герои тоже устают.\nОн рисует ключом на земле дверь. Дверь открывается, и ты шагаешь прямо в свою комнату.\nПланшет лежит на столе, экран тёмный. За окном ещё светло, во дворе ребята гоняют мяч. Ты надеваешь кроссовки и выходишь на улицу.\nА арена подождёт. Болт обещал ждать.", end: "Дорога домой" }
+    }
+  }];
+  var quest = { q: null, page: null, cr: [], hist: [], lockMsg: "", gemMsg: "", gen: { busy: false, ctl: null, result: null, msg: "", theme: STORY_THEMES[0] } };
+
+  function questsAll() { return QUESTS.concat((data.reading.quests || []).filter(questValid)); }
+  function getQuest(id) { return questsAll().filter(function (q) { return q.id === id; })[0]; }
+  function questProg(id) {
+    var all = data.reading.qp || (data.reading.qp = {});
+    var p = all[id] || (all[id] = {});
+    ["seen", "ends", "gems"].forEach(function (k) { if (!Array.isArray(p[k])) p[k] = []; });
+    return p;
+  }
+  function questEnds(q) { return Object.keys(q.pages).filter(function (k) { return q.pages[k].end; }); }
+  function questSaved(id) { try { var s = JSON.parse(localStorage.getItem(LS + "quest-" + id) || "null"); return s && s.page ? s : null; } catch (e) { return null; } }
+  function questKeep() { try { if (quest.q) localStorage.setItem(LS + "quest-" + quest.q, JSON.stringify({ page: quest.page, cr: quest.cr, hist: quest.hist })); } catch (e) {} }
+  function questForget(id) { try { localStorage.removeItem(LS + "quest-" + id); } catch (e) {} }
+  // Catchable words: verbs in -тся / -ться.
+  function isTsya(w) { return /[а-яё]т(ь)?ся$/.test(w.toLowerCase()); }
+  function tsyaWhy(w) {
+    w = w.toLowerCase();
+    if (/ться$/.test(w)) return "«" + w + "» — что делать? или что сделать? В вопросе есть ь, значит, и в слове -ться.";
+    var many = /[юуяа]тся$/.test(w);
+    return "«" + w + "» — " + (many ? "что делают? или что сделают?" : "что делает? или что сделает?") + " В вопросе нет ь, значит, и в слове -тся.";
+  }
+  function pageWords(t) { return t.replace(/\n/g, " ").split(/\s+/).filter(isWord).length; }
+
+  function questPanelHTML() {
+    var qs = questsAll();
+    return '<div class="panel">' +
+      "<h2>Книга-квест</h2>" +
+      '<p class="muted">Книга, где ты сам выбираешь, куда идти дальше. Страницы короткие. Некоторые двери открываются только тем, кто читает внимательно. Ищи все концовки!</p>' +
+      '<div class="text-list">' + qs.map(function (q) {
+        var p = questProg(q.id), ends = questEnds(q), sv = questSaved(q.id);
+        return '<div class="quest-row"><button type="button" class="quest-item" data-qid="' + esc(q.id) + '"><span><b>' + esc(q.title) + '</b><br><span class="muted">' + Object.keys(q.pages).length + " " + plural(Object.keys(q.pages).length, "страница", "страницы", "страниц") + (q.ai ? " · квест от ИИ" : "") + "</span></span>" +
+          '<span class="muted">' + (sv ? "продолжить ▶" : p.ends.length ? "концовок " + p.ends.length + " из " + ends.length : "ещё не читали") + "</span></button>" +
+          (q.ai ? '<button type="button" class="btn ghost q-del" data-qdel="' + esc(q.id) + '" aria-label="Удалить квест «' + esc(q.title) + '»">✕</button>' : "") + "</div>";
+      }).join("") + "</div>" + questGenHTML() + "</div>";
+  }
+  function bindQuestPanel() {
+    document.querySelectorAll("[data-qid]").forEach(function (b) { b.addEventListener("click", function () { openQuest(b.getAttribute("data-qid")); }); });
+    document.querySelectorAll("[data-qdel]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-qdel");
+        if (b.getAttribute("data-sure") !== "1") { b.setAttribute("data-sure", "1"); b.textContent = "Удалить?"; return; }
+        data.reading.quests = (data.reading.quests || []).filter(function (q) { return q.id !== id; });
+        if (data.reading.qp) delete data.reading.qp[id];
+        questForget(id); save("reading"); renderRead();
+      });
+    });
+    bindQuestGen();
+  }
+  function openQuest(id) {
+    var q = getQuest(id); if (!q) return;
+    var sv = questSaved(id);
+    quest.q = id; quest.lockMsg = ""; quest.gemMsg = "";
+    if (sv && q.pages[sv.page]) { quest.page = sv.page; quest.cr = sv.cr || []; quest.hist = sv.hist || []; }
+    else { quest.page = q.start; quest.cr = []; quest.hist = []; questLogPage(q, q.start); }
+    reading.view = "quest"; renderRead();
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  function questLogPage(q, pid) {
+    var p = questProg(q.id); if (p.seen.indexOf(pid) < 0) p.seen.push(pid);
+    var pg = q.pages[pid]; if (pg.end && p.ends.indexOf(pid) < 0) p.ends.push(pid);
+    var log = data.reading.ql || (data.reading.ql = []), d = dayKey(), last = log[log.length - 1];
+    if (last && last.d === d && last.q === q.id) { last.pages++; last.w += pageWords(pg.t); } else log.push({ d: d, q: q.id, pages: 1, w: pageWords(pg.t) });
+    trim(log, 400); save("reading");
+  }
+  function questGo(pid) {
+    var q = getQuest(quest.q); if (!q || !q.pages[pid]) return;
+    quest.hist.push({ page: quest.page, cr: quest.cr.slice() }); if (quest.hist.length > 60) quest.hist.shift();
+    quest.page = pid; quest.lockMsg = ""; quest.gemMsg = "";
+    var pg = q.pages[pid];
+    if (pg.gain && quest.cr.indexOf(pg.gain) < 0) quest.cr.push(pg.gain);
+    questLogPage(q, pid);
+    if (pg.end) questForget(q.id); else questKeep();
+    renderRead(); renderHeader();
+    try { $("view-read").scrollIntoView({ block: "start" }); } catch (e) {}
+  }
+  function renderQuest() {
+    var v = $("view-read"), q = getQuest(quest.q);
+    if (!q || !q.pages[quest.page]) { reading.view = "list"; return renderRead(); }
+    var pg = q.pages[quest.page], prog = questProg(q.id), ends = questEnds(q);
+    var readerCls = "reader quest-text" + (reading.big ? " big" : "") + (reading.spaced ? " spaced" : "");
+    var gemDone = prog.gems.indexOf(quest.page) >= 0, hasGem = !gemDone && pg.t.split(/[^А-Яа-яЁё-]+/).some(isTsya);
+    var html = pg.t.split("\n").map(function (para) {
+      return "<p>" + para.split(/([А-Яа-яЁё]+(?:-[А-Яа-яЁё]+)*)/).map(function (part, i) {
+        if (i % 2 === 0) return esc(part);
+        var cls = "qw" + (gemDone && isTsya(part) ? " got" : "");
+        return '<span class="' + cls + '">' + esc(part) + "</span>";
+      }).join("") + "</p>";
+    }).join("");
+    var items = q.items ? '<div class="q-items" aria-label="Что у тебя есть">' + Object.keys(q.items).map(function (k) { return '<span class="' + (quest.cr.indexOf(k) >= 0 ? "on" : "") + '">' + q.items[k] + "</span>"; }).join("") + "</div>" : "";
+    var head = '<div class="row" style="justify-content:space-between"><button class="btn ghost" id="q-back" type="button">← Книги</button>' +
+      '<div class="seg"><button type="button" id="q-big" aria-pressed="' + reading.big + '">Крупнее</button><button type="button" id="q-spaced" aria-pressed="' + reading.spaced + '">Просторнее</button></div></div>';
+    var gemLine = hasGem ? '<p class="gem-line">💎 Бонус: найди на странице слово, которое кончается на <b>-тся</b> или <b>-ться</b>, и нажми на него.</p>' : "";
+    if (quest.gemMsg) gemLine = '<p class="gem-line got">' + quest.gemMsg + "</p>";
+    var foot = "";
+    if (pg.end) {
+      foot = '<div class="feedback good"><div class="ex">Концовка</div><div class="big">' + esc(pg.end) + "</div>" +
+        '<p>Найдено концовок: <b>' + prog.ends.length + " из " + ends.length + "</b>" + (prog.ends.length < ends.length ? ". Попробуй выбрать по-другому!" : ". Ты нашёл все!") + "</p>" +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="q-restart" type="button">Начать сначала</button><button class="btn ghost" id="q-list" type="button">К книгам</button></div></div>';
+    } else if (pg.lock) {
+      var L = pg.lock;
+      foot = '<div class="q-lock"><p class="ask">' + esc(L.q) + '</p><div class="q-choices">' + L.o.map(function (o) { return '<button type="button" class="btn ghost q-opt" data-lo="' + esc(o) + '">' + esc(o) + "</button>"; }).join("") + "</div>" +
+        (quest.lockMsg ? '<p class="hint" style="justify-self:center">' + esc(quest.lockMsg) + "</p>" + (L.back && q.pages[L.back] ? '<div class="row" style="justify-content:center"><button class="btn ghost" id="q-reread" type="button">Вернуться и перечитать</button></div>' : "") : "") + "</div>";
+    } else {
+      foot = '<div class="q-choices">' + (pg.ch || []).filter(function (c) { return !(c[2] && c[2].not && quest.cr.indexOf(c[2].not) >= 0); }).map(function (c) {
+        var need = c[2] && c[2].need, locked = need && quest.cr.length < need;
+        return '<button type="button" class="btn ghost q-ch" data-go="' + esc(c[1]) + '"' + (locked ? " disabled" : "") + ">" + (locked ? "🔒 " : "→ ") + esc(c[0]) + (locked ? ' <span class="small">(нужно ' + need + ", у тебя " + quest.cr.length + ")</span>" : "") + "</button>";
+      }).join("") + "</div>";
+    }
+    v.innerHTML = '<div class="panel quest">' + head + '<div class="row" style="justify-content:space-between"><span class="ex">' + esc(q.title) + "</span>" + items + "</div>" +
+      (pg.hub && q.items ? '<p class="muted small" style="margin:0">Кристаллов: ' + quest.cr.length + " из " + Object.keys(q.items).length + (quest.cr.length === Object.keys(q.items).length ? ". Все у тебя! Пора к Глюку." : "") + "</p>" : "") +
+      '<div class="' + readerCls + '" id="q-text">' + html + "</div>" + gemLine + foot +
+      (quest.hist.length && !pg.end ? '<div class="row" style="justify-content:center"><button class="btn ghost" id="q-undo" type="button">↶ Шаг назад</button></div>' : "") + "</div>";
+    $("q-back").addEventListener("click", function () { reading.view = "list"; renderRead(); });
+    $("q-big").addEventListener("click", function () { reading.big = !reading.big; try { localStorage.setItem(LS + "big", reading.big ? "1" : "0"); } catch (e) {} renderQuest(); });
+    $("q-spaced").addEventListener("click", function () { reading.spaced = !reading.spaced; try { localStorage.setItem(LS + "spaced", reading.spaced ? "1" : "0"); } catch (e) {} renderQuest(); });
+    v.querySelectorAll("[data-go]").forEach(function (b) { b.addEventListener("click", function () { questGo(b.getAttribute("data-go")); }); });
+    v.querySelectorAll("[data-lo]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-lo") === pg.lock.a) { questGo(pg.lock.to); return; }
+        quest.lockMsg = pg.lock.back && q.pages[pg.lock.back] ? "Не то. Ответ был на прошлой странице — вернись и перечитай." : "Не то. Ответ есть на этой странице — перечитай её ещё раз.";
+        renderQuest();
+      });
+    });
+    if ($("q-reread")) $("q-reread").addEventListener("click", function () { questGo(pg.lock.back); });
+    if ($("q-undo")) $("q-undo").addEventListener("click", function () { var h = quest.hist.pop(); if (!h) return; quest.page = h.page; quest.cr = h.cr; quest.lockMsg = ""; quest.gemMsg = ""; questKeep(); renderQuest(); });
+    if ($("q-restart")) $("q-restart").addEventListener("click", function () { questForget(q.id); openQuest(q.id); });
+    if ($("q-list")) $("q-list").addEventListener("click", function () { reading.view = "list"; renderRead(); });
+    if (hasGem) $("q-text").addEventListener("click", function (e) {
+      var w = e.target.closest(".qw"); if (!w) return;
+      if (isTsya(w.textContent)) {
+        prog.gems.push(quest.page); save("reading");
+        quest.gemMsg = "💎 +1. " + esc(tsyaWhy(w.textContent)) + ' <span class="muted small">Гемов: ' + Object.keys(data.reading.qp).reduce(function (s, k) { return s + data.reading.qp[k].gems.length; }, 0) + "</span>";
+        renderQuest();
+      } else { w.classList.add("miss"); setTimeout(function () { w.classList.remove("miss"); }, 600); }
+    });
+  }
+
+  /* AI-written quests: the adult reviews the pages before the child reads them. */
+  function questValid(q) {
+    if (!q || typeof q !== "object" || typeof q.id !== "string" || !q.pages || typeof q.pages !== "object" || !q.pages[q.start]) return false;
+    var ids = Object.keys(q.pages), ok = ids.length >= 5 && ids.length <= 30;
+    ids.forEach(function (k) {
+      var p = q.pages[k];
+      if (!p || typeof p.t !== "string" || !p.t.trim()) { ok = false; return; }
+      if (p.end) return;
+      if (p.lock) { if (!Array.isArray(p.lock.o) || p.lock.o.indexOf(p.lock.a) < 0 || !q.pages[p.lock.to]) ok = false; return; }
+      if (!Array.isArray(p.ch) || !p.ch.length || p.ch.some(function (c) { return !Array.isArray(c) || typeof c[0] !== "string" || !q.pages[c[1]]; })) ok = false;
+    });
+    if (!ok) return false;
+    // every page must lead to some ending
+    var good = {}, changed = true;
+    ids.forEach(function (k) { if (q.pages[k].end) good[k] = 1; });
+    while (changed) {
+      changed = false;
+      ids.forEach(function (k) {
+        if (good[k]) return;
+        var p = q.pages[k], next = p.lock ? [p.lock.to] : p.ch.map(function (c) { return c[1]; });
+        if (next.some(function (n) { return good[n]; })) { good[k] = 1; changed = true; }
+      });
+    }
+    return ids.every(function (k) { return good[k]; });
+  }
+  function questFromAI(r, words) {
+    if (!r || typeof r !== "object" || !Array.isArray(r.pages)) return null;
+    var pages = {}, ok = true;
+    function cleanT(s) { return String(s || "").replace(/\r/g, "").replace(/[ \t]+/g, " ").replace(/\n{2,}/g, "\n").trim().slice(0, 1400); }
+    r.pages.slice(0, 30).forEach(function (p) {
+      if (!p || typeof p.id !== "string") { ok = false; return; }
+      var id = p.id.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 20); if (!id || pages[id]) { ok = false; return; }
+      var t = cleanT(p.text); if (pageWords(t) < 5 || pageWords(t) > 220) { ok = false; return; }
+      var out = { t: t };
+      if (p.ending) out.end = String(p.ending).trim().slice(0, 40) || "Конец";
+      else if (p.question && typeof p.question === "object") {
+        var o = Array.isArray(p.question.options) ? p.question.options.map(function (x) { return String(x).trim().slice(0, 80); }).filter(Boolean).slice(0, 4) : [];
+        out.lock = { q: String(p.question.q || "").trim().slice(0, 160), o: o, a: String(p.question.answer || "").trim().slice(0, 80), to: String(p.question.to || "").replace(/[^A-Za-z0-9_-]/g, "") };
+        if (!out.lock.q || o.length < 2) ok = false;
+      } else out.ch = (Array.isArray(p.choices) ? p.choices : []).slice(0, 3).map(function (c) { return [String(c && c.text || "").trim().slice(0, 90), String(c && c.to || "").replace(/[^A-Za-z0-9_-]/g, "")]; });
+      pages[id] = out;
+    });
+    if (!ok) return null;
+    var start = String(r.start || (r.pages[0] && r.pages[0].id) || "").replace(/[^A-Za-z0-9_-]/g, "");
+    var q = { id: "qa" + Date.now().toString(36), title: String(r.title || "Квест").trim().slice(0, 60) || "Квест", start: start, pages: pages, ai: true, words: words.slice() };
+    return questValid(q) ? q : null;
+  }
+  function questPrompt(theme, hero, ws) {
+    return "Ты пишешь книгу-квест (книгу-игру, где читатель сам выбирает, что делать дальше) для мальчика 9 лет, 3 класс российской школы. Читать он не любит, поэтому история должна быть живой, смешной и с приключениями, а язык простым.\n\n" +
+      "Тема: " + theme + ".\n" +
+      "Повествование во втором лице («ты идёшь», «ты видишь»). Читатель — главный герой" + (hero ? ", рядом с ним напарник по имени " + hero : "") + ".\n" +
+      (ws.length ? "Обязательно используй каждое из этих слов хотя бы один раз где-нибудь в книге (можно в другой форме): " + ws.join(", ") + ".\n" : "") +
+      "\nТребования:\n" +
+      "- 10–14 страниц. Каждая страница — 40–80 слов. Короткие предложения, до 12 слов. Простые слова уровня 3 класса. Диалоги через тире с новой строки.\n" +
+      "- В конце обычной страницы 2 выбора (иногда 1 или 3). Выбор — короткое действие: «Открыть дверь», «Позвать на помощь».\n" +
+      "- 3 или 4 концовки, все добрые или смешные, без «ты погиб». Плохой выбор ведёт в тупик, из которого можно вернуться назад, или к смешной концовке.\n" +
+      "- На 1–2 страницах вместо выборов вопрос на внимательное чтение: ответ должен быть написан прямо на этой же странице. 3 варианта ответа, один верный.\n" +
+      "- Чаще используй глаголы на -тся и -ться (улыбается, придётся, спрятаться), но естественно.\n" +
+      "- Безупречная орфография и пунктуация, буква ё там, где нужна. Без названий настоящих игр, брендов, фильмов и знаменитостей. Без страшного и без грубых слов.\n" +
+      "- С любой страницы должна быть дорога к какой-нибудь концовке. Все ссылки «to» указывают на существующие id.\n\n" +
+      'Ответь только JSON: {"title": "Название", "start": "p1", "pages": [' +
+      '{"id": "p1", "text": "Текст страницы", "choices": [{"text": "Что сделать", "to": "p2"}, {"text": "Другое действие", "to": "p3"}]}, ' +
+      '{"id": "p5", "text": "Текст страницы с подсказкой", "question": {"q": "Вопрос по этой странице?", "options": ["вариант 1", "вариант 2", "вариант 3"], "answer": "вариант 2", "to": "p6"}}, ' +
+      '{"id": "e1", "text": "Текст концовки", "ending": "Название концовки"}]}';
+  }
+  function questGenHTML() {
+    var G = quest.gen;
+    if (story.unavailable) return '<p class="muted small">Новые квесты от ИИ сейчас недоступны на этой странице.</p>';
+    var body = '<div class="q-gen"><h3>Новый квест от ИИ</h3><p class="muted small">ИИ сочинит книгу-квест на выбранную тему, с его трудными словами из диктанта. Займёт 1–2 минуты.</p>' +
+      '<div class="seg" id="qg-themes">' + STORY_THEMES.map(function (t) { return '<button type="button" data-qth="' + esc(t) + '" aria-pressed="' + (G.theme === t) + '">' + esc(t) + "</button>"; }).join("") + "</div>" +
+      '<div class="row">' + (G.busy ? '<button class="btn ghost" type="button" id="qg-stop">Остановить</button><span class="muted" id="qg-prog">Придумываю сюжет… обычно 1–2 минуты.</span>' : '<button class="btn ghost" type="button" id="qg-go">' + (G.result ? "Другой квест" : "Сочинить квест") + "</button>") +
+      (G.msg ? '<span class="small" style="color:var(--bad)">' + esc(G.msg) + "</span>" : "") + "</div>";
+    if (G.result) {
+      var r = G.result, ids = Object.keys(r.pages), all = ids.map(function (k) { return r.pages[k].t; }).join(" ");
+      body += '<div class="st-preview"><p class="ex">Для взрослого: проверьте текст перед чтением</p><h3>' + esc(r.title) + "</h3>" +
+        '<p class="muted small">' + ids.length + " " + plural(ids.length, "страница", "страницы", "страниц") + ", концовок: " + questEnds(r).length + ", слов: " + pageWords(all) + "</p>" +
+        '<div class="row">' + r.words.map(function (w) { var ok = hasWord(all, w); return '<span class="cov ' + (ok ? "ok" : "no") + '">' + (ok ? "✓ " : "✗ ") + esc(w) + "</span>"; }).join("") + "</div>" +
+        '<details class="names"><summary class="muted">Все страницы</summary><div class="q-all">' + ids.map(function (k) {
+          var p = r.pages[k];
+          return '<div><b>' + esc(k) + (p.end ? " · концовка «" + esc(p.end) + "»" : "") + "</b><p>" + esc(p.t).replace(/\n/g, "<br>") + "</p>" +
+            (p.ch ? '<p class="muted small">' + p.ch.map(function (c) { return "→ " + esc(c[0]) + " (" + esc(c[1]) + ")"; }).join("<br>") + "</p>" : "") +
+            (p.lock ? '<p class="muted small">Вопрос: ' + esc(p.lock.q) + " Ответ: " + esc(p.lock.a) + "</p>" : "") + "</div>";
+        }).join("") + "</div></details>" +
+        '<div class="row"><button class="btn gold" type="button" id="qg-save">Сохранить в книги</button><button class="btn ghost" type="button" id="qg-drop">Убрать</button></div></div>';
+    }
+    return body + "</div>";
+  }
+  function bindQuestGen() {
+    var G = quest.gen;
+    document.querySelectorAll("[data-qth]").forEach(function (b) { b.addEventListener("click", function () { G.theme = b.getAttribute("data-qth"); renderRead(); }); });
+    if ($("qg-go")) $("qg-go").addEventListener("click", generateQuest);
+    if ($("qg-stop")) $("qg-stop").addEventListener("click", function () { if (G.ctl) G.ctl.abort(); });
+    if ($("qg-save")) $("qg-save").addEventListener("click", function () {
+      var list = data.reading.quests || (data.reading.quests = []);
+      list.push(G.result); while (list.length > 8) list.shift();
+      save("reading"); G.result = null; G.msg = ""; renderRead();
+    });
+    if ($("qg-drop")) $("qg-drop").addEventListener("click", function () { G.result = null; renderRead(); });
+  }
+  function generateQuest() {
+    var G = quest.gen;
+    if (G.busy) return;
+    if (!sampleFn) { story.unavailable = true; renderRead(); return; }
+    var hero = ((data.math.names || {}).hero || "").trim(), ws = troubleWords().slice(0, 5);
+    G.busy = true; G.msg = ""; G.ctl = new AbortController(); renderRead();
+    sampleFn.json(questPrompt(G.theme, hero, ws), { signal: G.ctl.signal, cache: false, onText: function (u) { var n = (u.text.match(/"id"\s*:/g) || []).length, el = $("qg-prog"); if (el && n) el.textContent = "Пишу страницу " + n + "…"; } }).then(function (r) {
+      G.busy = false;
+      var q = questFromAI(r, ws);
+      if (!q) { G.msg = "Квест получился с ошибкой в переходах. Попробуйте ещё раз."; renderRead(); return; }
+      G.result = q; renderRead();
+    }, function (e) {
+      G.busy = false;
+      var code = e && e.code;
+      if (code === "cancelled") G.msg = "";
+      else if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" || code === "capability_disabled" || code === "capability_removed") story.unavailable = true;
+      else if (code === "rate_limited") G.msg = "Слишком много запросов. Попробуйте через пару минут.";
+      else if (code === "refused") G.msg = "ИИ не стал писать на эту тему. Выберите другую.";
+      else if (code === "session_expired") G.msg = "Нужно заново войти в аккаунт Claude.";
+      else if (code === "invalid_json") G.msg = "Ответ ИИ оборвался или сломался. Попробуйте ещё раз.";
+      else G.msg = "Не получилось. Попробуйте ещё раз.";
+      renderRead();
+    });
+  }
+  function questProgressHTML() {
+    var log = data.reading.ql || []; if (!log.length) return "";
+    var pages = 0, words = 0, wk = 0, since = addDays(dayKey(), -6);
+    log.forEach(function (x) { pages += x.pages; words += x.w; if (x.d >= since) wk += x.w; });
+    var qp = data.reading.qp || {}, gems = 0;
+    Object.keys(qp).forEach(function (k) { gems += (qp[k].gems || []).length; });
+    var lines = questsAll().map(function (q) { var p = questProg(q.id); return p.seen.length ? "«" + esc(q.title) + "»: концовок " + p.ends.length + " из " + questEnds(q).length : ""; }).filter(Boolean);
+    return '<div class="panel"><h3>Книга-квест</h3><div class="stats">' + stat(String(pages), "страниц прочитано") + stat(String(words), "слов всего") + stat(String(wk), "слов за последние 7 дней") + stat(String(gems), "слов на -тся/-ться найдено") + "</div>" +
+      (lines.length ? '<p class="muted small">' + lines.join("<br>") + "</p>" : "") +
+      '<p class="muted small">Квест — чтение для удовольствия, скорость тут не важна. Спросите, какую концовку он уже нашёл и что выбрал бы иначе. Можно читать по очереди: страницу он, страницу вы.</p></div>';
+  }
 
   /* ---------- speech ---------- */
   var ruVoice = null;
@@ -2802,6 +3143,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     (data.math.sessions || []).forEach(function (s) { set[s.d] = 1; });
     (data.words.sessions || []).forEach(function (s) { set[s.d] = 1; });
     (data.reading.runs || []).forEach(function (s) { set[s.d] = 1; });
+    [data.reading.ql, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].forEach(function (a) { (a || []).forEach(function (s) { set[s.d] = 1; }); });
     var t = dayKey();
     for (var i = 13; i >= 0; i--) days.push(addDays(t, -i));
     var active = days.filter(function (d) { return set[d]; }).length;
@@ -2836,7 +3178,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
           var mx = Math.max.apply(null, Object.keys(bestBy).map(function (k) { return bestBy[k]; }));
           return '<div class="bar"><span class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(tx.title) + '</span><div class="track"><div class="fill best" style="width:' + Math.round(bestBy[tx.id] / mx * 100) + '%"></div></div><b>' + bestBy[tx.id] + "</b></div>";
         }).join("") + '</div><p class="muted small">Слов в минуту, прочитанных верно. Норм здесь нет: сравниваем его только с ним самим.</p>' : '<p class="muted">Чтений пока не было.</p>') +
-      "</div>" +
+      "</div>" + questProgressHTML() +
       '<div class="panel"><h3>Как пользоваться</h3><ul class="tips">' +
         "<li>1–2 тренировки в день по 5 минут. Это учебное время, а не развлекательное, и оно не входит в матчи Brawl Stars.</li>" +
         "<li>Не перед сном: последний час без экранов остаётся в силе.</li>" +
