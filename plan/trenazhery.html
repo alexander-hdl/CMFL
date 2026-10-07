@@ -369,6 +369,40 @@ details.q-gen[open] > summary::before { content: "▾"; }
 .pr-btn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
 .pr-wpm { color: #9db3bc; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+/* Своя игра */
+.qz-board { display: grid; gap: 8px; }
+.qz-row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 64px); gap: 6px; align-items: center; }
+.qz-theme { font-weight: 800; font-size: 0.95rem; line-height: 1.2; }
+.qz-cell { min-height: 52px; border-radius: 12px; border: 2px solid var(--gold); background: var(--panel-2); color: var(--gold); font-family: var(--f-display); font-size: 1.2rem; cursor: pointer; }
+.qz-cell.ok { border-color: var(--good); color: var(--good); } .qz-cell.no { border-color: var(--bad); color: var(--bad); }
+.qz-cell:disabled { opacity: 0.75; cursor: default; }
+.qz-cell.empty { border: 0; background: transparent; }
+.qz-card { background: var(--paper); color: #1b2333; border-radius: 14px; padding: 18px; display: grid; gap: 10px; }
+.qz-card .ex { color: #8a5d00; }
+.qz-q { font-size: 1.4rem; font-weight: 800; margin: 0; line-height: 1.35; }
+.qz-a { margin: 0; font-size: 1.15rem; border-top: 2px dashed #d7d3c4; padding-top: 10px; }
+.qz-miss, .qz-prev { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 4px; }
+/* Моя неделя */
+.week-strip:empty { display: none; }
+.wk-btn { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; text-align: left; background: var(--panel); color: var(--ink); border: 2px dashed var(--gold); border-radius: 14px; padding: 10px 14px; cursor: pointer; font: inherit; }
+.wk-btn span { min-width: 0; }
+.wk-btn.done { border-style: solid; border-color: var(--good); }
+.wk-dots { display: inline-flex; gap: 4px; }
+.wk-dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line); }
+.wk-dots i.on { background: var(--gold); border-color: var(--gold); }
+.wk-late { font-size: 0.8rem; font-weight: 800; color: var(--gold-ink); background: var(--gold); border-radius: 999px; padding: 2px 8px; }
+.week-ov { position: fixed; inset: 0; z-index: 90; background: rgba(5, 9, 13, 0.88); overflow-y: auto; padding: 16px; }
+.week-box { max-width: 720px; margin: 0 auto; display: grid; gap: 12px; background: var(--bg); border: 2px solid var(--line); border-radius: var(--r); padding: 16px; }
+.wk-panel { padding: 14px; }
+.wk-goal { display: grid; gap: 8px; }
+.wk-goal .track { height: 18px; background: var(--panel-2); border-radius: 6px; overflow: hidden; }
+.wk-goal .fill { height: 100%; background: var(--gold); border-radius: 6px; }
+.wk-goal.done .fill { background: var(--good); }
+.wk-opts { display: grid; gap: 8px; }
+.wk-opt { text-align: left; }
+.wk-up { color: var(--good); }
+.wk-past { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -424,6 +458,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
     <button role="tab" id="tab-prog" aria-selected="false" data-tab="prog">Прогресс</button>
   </nav>
   <div class="today" id="today"></div>
+  <div class="week-strip" id="week-strip"></div>
 
   <!-- MATH -->
   <section id="view-math" role="tabpanel" aria-labelledby="tab-math"></section>
@@ -453,12 +488,13 @@ details.q-gen[open] > summary::before { content: "▾"; }
   function boxColor(b) { return ["var(--b0)", "var(--b1)", "var(--b2)", "var(--b3)", "var(--b4)", "var(--b5)"][b || 0]; }
 
   /* ---------- storage: shared db when available, browser otherwise ---------- */
-  var DOCS = ["math", "words", "reading", "screen"];
+  var DOCS = ["math", "words", "reading", "screen", "family"];
   var data = {
     math: { facts: {}, sessions: [], nl: [] },
     words: { custom: [], prog: {}, sessions: [] },
     reading: { custom: [], runs: [], schulte: [] },
-    screen: { budget: { wd: 25, we: 28 }, days: {}, acts: [] }
+    screen: { budget: { wd: 25, we: 28 }, days: {}, acts: [] },
+    family: { quiz: {}, week: {} }
   };
   var LS = "arena-v1-";
   DOCS.forEach(function (k) {
@@ -580,6 +616,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       '<span class="chip' + (d.read ? " on" : "") + '">' + (d.read ? "✓ " : "") + "чтение</span>" +
       '<span class="chip' + (d.words ? " on" : "") + '">' + (d.words ? "✓ " : "") + "слова</span>" +
       '<span class="small">Хватит двух тренировок в день.</span>';
+    renderWeekStrip();
   }
 
   /* =====================================================================
@@ -2744,6 +2781,419 @@ details.q-gen[open] > summary::before { content: "▾"; }
       '<p class="muted small">Лучше 3 дубля одной сценки, чем по одному разу три разных: так и работает повторное чтение. Хвалите за выразительность и за то, что дочитал до конца, а не за скорость. Готовое видео можно показать бабушке, но выкладывать его в сеть не нужно.</p></div>';
   }
 
+  /* =====================================================================
+     FAMILY: "Своя игра" quiz night and "Моя неделя" weekly goal
+     ===================================================================== */
+  function fam() {
+    var f = data.family;
+    if (!f.quiz || typeof f.quiz !== "object") f.quiz = {};
+    if (!Array.isArray(f.quiz.custom)) f.quiz.custom = [];
+    if (!Array.isArray(f.quiz.games)) f.quiz.games = [];
+    if (!f.quiz.seen || typeof f.quiz.seen !== "object") f.quiz.seen = {};
+    if (!f.quiz.miss || typeof f.quiz.miss !== "object") f.quiz.miss = {};
+    if (!f.week || typeof f.week !== "object") f.week = {};
+    if (!f.week.goals || typeof f.week.goals !== "object") f.week.goals = {};
+    if (!f.week.notes || typeof f.week.notes !== "object") f.week.notes = {};
+    return f;
+  }
+
+  /* ---------- "Своя игра": answering from memory is one of the best ways to remember ---------- */
+  var QUIZ = [
+    { id: "om", name: "Окружающий мир", qs: [
+      { id: "om1", v: 1, q: "Какой газ нужен человеку для дыхания?", a: "Кислород" },
+      { id: "om2", v: 1, q: "Как называется наука о живой природе — о растениях и животных?", a: "Биология" },
+      { id: "om3", v: 2, q: "В каких трёх состояниях бывает вода?", a: "Твёрдом (лёд), жидком (вода) и газообразном (пар)" },
+      { id: "om4", v: 2, q: "Вода испаряется, собирается в облака и снова падает дождём. Как это называется?", a: "Круговорот воды в природе" },
+      { id: "om5", v: 3, q: "При какой температуре замерзает вода?", a: "При 0 градусов" },
+      { id: "om6", v: 3, q: "Как называют животных, которые едят и растения, и других животных?", a: "Всеядные" }] },
+    { id: "body", name: "Тело человека", qs: [
+      { id: "bo1", v: 1, q: "Какой орган гонит кровь по всему телу?", a: "Сердце" },
+      { id: "bo2", v: 1, q: "Сколько у человека органов чувств?", a: "Пять: зрение, слух, обоняние, вкус и осязание" },
+      { id: "bo3", v: 2, q: "Куда попадает воздух, когда мы делаем вдох?", a: "В лёгкие" },
+      { id: "bo4", v: 2, q: "Как называется опора тела из всех костей?", a: "Скелет" },
+      { id: "bo5", v: 3, q: "Сколько часов в сутки нужно спать школьнику 9 лет?", a: "От 9 до 12 часов" },
+      { id: "bo6", v: 3, q: "Какой орган управляет всем телом и думает?", a: "Головной мозг" }] },
+    { id: "ru", name: "Русский язык", qs: [
+      { id: "ru1", v: 1, q: "Какая часть речи отвечает на вопросы «кто?» и «что?»?", a: "Имя существительное" },
+      { id: "ru2", v: 1, q: "Сколько гласных букв в русском алфавите?", a: "10: а, о, у, ы, э, я, ё, ю, и, е" },
+      { id: "ru3", v: 2, q: "Как называется общая часть родственных слов?", a: "Корень" },
+      { id: "ru4", v: 2, q: "Какая часть речи обозначает действие и отвечает на вопрос «что делать?»?", a: "Глагол" },
+      { id: "ru5", v: 3, q: "Подбери проверочное слово к слову «вода».", a: "Во́ды, во́дный — ударение падает на о" },
+      { id: "ru6", v: 3, q: "Найди приставку в слове «подъезд».", a: "Под-. После неё пишется ъ" }] },
+    { id: "ma", name: "Математика", qs: [
+      { id: "ma1", v: 1, q: "Сколько будет 7 × 8?", a: "56" },
+      { id: "ma2", v: 1, q: "Сколько сантиметров в одном метре?", a: "100" },
+      { id: "ma3", v: 2, q: "Чему равен периметр прямоугольника со сторонами 3 см и 5 см?", a: "16 см: (3 + 5) × 2" },
+      { id: "ma4", v: 2, q: "Сколько минут в полутора часах?", a: "90 минут" },
+      { id: "ma5", v: 3, q: "Сколько будет 2 + 3 × 4?", a: "14: сначала умножение, 3 × 4 = 12, потом 2 + 12" },
+      { id: "ma6", v: 3, q: "Чему равна площадь квадрата со стороной 4 см?", a: "16 квадратных сантиметров" }] },
+    { id: "lit", name: "Сказки и книги", qs: [
+      { id: "li1", v: 1, q: "Что держала в клюве ворона в басне Крылова «Ворона и Лисица»?", a: "Сыр" },
+      { id: "li2", v: 1, q: "Как звали девочку, которая несла бабушке пирожки и встретила волка?", a: "Красная Шапочка" },
+      { id: "li3", v: 2, q: "Сколько богатырей выходило из моря в «Сказке о царе Салтане»?", a: "Тридцать три" },
+      { id: "li4", v: 2, q: "Кто написал «Денискины рассказы»?", a: "Виктор Драгунский" },
+      { id: "li5", v: 3, q: "В кого превращался князь Гвидон, чтобы прилететь к отцу?", a: "В комара, в муху и в шмеля" },
+      { id: "li6", v: 3, q: "Кем захотела стать старуха в самом конце «Сказки о рыбаке и рыбке»?", a: "Владычицей морскою, чтобы рыбка ей служила" }] },
+    { id: "zoo", name: "Животные", qs: [
+      { id: "zo1", v: 1, q: "Какое животное самое большое на Земле?", a: "Синий кит" },
+      { id: "zo2", v: 1, q: "Как называется детёныш коровы?", a: "Телёнок" },
+      { id: "zo3", v: 2, q: "Какая птица не летает, зато отлично плавает и живёт в Антарктиде?", a: "Пингвин" },
+      { id: "zo4", v: 2, q: "Сколько ног у паука?", a: "Восемь" },
+      { id: "zo5", v: 3, q: "Как называется долгий зимний сон медведя?", a: "Зимняя спячка" },
+      { id: "zo6", v: 3, q: "Чем дышат рыбы?", a: "Жабрами: они берут кислород из воды" }] },
+    { id: "arena", name: "Наша арена", qs: [
+      { id: "ar1", v: 1, q: "Как зовут робота с гаечным ключом вместо руки из книги «Тайна погасшей арены»?", a: "Болт" },
+      { id: "ar2", v: 1, q: "Сколько сердец у осьминога? Это было в выпуске «Факт дня».", a: "Три" },
+      { id: "ar3", v: 2, q: "Сколько кристаллов света украл Глюк?", a: "Три: зелёный, жёлтый и синий" },
+      { id: "ar4", v: 2, q: "Какого цвета кровь у осьминога?", a: "Голубая" },
+      { id: "ar5", v: 3, q: "Почему Глюк забрал свет с арены?", a: "Ему было одиноко: с ним никто не играл" },
+      { id: "ar6", v: 3, q: "Молоко стоит 80 рублей, инопланетянин дал 100. Сколько сдачи?", a: "20 рублей" }] }
+  ];
+  var QUIZ_DEFAULT = ["om", "ru", "ma", "lit", "arena"];
+  var quiz = { pick: null, mode: "turns", g: null, gen: { busy: false, ctl: null, result: null, msg: "", topic: "", open: false }, own: false };
+  function quizThemes() { return QUIZ.concat(fam().quiz.custom.filter(function (t) { return t && t.id && Array.isArray(t.qs) && t.qs.length; })); }
+  function quizTheme(id) { return quizThemes().filter(function (t) { return t.id === id; })[0]; }
+  function quizNames() { var r = (data.math.race && data.math.race.names) || []; return [r[0] || wpNames().hero || "Игрок", r[1] || "Папа"]; }
+  // Missed questions come back first, then ones not asked yet, then the longest-unseen.
+  function quizPickQ(t, v, used) {
+    var f = fam().quiz, pool = t.qs.filter(function (q) { return used.indexOf(q.id) < 0; });
+    var same = pool.filter(function (q) { return q.v === v; }), src = same.length ? same : pool;
+    if (!src.length) return null;
+    src = shuffle(src.slice()).sort(function (a, b) {
+      var ma = f.miss[a.id] || 0, mb = f.miss[b.id] || 0;
+      if (ma !== mb) return mb - ma;
+      return (f.seen[a.id] || "") < (f.seen[b.id] || "") ? -1 : (f.seen[a.id] || "") > (f.seen[b.id] || "") ? 1 : 0;
+    });
+    return src[0];
+  }
+  function startQuiz() {
+    var ids = quiz.pick.filter(function (id) { return quizTheme(id); }).slice(0, 5);
+    var board = ids.map(function (id) {
+      var t = quizTheme(id), used = [];
+      return { tid: id, cells: [1, 2, 3].map(function (v) { var q = quizPickQ(t, v, used); if (q) used.push(q.id); return { v: v, qid: q ? q.id : null, res: null }; }) };
+    });
+    quiz.g = { board: board, names: quizNames(), mode: quiz.mode, turn: 0, score: [0, 0], phase: "board", cur: null };
+    renderGames();
+  }
+  function quizQ(qid) { var out = null; quizThemes().forEach(function (t) { t.qs.forEach(function (q) { if (q.id === qid) out = q; }); }); return out; }
+  function quizPanelHTML() {
+    var themes = quizThemes(), f = fam().quiz;
+    if (!quiz.pick) quiz.pick = QUIZ_DEFAULT.slice();
+    var last = f.games.slice(-1)[0];
+    var gen = quizGenHTML();
+    return '<div class="panel">' +
+      "<h2>Своя игра</h2>" +
+      '<p class="muted">Викторина вечером, вы против него или он ведущий. Выберите от 3 до 5 тем: на доске будут вопросы на 100, 200 и 300. Отвечаете вслух, ответ видно после нажатия.</p>' +
+      '<div><p class="small muted" style="margin-bottom:6px">Темы (' + quiz.pick.length + " из 5)</p><div class=\"seg\">" + themes.map(function (t) { return '<button type="button" data-qzt="' + esc(t.id) + '" aria-pressed="' + (quiz.pick.indexOf(t.id) >= 0) + '">' + esc(t.name) + (t.custom ? " ✎" : "") + "</button>"; }).join("") + "</div></div>" +
+      '<div class="names-grid"><label class="f" for="qz-n0">Ребёнок<input type="text" id="qz-n0" maxlength="14" value="' + esc(quizNames()[0] === "Игрок" ? "" : quizNames()[0]) + '" placeholder="Имя"></label><label class="f" for="qz-n1">Взрослый<input type="text" id="qz-n1" maxlength="14" value="' + esc(quizNames()[1]) + '" placeholder="Папа"></label></div>' +
+      '<div class="seg" role="group" aria-label="Кто отвечает"><button type="button" data-qzm="turns" aria-pressed="' + (quiz.mode === "turns") + '">Отвечаем по очереди</button><button type="button" data-qzm="host" aria-pressed="' + (quiz.mode === "host") + '">Он ведущий, отвечает взрослый</button></div>' +
+      '<div class="row"><button class="btn gold" id="qz-start" type="button"' + (quiz.pick.length >= 3 ? "" : " disabled") + ">Начать игру</button>" +
+        (last ? '<span class="muted small">прошлая игра: ' + esc(last.names[0]) + " " + last.score[0] + " — " + esc(last.names[1]) + " " + last.score[1] + "</span>" : "") + "</div>" +
+      gen + "</div>";
+  }
+  function bindQuizPanel() {
+    document.querySelectorAll("[data-qzt]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-qzt"), i = quiz.pick.indexOf(id);
+        if (i >= 0) quiz.pick.splice(i, 1); else if (quiz.pick.length < 5) quiz.pick.push(id);
+        renderGames();
+      });
+    });
+    document.querySelectorAll("[data-qzm]").forEach(function (b) { b.addEventListener("click", function () { quiz.mode = b.getAttribute("data-qzm"); renderGames(); }); });
+    function keepNames() { var rd = raceData(); rd.names = [$("qz-n0").value.trim().slice(0, 14), $("qz-n1").value.trim().slice(0, 14)]; save("math"); }
+    ["qz-n0", "qz-n1"].forEach(function (id) { $(id).addEventListener("change", keepNames); });
+    $("qz-start").addEventListener("click", function () { keepNames(); startQuiz(); });
+    bindQuizGen();
+  }
+  function renderQuiz() {
+    var v = $("view-games"), G = quiz.g, ans = G.mode === "host" ? 1 : G.turn;
+    var score = '<div class="race-score">' + [0, 1].map(function (p) {
+      return '<div class="rs p' + p + (p === ans && G.phase !== "over" ? " on" : "") + '"><span class="nm">' + esc(G.names[p]) + (G.mode === "host" && p === 0 ? " (ведущий)" : "") + "</span><b>" + (G.mode === "host" && p === 0 ? "🎤" : G.score[p]) + "</b></div>";
+    }).join("") + "</div>";
+    var body = "";
+    if (G.phase === "board") {
+      var left = 0;
+      body = '<p class="ask">' + (G.mode === "host" ? esc(G.names[0]) + ", выбери вопрос и прочитай его вслух" : "Выбирает и отвечает: " + esc(G.names[G.turn])) + "</p>" +
+        '<div class="qz-board">' + G.board.map(function (row, ri) {
+          var t = quizTheme(row.tid);
+          return '<div class="qz-row"><span class="qz-theme">' + esc(t ? t.name : "?") + "</span>" + row.cells.map(function (c, ci) {
+            if (!c.qid) return '<span class="qz-cell empty"></span>';
+            if (c.res === null) left++;
+            return '<button type="button" class="qz-cell' + (c.res === true ? " ok" : c.res === false ? " no" : "") + '" data-qc="' + ri + "," + ci + '"' + (c.res !== null ? " disabled" : "") + ">" + (c.res === true ? "✓" : c.res === false ? "✗" : c.v * 100) + "</button>";
+          }).join("") + "</div>";
+        }).join("") + "</div>" +
+        '<div class="row" style="justify-content:center"><button class="btn ghost" id="qz-end" type="button">' + (left ? "Закончить игру" : "Итоги") + "</button></div>";
+    } else if (G.phase === "q" || G.phase === "a") {
+      var cell = G.board[G.cur[0]].cells[G.cur[1]], q = quizQ(cell.qid), t = quizTheme(G.board[G.cur[0]].tid);
+      body = '<div class="qz-card"><span class="ex">' + esc(t ? t.name : "") + " · " + cell.v * 100 + '</span><p class="qz-q">' + esc(q.q) + "</p>" +
+        (G.phase === "a" ? '<p class="qz-a">Ответ: <b>' + esc(q.a) + "</b></p>" : "") + "</div>" +
+        '<p class="muted small" style="text-align:center;margin:0">Отвечает ' + esc(G.names[ans]) + (G.mode === "host" ? ", проверяет ведущий" : ", проверяет соперник") + ".</p>" +
+        (G.phase === "q" ? '<div class="row" style="justify-content:center"><button class="btn gold" id="qz-show" type="button">Показать ответ</button></div>' :
+          '<div class="row" style="justify-content:center"><button class="btn good big-end" type="button" data-qzr="1">Верно</button><button class="btn bad big-end" type="button" data-qzr="0">Неверно</button></div>');
+    } else {
+      var w = G.mode === "host" ? null : G.score[0] === G.score[1] ? -1 : G.score[0] > G.score[1] ? 0 : 1;
+      var missed = [];
+      G.board.forEach(function (row) { row.cells.forEach(function (c) { if (c.res === false) { var q = quizQ(c.qid); if (q) missed.push(q); } }); });
+      body = '<div class="feedback good"><div class="big">' + (G.mode === "host" ? esc(G.names[1]) + ": " + G.score[1] + " очков" : w === -1 ? "Ничья!" : esc(G.names[w]) + " побеждает!") + "</div></div>" +
+        (missed.length ? '<div class="hint"><b>Эти вопросы вернутся в следующих играх:</b><ul class="qz-miss">' + missed.map(function (q) { return "<li>" + esc(q.q) + ' <span class="muted">— ' + esc(q.a) + "</span></li>"; }).join("") + "</ul></div>" : '<p class="ask">Ни одной ошибки!</p>') +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="qz-again" type="button">Ещё игра</button><button class="btn ghost" id="qz-home" type="button">Назад</button></div>';
+    }
+    v.innerHTML = '<div class="panel">' + '<div class="row" style="justify-content:space-between"><h2>Своя игра</h2>' + (G.phase !== "over" ? '<button class="btn ghost" id="qz-pause" type="button">Выйти</button>' : "") + "</div>" + score + body + "</div>";
+    if ($("qz-pause")) $("qz-pause").addEventListener("click", function () { quiz.g = null; renderGames(); });
+    v.querySelectorAll("[data-qc]").forEach(function (b) { b.addEventListener("click", function () { var p = b.getAttribute("data-qc").split(","); G.cur = [+p[0], +p[1]]; G.phase = "q"; renderQuiz(); }); });
+    if ($("qz-show")) $("qz-show").addEventListener("click", function () { G.phase = "a"; renderQuiz(); });
+    v.querySelectorAll("[data-qzr]").forEach(function (b) { b.addEventListener("click", function () { quizJudge(b.getAttribute("data-qzr") === "1"); }); });
+    if ($("qz-end")) $("qz-end").addEventListener("click", quizOver);
+    if ($("qz-again")) $("qz-again").addEventListener("click", startQuiz);
+    if ($("qz-home")) $("qz-home").addEventListener("click", function () { quiz.g = null; renderGames(); });
+  }
+  function quizJudge(ok) {
+    var G = quiz.g, cell = G.board[G.cur[0]].cells[G.cur[1]], f = fam().quiz, ans = G.mode === "host" ? 1 : G.turn;
+    cell.res = ok; if (ok) G.score[ans] += cell.v * 100;
+    f.seen[cell.qid] = dayKey();
+    if (ok) { if (f.miss[cell.qid]) f.miss[cell.qid]--; if (!f.miss[cell.qid]) delete f.miss[cell.qid]; } else f.miss[cell.qid] = Math.min(5, (f.miss[cell.qid] || 0) + 1);
+    save("family");
+    if (G.mode !== "host") G.turn = 1 - G.turn;
+    G.phase = "board"; G.cur = null;
+    var left = 0; G.board.forEach(function (r) { r.cells.forEach(function (c) { if (c.qid && c.res === null) left++; }); });
+    if (!left) quizOver(); else renderQuiz();
+  }
+  function quizOver() {
+    var G = quiz.g, n = 0;
+    G.board.forEach(function (r) { r.cells.forEach(function (c) { if (c.res !== null) n++; }); });
+    if (n) { var f = fam().quiz; f.games.push({ d: dayKey(), names: G.names.slice(), score: G.score.slice(), mode: G.mode, n: n, themes: G.board.map(function (r) { return r.tid; }) }); trim(f.games, 200); save("family"); }
+    if (!n) { quiz.g = null; renderGames(); return; }
+    G.phase = "over"; renderQuiz(); renderHeader();
+  }
+
+  /* own themes: typed by the adult, or written by AI from a textbook topic */
+  function quizGenHTML() {
+    var G = quiz.gen, own = fam().quiz.custom;
+    var body = '<details class="q-gen" id="qz-d"' + (G.open || G.busy || G.result ? " open" : "") + '><summary><h3>Своя тема</h3></summary>' +
+      '<p class="muted small">Тема из учебника или про вашу семью. Каждая строка — вопрос и ответ через знак «=». Первые две строки пойдут на 100, следующие две на 200, остальные на 300.</p>' +
+      '<label class="f" for="qz-own-name">Название темы<input type="text" id="qz-own-name" maxlength="30" placeholder="например: Наша семья"></label>' +
+      '<textarea id="qz-own-text" spellcheck="false" placeholder="Где родилась бабушка? = В Самаре&#10;Как зовут нашего кота? = Барсик"></textarea>' +
+      '<div class="row"><button class="btn ghost" type="button" id="qz-own-add">Добавить тему</button><span class="small" id="qz-own-msg"></span></div>' +
+      (own.length ? '<div class="wordlist acts">' + own.map(function (t) { return "<span>" + esc(t.name) + " (" + t.qs.length + ') <button type="button" class="x" data-qzdel="' + esc(t.id) + '" aria-label="Удалить тему">×</button></span>'; }).join("") + "</div>" : "");
+    if (!story.unavailable) {
+      body += '<div class="st-preview"><h3>Тема от ИИ по учебнику</h3><p class="muted small">Напишите тему, которую он сейчас проходит, например «Природные зоны», «Части речи», «Деление с остатком». ИИ составит 6 вопросов с ответами, вы их проверите.</p>' +
+        '<div class="row"><input type="text" id="qz-topic" maxlength="60" placeholder="Тема из учебника" value="' + esc(G.topic) + '" style="max-width:280px">' +
+        (G.busy ? '<button class="btn ghost" type="button" id="qz-gstop">Остановить</button><span class="muted">Составляю вопросы…</span>' : '<button class="btn ghost" type="button" id="qz-ggo">' + (G.result ? "Другие вопросы" : "Составить") + "</button>") + "</div>" +
+        (G.msg ? '<p class="small" style="color:var(--bad)">' + esc(G.msg) + "</p>" : "");
+      if (G.result) {
+        body += '<p class="ex">Для взрослого: проверьте вопросы и ответы</p><h3>' + esc(G.result.name) + "</h3>" +
+          '<ol class="qz-prev">' + G.result.qs.map(function (q) { return "<li><b>" + q.v * 100 + ".</b> " + esc(q.q) + ' <span class="muted">— ' + esc(q.a) + "</span></li>"; }).join("") + "</ol>" +
+          '<div class="row"><button class="btn gold" type="button" id="qz-gsave">Сохранить тему</button><button class="btn ghost" type="button" id="qz-gdrop">Убрать</button></div>';
+      }
+      body += "</div>";
+    }
+    return body + "</details>";
+  }
+  function parseOwnQuiz(name, text) {
+    var lines = text.split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean), qs = [];
+    lines.slice(0, 12).forEach(function (l, i) {
+      var k = l.indexOf("="); if (k < 1) return;
+      var q = l.slice(0, k).trim().slice(0, 200), a = l.slice(k + 1).trim().slice(0, 160);
+      if (q && a) qs.push({ q: q, a: a });
+    });
+    var id = "qc" + Date.now().toString(36);
+    return { id: id, name: name.trim().slice(0, 30) || "Своя тема", custom: true, qs: qs.map(function (x, i) { return { id: id + "-" + i, v: i < 2 ? 1 : i < 4 ? 2 : 3, q: x.q, a: x.a }; }) };
+  }
+  function bindQuizGen() {
+    var G = quiz.gen, f = fam().quiz;
+    if ($("qz-d")) $("qz-d").addEventListener("toggle", function () { G.open = $("qz-d").open; });
+    $("qz-own-add").addEventListener("click", function () {
+      var t = parseOwnQuiz($("qz-own-name").value, $("qz-own-text").value);
+      if (t.qs.length < 3) { $("qz-own-msg").textContent = "Нужно хотя бы 3 строки вида «вопрос = ответ»."; return; }
+      f.custom.push(t); while (f.custom.length > 12) f.custom.shift();
+      if (quiz.pick.length < 5) quiz.pick.push(t.id);
+      save("family"); renderGames();
+    });
+    document.querySelectorAll("[data-qzdel]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-sure") !== "1") { b.setAttribute("data-sure", "1"); b.textContent = "удалить?"; return; }
+        var id = b.getAttribute("data-qzdel");
+        f.custom = f.custom.filter(function (t) { return t.id !== id; });
+        quiz.pick = quiz.pick.filter(function (x) { return x !== id; });
+        save("family"); renderGames();
+      });
+    });
+    if ($("qz-topic")) $("qz-topic").addEventListener("change", function () { G.topic = $("qz-topic").value.trim(); });
+    if ($("qz-ggo")) $("qz-ggo").addEventListener("click", generateQuizTheme);
+    if ($("qz-gstop")) $("qz-gstop").addEventListener("click", function () { if (G.ctl) G.ctl.abort(); });
+    if ($("qz-gsave")) $("qz-gsave").addEventListener("click", function () {
+      f.custom.push(G.result); while (f.custom.length > 12) f.custom.shift();
+      if (quiz.pick.length < 5) quiz.pick.push(G.result.id);
+      G.result = null; G.msg = ""; save("family"); renderGames();
+    });
+    if ($("qz-gdrop")) $("qz-gdrop").addEventListener("click", function () { G.result = null; renderGames(); });
+  }
+  function quizPrompt(topic) {
+    return "Составь 6 вопросов для семейной викторины «Своя игра» по теме школьной программы 3 класса российской школы: «" + topic + "». Отвечает мальчик 9 лет.\n\n" +
+      "Требования:\n- 2 лёгких вопроса (на 100), 2 средних (на 200), 2 трудных (на 300), но все в пределах программы 3 класса.\n" +
+      "- Вопрос — одно короткое предложение, до 15 слов. Ответ — короткий, 1–8 слов, можно с кратким пояснением.\n" +
+      "- Только проверенные факты. Если тема не школьная или опасная, всё равно держись того, что уместно для 9 лет.\n" +
+      "- Безупречная орфография, буква ё там, где нужна.\n\n" +
+      'Ответь только JSON: {"name": "Короткое название темы", "questions": [{"level": 1, "q": "Вопрос?", "a": "Ответ"}]}';
+  }
+  function generateQuizTheme() {
+    var G = quiz.gen;
+    if (G.busy) return;
+    G.topic = ($("qz-topic") ? $("qz-topic").value : G.topic).trim().slice(0, 60);
+    if (!G.topic) { G.msg = "Напишите тему из учебника."; renderGames(); return; }
+    if (!sampleFn) { story.unavailable = true; renderGames(); return; }
+    G.busy = true; G.msg = ""; G.ctl = new AbortController(); renderGames();
+    sampleFn.json(quizPrompt(G.topic), { signal: G.ctl.signal, cache: false }).then(function (r) {
+      G.busy = false;
+      var qs = r && Array.isArray(r.questions) ? r.questions.filter(function (q) { return q && typeof q.q === "string" && typeof q.a === "string" && q.q.trim() && q.a.trim(); }).slice(0, 9) : [];
+      if (qs.length < 3) { G.msg = "Не получилось. Попробуйте ещё раз или другую тему."; renderGames(); return; }
+      var id = "qa" + Date.now().toString(36);
+      G.result = { id: id, name: String(r.name || G.topic).trim().slice(0, 30) || G.topic.slice(0, 30), custom: true, ai: true,
+        qs: qs.map(function (q, i) { var lv = +q.level; return { id: id + "-" + i, v: lv === 1 || lv === 2 || lv === 3 ? lv : (i < 2 ? 1 : i < 4 ? 2 : 3), q: q.q.trim().slice(0, 200), a: q.a.trim().slice(0, 160) }; }) };
+      renderGames();
+    }, function (e) {
+      G.busy = false;
+      var code = e && e.code;
+      if (code === "cancelled") G.msg = "";
+      else if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" || code === "capability_disabled" || code === "capability_removed") story.unavailable = true;
+      else if (code === "rate_limited") G.msg = "Слишком много запросов. Попробуйте через пару минут.";
+      else if (code === "refused") G.msg = "ИИ не стал составлять вопросы на эту тему. Выберите другую.";
+      else if (code === "session_expired") G.msg = "Нужно заново войти в аккаунт Claude.";
+      else G.msg = "Не получилось. Попробуйте ещё раз.";
+      renderGames();
+    });
+  }
+  function quizProgressHTML() {
+    var f = fam().quiz; if (!f.games.length) return "";
+    var miss = Object.keys(f.miss).map(function (id) { return { q: quizQ(id), n: f.miss[id] }; }).filter(function (x) { return x.q; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 6);
+    return '<div class="panel"><h3>Своя игра</h3><div class="stats">' + stat(String(f.games.length), "игр сыграно") + stat(String(Object.keys(f.seen).length), "разных вопросов было") + "</div>" +
+      (miss.length ? '<p class="muted small">Пока не знает (эти вопросы вернутся в игре):</p><ul class="qz-miss">' + miss.map(function (x) { return "<li>" + esc(x.q.q) + ' <span class="muted">— ' + esc(x.q.a) + "</span></li>"; }).join("") + "</ul>" : "") +
+      '<p class="muted small">Добавляйте темы из того, что он сейчас проходит в школе: вспомнить ответ на вопрос — один из самых надёжных способов запомнить. Иногда отвечайте неверно сами — ему понравится вас поправлять.</p></div>';
+  }
+
+  /* ---------- "Моя неделя": one goal he picks himself, progress counted from the trainers ---------- */
+  function inWeek(arr, ws) { var we = addDays(ws, 6); return (arr || []).filter(function (x) { return x && x.d >= ws && x.d <= we; }); }
+  function endsTotal() { var n = 0; questsAll().forEach(function (q) { n += questProg(q.id).ends.length; }); return n; }
+  // The boss he is already fighting, else the first one not beaten yet.
+  function firstBoss() {
+    if (typeof BOSSES === "undefined") return null;
+    var open = BOSSES.filter(function (p) { return bossState(p[0], p[1]).ok < 2; });
+    return open.filter(function (p) { var s = bossState(p[0], p[1]); return s.ok > 0 || s.lvl > 0; })[0] || open[0] || null;
+  }
+  function weekCounts(ws) {
+    var m = data.math, r = data.reading, fq = fam().quiz;
+    var takesBy = {}; inWeek(r.takes, ws).forEach(function (t) { takesBy[t.sid] = (takesBy[t.sid] || 0) + 1; });
+    return {
+      math: inWeek(m.sessions, ws).length + inWeek(m.df && m.df.sessions, ws).length + inWeek(m.cm && m.cm.sessions, ws).length,
+      words: inWeek(data.words.sessions, ws).length,
+      pages: inWeek(r.ql, ws).reduce(function (s, x) { return s + x.pages; }, 0),
+      takes: inWeek(r.takes, ws).length,
+      takesMax: Object.keys(takesBy).reduce(function (mx, k) { return Math.max(mx, takesBy[k]); }, 0),
+      runs: inWeek(r.runs, ws).length,
+      family: inWeek(m.race && m.race.games, ws).length + inWeek(fq.games, ws).length,
+      self: stars(weekKeys(ws))
+    };
+  }
+  function goalOptions() {
+    var out = [
+      { k: "math", target: 4, text: "Пройти 4 раунда на вкладке «Счёт»" },
+      { k: "words", target: 3, text: "Сделать 3 тренировки слов" },
+      { k: "pages", target: 15, text: "Прочитать 15 страниц книги-квеста" },
+      { k: "takes", target: 3, text: "Сделать 3 дубля одной сценки в «Суфлёре»" },
+      { k: "self", target: 4, text: "Выключить игру самому 4 дня из 7" },
+      { k: "family", target: 2, text: "Сыграть со взрослым 2 раза: гонка или «Своя игра»" }
+    ];
+    var b = firstBoss(); if (b) out.unshift({ k: "boss", target: 1, param: b[0] + "x" + b[1], text: "Победить босса таблицы " + b[0] + " × " + b[1] });
+    var all = questsAll().reduce(function (s, q) { return s + questEnds(q).length; }, 0);
+    if (endsTotal() < all) out.push({ k: "ending", target: 1, base: endsTotal(), text: "Найти новую концовку в книге-квесте" });
+    return out;
+  }
+  function goalNow(g, ws) {
+    if (!g) return 0;
+    var c = weekCounts(ws);
+    if (g.k === "boss") { var p = String(g.param || "").split("x"); return p.length === 2 && bossState(+p[0], +p[1]).ok >= 2 ? 1 : 0; }
+    if (g.k === "ending") return Math.max(0, endsTotal() - (g.base || 0));
+    if (g.k === "takes") return c.takesMax;
+    if (g.k === "own") return g.done ? 1 : 0;
+    return c[g.k] || 0;
+  }
+  function weekGoal(ws) { return fam().week.goals[ws] || null; }
+  function renderWeekStrip() {
+    var el = $("week-strip"); if (!el) return;
+    var ws = weekStart(dayKey()), g = weekGoal(ws), n = goalNow(g, ws), note = fam().week.notes[ws];
+    if (g && (n >= g.target) !== !!g.hit) { g.hit = n >= g.target; save("family"); }
+    var late = isWeekend(dayKey()) && !(note && note.proud);
+    if (!g) { el.innerHTML = '<button type="button" class="wk-btn" id="wk-open"><span>🎯 <b>Выбери цель на эту неделю</b></span></button>'; }
+    else {
+      var done = n >= g.target, dots = "";
+      for (var i = 0; i < Math.min(g.target, 15); i++) dots += '<i class="' + (i < n ? "on" : "") + '"></i>';
+      el.innerHTML = '<button type="button" class="wk-btn' + (done ? " done" : "") + '" id="wk-open"><span>' + (done ? "🎉 " : "🎯 ") + "<b>" + (done ? "Цель выполнена: " : "Цель недели: ") + "</b>" + esc(g.text) + "</span>" +
+        (g.target > 1 && !done ? '<span class="wk-dots" aria-label="' + Math.min(n, g.target) + " из " + g.target + '">' + dots + "</span>" : "") + (late ? '<span class="wk-late">подведи итоги</span>' : "") + "</button>";
+    }
+    $("wk-open").addEventListener("click", openWeek);
+  }
+  function openWeek() {
+    var el = $("week-ov");
+    if (!el) { el = document.createElement("div"); el.id = "week-ov"; el.className = "week-ov"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Моя неделя"); document.body.appendChild(el); }
+    renderWeek();
+  }
+  function closeWeek() { var el = $("week-ov"); if (el) el.remove(); renderHeader(); }
+  function renderWeek() {
+    var el = $("week-ov"); if (!el) return;
+    var F = fam().week, ws = weekStart(dayKey()), g = weekGoal(ws), n = goalNow(g, ws), c = weekCounts(ws), pc = weekCounts(addDays(ws, -7)), note = F.notes[ws] || {};
+    var goalHTML;
+    if (!g || quiz.own) {
+      goalHTML = '<p class="muted">Выбери одну цель. Лучше такую, которую точно можно успеть, если постараться.</p><div class="wk-opts">' + goalOptions().map(function (o, i) { return '<button type="button" class="btn ghost wk-opt" data-wgo="' + i + '">' + esc(o.text) + "</button>"; }).join("") + "</div>" +
+        '<div class="row"><input type="text" id="wk-own" maxlength="60" placeholder="или своя цель: например, собрать модель самолёта" style="max-width:340px"><button class="btn ghost" type="button" id="wk-own-b">Моя цель</button></div>' +
+        (g ? '<button class="btn ghost" type="button" id="wk-keep">Оставить прежнюю</button>' : "");
+    } else {
+      var pct = Math.min(100, Math.round(n / g.target * 100)), done = n >= g.target;
+      goalHTML = '<div class="wk-goal' + (done ? " done" : "") + '"><p class="ask" style="text-align:left">' + (done ? "🎉 " : "🎯 ") + esc(g.text) + "</p>" +
+        (g.k === "own" ? '<button type="button" class="btn ' + (g.done ? "good" : "ghost") + '" id="wk-own-done">' + (g.done ? "✓ Сделано!" : "Отметить: сделал") + "</button>" :
+          '<div class="track"><div class="fill" style="width:' + pct + '%"></div></div><p class="muted small" style="margin:0">' + Math.min(n, g.target) + " из " + g.target + (done ? " — получилось!" : "") + "</p>") +
+        "</div>" + '<button class="btn ghost" type="button" id="wk-change">Поменять цель</button>';
+    }
+    var tiles = [["math", "раундов счёта"], ["words", "тренировок слов"], ["pages", "страниц квеста"], ["takes", "дублей в «Суфлёре»"], ["runs", "чтений вслух"], ["family", "игр со взрослым"], ["self", "дней «выключил сам»"]]
+      .filter(function (t) { return c[t[0]] || pc[t[0]]; }).map(function (t) {
+        var up = c[t[0]] > pc[t[0]] && pc[t[0]] > 0;
+        return stat(String(c[t[0]]) + (up ? ' <span class="wk-up">↑</span>' : ""), t[1] + (pc[t[0]] ? '<br><span class="muted">на прошлой неделе ' + pc[t[0]] + "</span>" : ""));
+      }).join("");
+    var past = Object.keys(F.goals).filter(function (k) { return k < ws; }).sort().reverse().slice(0, 6).map(function (k) {
+      var pg = F.goals[k], ok = goalNow(pg, k) >= pg.target && pg.k !== "boss" && pg.k !== "ending" ? true : pg.hit, pn = F.notes[k] || {};
+      return "<li><b>" + esc(rangeLabel(k)) + "</b>: " + (ok ? "✓ " : "· ") + esc(pg.text) + (pn.proud ? '<br><span class="muted">Горжусь: ' + esc(pn.proud) + "</span>" : "") + "</li>";
+    }).join("");
+    el.innerHTML = '<div class="week-box"><div class="row" style="justify-content:space-between"><h2>Моя неделя</h2><button class="btn ghost" type="button" id="wk-x">✕ Закрыть</button></div>' +
+      '<p class="muted small" style="margin:0">' + esc(rangeLabel(ws)) + "</p>" +
+      '<div class="panel wk-panel"><h3>Цель</h3>' + goalHTML + "</div>" +
+      '<div class="panel wk-panel"><h3>Что было на этой неделе</h3>' + (tiles ? '<div class="stats">' + tiles + "</div>" : '<p class="muted">Неделя только начинается.</p>') + "</div>" +
+      '<div class="panel wk-panel"><h3>Итоги</h3>' +
+        '<label class="f" for="wk-proud">Чем ты гордишься на этой неделе?<input type="text" id="wk-proud" maxlength="100" value="' + esc(note.proud || "") + '" placeholder="например: сам выключил игру в среду"></label>' +
+        '<label class="f" for="wk-hard">Что было трудно? (можно не писать)<input type="text" id="wk-hard" maxlength="100" value="' + esc(note.hard || "") + '"></label>' +
+        '<div class="row"><button class="btn gold" type="button" id="wk-save">Сохранить</button><span class="muted small" id="wk-msg"></span></div></div>' +
+      (past ? '<div class="panel wk-panel"><h3>Прошлые недели</h3><ul class="wk-past">' + past + "</ul></div>" : "") +
+      '<details class="names"><summary class="muted">Для взрослых: разговор в воскресенье, 5 минут</summary><ol class="tips">' +
+        "<li>«Что на этой неделе получилось лучше всего?» Выслушайте и повторите его словами.</li>" +
+        "<li>«Где было трудно и что помогло?» Хвалите способ и упорство («ты нашёл, как разрезать 7 × 8»), а не способности («ты умный»).</li>" +
+        "<li>«Какую цель возьмёшь на следующую неделю?» Цель выбирает он. Если берёт слишком много, спросите: «А если неделя будет трудная, успеешь?» Хорошая цель получается примерно в 7 случаях из 10.</li>" +
+        "<li>Не связывайте цель с наградой или матчами: смысл в том, что он сам видит, как растёт.</li></ol></details></div>";
+    $("wk-x").addEventListener("click", closeWeek);
+    el.querySelectorAll("[data-wgo]").forEach(function (b) {
+      b.addEventListener("click", function () { var o = goalOptions()[+b.getAttribute("data-wgo")]; if (!o) return; F.goals[ws] = Object.assign({ set: dayKey() }, o); quiz.own = false; trimWeeks(); save("family"); renderWeek(); });
+    });
+    if ($("wk-own-b")) $("wk-own-b").addEventListener("click", function () { var t = $("wk-own").value.trim().slice(0, 60); if (!t) return; F.goals[ws] = { k: "own", target: 1, text: t, set: dayKey(), done: false }; quiz.own = false; trimWeeks(); save("family"); renderWeek(); });
+    if ($("wk-keep")) $("wk-keep").addEventListener("click", function () { quiz.own = false; renderWeek(); });
+    if ($("wk-change")) $("wk-change").addEventListener("click", function () { quiz.own = true; renderWeek(); });
+    if ($("wk-own-done")) $("wk-own-done").addEventListener("click", function () { g.done = !g.done; save("family"); renderWeek(); });
+    $("wk-save").addEventListener("click", function () {
+      F.notes[ws] = { proud: $("wk-proud").value.trim().slice(0, 100), hard: $("wk-hard").value.trim().slice(0, 100) };
+      if (g) g.hit = goalNow(g, ws) >= g.target;
+      save("family"); $("wk-msg").textContent = "Сохранено.";
+    });
+    if (g) { var hit = goalNow(g, ws) >= g.target; if (g.hit !== hit) { g.hit = hit; save("family"); } }
+  }
+  function trimWeeks() { var F = fam().week; [F.goals, F.notes].forEach(function (o) { var ks = Object.keys(o).sort(); while (ks.length > 60) delete o[ks.shift()]; }); }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("week-ov")) closeWeek(); });
+
   /* ---------- speech ---------- */
   var ruVoice = null;
   function pickVoice() {
@@ -3373,6 +3823,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       '<div class="slots" aria-hidden="true">' + slots + "</div>" + (left < 0 ? '<p class="small" style="color:var(--bad)">Сверх бюджета: ' + (-left) + "</p>" : "") + "</div>";
   }
   function renderGames() {
+    if (quiz.g) return renderQuiz();
     var v = $("view-games"), s = scr(), t = dayKey(), ws = weekStart(t), keys = weekKeys(ws);
     var wdKeys = keys.slice(0, 5), weKeys = keys.slice(5);
     var wdUsed = used(wdKeys), weUsed = used(weKeys), weekend = isWeekend(t);
@@ -3413,7 +3864,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
           '<div class="row"><input type="text" id="act-new" maxlength="40" placeholder="Новое дело"><button class="btn ghost" id="act-add" type="button">Добавить</button></div>' +
           '<p class="note">Составьте список вместе: от 3 до 12 дел, которые ему правда нравятся. Пустота без замены — главная причина срывов после выключения.</p>' +
         "</details>" +
-      "</div>" +
+      "</div>" + quizPanelHTML() +
       '<div class="panel">' +
         '<details class="names"><summary class="muted">Для взрослых: сколько матчей в неделю</summary>' +
           '<div class="names-grid">' +
@@ -3440,6 +3891,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       if (!(wd >= 0 && wd <= 60 && we >= 0 && we <= 60)) { $("b-msg").textContent = "Числа от 0 до 60."; return; }
       s.budget = { wd: wd, we: we }; save("screen"); renderGames();
     });
+    bindQuizPanel();
   }
   function openActs() { var d = document.querySelector("#view-games details.names"); if (d) d.open = true; }
   function trimDays() { var s = scr(), ks = Object.keys(s.days).sort(); while (ks.length > 140) delete s.days[ks.shift()]; }
@@ -3489,7 +3941,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
     (data.math.sessions || []).forEach(function (s) { set[s.d] = 1; });
     (data.words.sessions || []).forEach(function (s) { set[s.d] = 1; });
     (data.reading.runs || []).forEach(function (s) { set[s.d] = 1; });
-    [data.reading.ql, data.reading.takes, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].forEach(function (a) { (a || []).forEach(function (s) { set[s.d] = 1; }); });
+    [data.reading.ql, data.reading.takes, data.family.quiz && data.family.quiz.games, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].forEach(function (a) { (a || []).forEach(function (s) { set[s.d] = 1; }); });
     var t = dayKey();
     for (var i = 13; i >= 0; i--) days.push(addDays(t, -i));
     var active = days.filter(function (d) { return set[d]; }).length;
@@ -3515,7 +3967,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
         }).join("") + '</div><p class="muted small">Полоса — доля верных ответов. Время ответа ребёнку не показывается, оно только для вас: обычное время в последнем раунде ' + (meds.length ? fmtSec(meds[meds.length - 1]) : "—") + (meds.length > 1 ? ", в первом из показанных " + fmtSec(meds[0]) : "") + ". Уверенное знание — около 3 секунд.</p>" : '<p class="muted">Раундов пока не было. Первый раунд — на вкладке «Счёт».</p>') +
         mapHTML("m") + legendHTML() +
       "</div>" +
-      gamesProgressHTML() + dfProgressHTML() + wpProgressHTML() + cmProgressHTML() + raceProgressHTML() + huntProgressHTML() +
+      gamesProgressHTML() + dfProgressHTML() + wpProgressHTML() + cmProgressHTML() + raceProgressHTML() + quizProgressHTML() + huntProgressHTML() +
       '<div class="panel"><h3>Слова</h3><div class="stats">' + ["dict", "check", "tsya", "own"].filter(function (c) { return byCat[c]; }).map(function (c) { return stat(byCat[c].m + " / " + byCat[c].n, CATS[c].toLowerCase() + " освоено"); }).join("") + "</div>" +
         (hardWords.length ? '<p class="muted">Трудные слова (ошибался несколько раз):</p><div class="wordlist">' + hardWords.map(function (w) { return '<span data-b="1">' + esc(w) + "</span>"; }).join("") + "</div>" : '<p class="muted">Трудных слов пока нет.</p>') +
       "</div>" +
@@ -3551,7 +4003,8 @@ details.q-gen[open] > summary::before { content: "▾"; }
   }
 
   /* ---------- boot ---------- */
-  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl && !math.df && !math.cm && !math.race) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); if (current === "games" && !games.spinning) renderGames(); }
+  function typingIn(id) { var ae = document.activeElement; return !!(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && $(id) && $(id).contains(ae)); }
+  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl && !math.df && !math.cm && !math.race) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); if (current === "games" && !games.spinning && !typingIn("view-games")) renderGames(); }
   renderAll();
   try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "games", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
   try { var hs = (location.hash || "").slice(1); if (["math", "read", "words", "games", "prog"].indexOf(hs) >= 0) showTab(hs); } catch (e) {}
