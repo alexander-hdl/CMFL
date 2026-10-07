@@ -283,6 +283,39 @@ details.names summary { cursor: pointer; font-weight: 700; }
 .over { color: var(--bad); }
 .cm-bars .bar { grid-template-columns: 118px minmax(0, 1fr) auto auto; }
 
+/* Number-line race */
+.race-score { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rs { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 8px 12px; display: grid; gap: 2px; min-width: 0; }
+.rs .nm { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rs b { font-family: var(--f-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.rs.p0 b { color: #ffc83d; } .rs.p1 b { color: #c79bff; }
+.rs.p0.on { border-color: #ffc83d; } .rs.p1.on { border-color: #c79bff; }
+.track-svg, .zoom { width: 100%; height: auto; display: block; overflow: visible; }
+.zoom.tap { cursor: pointer; touch-action: manipulation; }
+.tr-line, .zm-line { stroke: var(--muted); stroke-width: 3; stroke-linecap: round; }
+.tr-tick, .zm-tick { stroke: var(--muted); stroke-width: 1.5; }
+.zm-tick.big { stroke: var(--ink); stroke-width: 2.5; }
+.tr-lab, .zm-lab { fill: var(--muted); font: 700 11px var(--f-body); }
+.zm-lab { font-size: 12px; } .zm-lab.big { fill: var(--ink); font-size: 14px; font-weight: 800; }
+.tr-flag { font-size: 13px; }
+.tok circle { stroke: #0e1d27; stroke-width: 2; }
+.tok0 circle { fill: #ffc83d; } .tok1 circle { fill: #c79bff; }
+.tok text { fill: #13202a; font: 800 10px var(--f-body); }
+.track-svg .tok { transition: transform 0.7s ease-in-out; }
+.pad-up { fill: var(--blue); } .pad-gas { fill: #7ee06b; opacity: 0.85; }
+.pad-ico { font-weight: 800; } .pad-ico.up { color: var(--blue); } .pad-ico.gas { color: #7ee06b; }
+.zm-arc { fill: none; stroke: var(--gold); stroke-width: 2.5; }
+.zm-hop { fill: var(--gold); font: 800 12px var(--f-body); }
+.zm-arc.pad { stroke: var(--blue); stroke-dasharray: 5 4; } .zm-hop.pad { fill: var(--blue); }
+.zm-pick { fill: var(--gold); } .zm-picklab { fill: var(--gold); font: 800 13px var(--f-body); }
+.zm-hit { fill: transparent; }
+.card-big { justify-self: center; background: var(--paper); color: #1b2333; border: 4px solid var(--gold); box-shadow: 0 4px 0 #b9861a; border-radius: 14px; padding: 10px 24px; font-family: var(--f-display); font-size: 2rem; text-align: center; }
+.card-big.back { border-color: var(--bad); box-shadow: 0 4px 0 #a33a30; }
+.turn-banner { justify-self: center; font-family: var(--f-display); font-size: 1.5rem; padding: 6px 18px; border-radius: 999px; border: 3px solid; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.turn-banner.p0 { color: #ffc83d; } .turn-banner.p1 { color: #c79bff; }
+.race-opt { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; cursor: pointer; }
+.race-opt input { width: 22px; height: 22px; accent-color: var(--gold); flex: none; margin-top: 2px; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -481,7 +514,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
   function todayDone() {
     var t = dayKey();
     return {
-      math: [data.math.sessions, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions].some(function (a) { return (a || []).some(function (s) { return s.d === t; }); }),
+      math: [data.math.sessions, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].some(function (a) { return (a || []).some(function (s) { return s.d === t; }); }),
       read: (data.reading.runs || []).some(function (r) { return r.d === t; }),
       words: (data.words.sessions || []).some(function (s) { return s.d === t; })
     };
@@ -548,6 +581,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     if (math.wp) return renderWp();
     if (math.df) return renderDf();
     if (math.cm) return renderCm();
+    if (math.race) return renderRace();
     var mastered = 0, f = data.math.facts;
     PAIRS.forEach(function (p) { var s = f[factKey("m", p[0], p[1])]; if (s && s.b >= 4) mastered++; });
     var last = (data.math.sessions || []).slice(-1)[0];
@@ -571,8 +605,8 @@ details.names summary { cursor: pointer; font-weight: 700; }
         "<h3>Числовая прямая</h3>" +
         '<p class="muted">Покажи пером или пальцем, где на линии живёт число. Это тренирует чувство числа: сколько это — много или мало.</p>' +
         '<div class="row"><button class="btn ghost" id="nl-start" type="button">10 чисел</button>' + (nls ? '<span class="muted small">в прошлый раз промах в среднем ' + nls.err.toFixed(1).replace(".", ",") + "%</span>" : "") + "</div>" +
-      "</div>" + wpPanelHTML() + cmPanelHTML();
-    v.querySelectorAll(".seg button").forEach(function (btn) {
+      "</div>" + racePanelHTML() + wpPanelHTML() + cmPanelHTML();
+    v.querySelectorAll(".seg button[data-op]").forEach(function (btn) {
       btn.addEventListener("click", function () { math.op = btn.getAttribute("data-op"); try { localStorage.setItem(LS + "op", math.op); } catch (e) {} renderMath(); });
     });
     $("math-start").addEventListener("click", startMath);
@@ -580,6 +614,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     bindWpPanel();
     bindDfPanel();
     bindCmPanel();
+    bindRacePanel();
   }
   function segBtn(op, label) { return '<button type="button" data-op="' + op + '" aria-pressed="' + (math.op === op) + '">' + label + "</button>"; }
   function stat(big, small) { return '<div class="stat"><b>' + big + "</b><span>" + small + "</span></div>"; }
@@ -1282,6 +1317,258 @@ details.names summary { cursor: pointer; font-weight: 700; }
       return '<div class="bar"><span class="muted">' + esc(CM_NAMES[k]) + '</span><div class="track"><div class="fill" style="width:' + p + '%"></div></div><b>' + p + '%</b><span class="muted small">' + t[k].n + " шт</span></div>";
     }).join("") + "</div>" +
       '<p class="muted small">Доля верных ответов по типам заданий и сколько заданий было. ' + (weak.length ? "Слабее всего: " + weak.join(", ") + ". " : "") + "Закрепляйте в жизни: пусть он сам говорит, который час на настенных часах, и считает сдачу в магазине.</p></div>";
+  }
+
+  /* ---------- "Гонка на двоих": a number-line board game for a child and an adult on one screen ---------- */
+  // A linear numbered board builds number sense (Siegler & Ramani); here every move is also a sum to predict.
+  var RACE_END = 100, RACE_LS = LS + "race";
+  function raceData() {
+    var m = data.math;
+    if (!m.race || typeof m.race !== "object") m.race = {};
+    var r = m.race;
+    if (!Array.isArray(r.games)) r.games = [];
+    if (!Array.isArray(r.names)) r.names = ["", "Папа"];
+    if (typeof r.check !== "boolean") r.check = true;
+    if (r.lvl !== 1 && r.lvl !== 2) r.lvl = 2;
+    return r;
+  }
+  function raceSaved() { try { var g = JSON.parse(localStorage.getItem(RACE_LS) || "null"); return g && Array.isArray(g.pos) && g.pads ? g : null; } catch (e) { return null; } }
+  function raceKeep() { try { if (math.race && math.race.phase !== "over") localStorage.setItem(RACE_LS, JSON.stringify(math.race)); else localStorage.removeItem(RACE_LS); } catch (e) {} }
+
+  // Jump pads (+10) and poison gas (−10), one per stretch of the road; never chained, never on round numbers.
+  function racePads() {
+    var pads = {};
+    function free(c) { return c % 10 !== 0 && !pads[c] && !pads[c + 10] && !pads[c - 10] && !pads[c - 1] && !pads[c + 1]; }
+    [[4, 22, 10], [25, 45, 10], [47, 66, 10], [68, 86, 10], [26, 47, -10], [52, 74, -10], [77, 97, -10]].forEach(function (z) {
+      for (var t = 0; t < 200; t++) { var c = r3(z[0], z[1]); if (free(c)) { pads[c] = z[2]; return; } }
+    });
+    return pads;
+  }
+  function raceCard(lvl, pos) {
+    var x = Math.random();
+    if (pos >= 12 && x < 0.08) { var b = r3(3, lvl === 1 ? 6 : 9); return { t: "− " + b, d: -b, k: "minus" }; }
+    if (x < 0.17) return { t: "До круглого", d: Math.floor(pos / 10) * 10 + 10 - pos, k: "round" };
+    if (lvl === 2) {
+      if (x < 0.31) { var a = r3(2, 4), c = r3(3, 6); return { t: "+ " + a + " × " + c, d: a * c, k: "mul", a: a, b: c }; }
+      if (x < 0.43) { var q = r3(2, 5), res = r3(3, 9); return { t: "+ " + q * res + " : " + q, d: res, k: "div", a: q * res, b: q }; }
+      if (x < 0.51) { var tn = pick([10, 20]), m = r3(1, 2); return { t: "+ " + tn + " − " + m, d: tn - m, k: "comp", a: tn, b: m }; }
+      var n = r3(6, 19); return { t: "+ " + n, d: n, k: "plus" };
+    }
+    var n1 = r3(4, 15); return { t: "+ " + n1, d: n1, k: "plus" };
+  }
+  // The stops a good counter makes: through the round number, or tens first and then ones.
+  function raceHops(pos, c) {
+    var b = pos + c.d;
+    if (c.k === "comp") return [pos, pos + c.a, b];
+    if (c.k === "round" || c.d % 10 === 0) return [pos, b];
+    if (Math.abs(c.d) >= 10) return [pos, pos + c.d - c.d % 10, b];
+    if (c.d > 0 && pos % 10 !== 0 && b % 10 !== 0 && Math.floor(b / 10) > Math.floor(pos / 10)) return [pos, Math.ceil(pos / 10) * 10, b];
+    if (c.d < 0 && pos % 10 !== 0 && b % 10 !== 0 && Math.ceil(b / 10) < Math.ceil(pos / 10)) return [pos, Math.floor(pos / 10) * 10, b];
+    return [pos, b];
+  }
+  function raceWhy(pos, c) {
+    var pts = raceHops(pos, c), out = [];
+    for (var i = 1; i < pts.length; i++) { var d = pts[i] - pts[i - 1]; out.push(pts[i - 1] + (d < 0 ? " − " + -d : " + " + d) + " = " + pts[i]); }
+    var pre = c.k === "mul" ? "Сначала умножение: " + c.a + " × " + c.b + " = " + c.d + ". " : c.k === "div" ? "Сначала деление: " + c.a + " : " + c.b + " = " + c.d + ". " : c.k === "round" ? "Ближайшее круглое число впереди — " + (pos + c.d) + ". " : "";
+    return pre + out.join(", ") + ".";
+  }
+  function raceInitial(R, p) { var n = R.names[p] || ""; return n ? n.charAt(0).toUpperCase() : String(p + 1); }
+
+  function raceTrack(R) {
+    var X0 = 14, sx = 332 / RACE_END, from = R.from || R.pos;
+    function x(c) { return (X0 + Math.min(c, RACE_END) * sx).toFixed(1); }
+    var s = '<svg class="track-svg" viewBox="0 0 360 62" role="img" aria-label="Дорога от 0 до 100: ' + esc(R.names[0]) + " на " + R.pos[0] + ", " + esc(R.names[1]) + " на " + R.pos[1] + '">' +
+      '<line x1="' + X0 + '" y1="32" x2="' + x(RACE_END) + '" y2="32" class="tr-line"/>';
+    for (var c = 0; c <= RACE_END; c += 5) s += '<line x1="' + x(c) + '" y1="' + (c % 10 ? 28 : 24) + '" x2="' + x(c) + '" y2="' + (c % 10 ? 36 : 40) + '" class="tr-tick"/>' + (c % 10 ? "" : '<text x="' + x(c) + '" y="56" text-anchor="middle" class="tr-lab">' + c + "</text>");
+    Object.keys(R.pads).forEach(function (k) { s += padMark(+x(+k), 12, R.pads[k], 5); });
+    s += '<text x="' + x(RACE_END) + '" y="14" text-anchor="middle" class="tr-flag">🏁</text>';
+    [0, 1].forEach(function (p) {
+      var off = from[0] === from[1] ? (p ? 8 : -8) : 0;
+      s += '<g class="tok tok' + p + '" id="tok' + p + '" style="transform:translate(' + (+x(from[p]) + off) + "px,32px)\"><circle r=\"9\"/><text y=\"4\" text-anchor=\"middle\">" + esc(raceInitial(R, p)) + "</text></g>";
+    });
+    return s + "</svg>";
+  }
+  function padMark(cx, cy, d, r) {
+    if (d > 0) return '<path d="M' + (cx - r) + "," + (cy + r * 0.7) + " L" + cx + "," + (cy - r * 0.9) + " L" + (cx + r) + "," + (cy + r * 0.7) + 'Z" class="pad-up"/>';
+    return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.85 + '" class="pad-gas"/>';
+  }
+  // A close-up of the line: whole numbers, tap to answer, arcs for the jumps after the answer.
+  function raceZoom(R, pts, opt) {
+    var lo = Math.floor(Math.min.apply(null, pts) / 10) * 10, hi = Math.max(lo + 30, Math.ceil(Math.max.apply(null, pts) / 10) * 10);
+    var X0 = 14, sx = 332 / (hi - lo);
+    function x(c) { return X0 + (c - lo) * sx; }
+    var s = '<svg class="zoom' + (opt.tap ? " tap" : "") + '" id="race-zoom" viewBox="0 0 360 104" data-lo="' + lo + '" data-hi="' + hi + '" role="img" aria-label="Числовая прямая от ' + lo + " до " + hi + '">' +
+      '<line x1="' + X0 + '" y1="70" x2="' + (X0 + 332) + '" y2="70" class="zm-line"/>';
+    for (var c = lo; c <= hi; c++) {
+      var big = c % 10 === 0, mid = c % 5 === 0;
+      s += '<line x1="' + x(c).toFixed(1) + '" y1="' + (big ? 60 : mid ? 63 : 66) + '" x2="' + x(c).toFixed(1) + '" y2="' + (big ? 80 : mid ? 77 : 74) + '" class="zm-tick' + (big ? " big" : "") + '"/>';
+      if (mid) s += '<text x="' + x(c).toFixed(1) + '" y="97" text-anchor="middle" class="zm-lab' + (big ? " big" : "") + '">' + c + "</text>";
+      if (R.pads[c]) s += padMark(x(c), 54, R.pads[c], 5);
+      if (c === RACE_END) s += '<text x="' + x(c).toFixed(1) + '" y="50" text-anchor="middle" class="tr-flag">🏁</text>';
+    }
+    (opt.hops || []).forEach(function (h) {
+      var a = x(h[0]), b = x(h[1]), m = (a + b) / 2, up = 62 - Math.min(40, 14 + Math.abs(b - a) * 0.3), d = h[1] - h[0];
+      s += '<path d="M' + a.toFixed(1) + ",66 Q" + m.toFixed(1) + "," + up.toFixed(1) + " " + b.toFixed(1) + ',66" class="zm-arc' + (h[2] ? " pad" : "") + '"/>' +
+        '<text x="' + m.toFixed(1) + '" y="' + ((up + 66) / 2 - 2).toFixed(1) + '" text-anchor="middle" class="zm-hop' + (h[2] ? " pad" : "") + '">' + (d < 0 ? "−" + -d : "+" + d) + "</text>";
+    });
+    [0, 1].forEach(function (p) {
+      var c2 = R.pos[p];
+      if (c2 >= lo && c2 <= hi) s += '<g class="tok tok' + p + '" transform="translate(' + (x(c2) + (R.pos[0] === R.pos[1] ? (p ? 7 : -7) : 0)).toFixed(1) + ',70)"><circle r="8"/><text y="4" text-anchor="middle">' + esc(raceInitial(R, p)) + "</text></g>";
+    });
+    if (opt.mark !== null && opt.mark !== undefined && opt.mark >= lo && opt.mark <= hi) s += '<path d="M' + (x(opt.mark) - 7).toFixed(1) + ",44 L" + (x(opt.mark) + 7).toFixed(1) + ",44 L" + x(opt.mark).toFixed(1) + ',56Z" class="zm-pick"/><text x="' + x(opt.mark).toFixed(1) + '" y="40" text-anchor="middle" class="zm-picklab">' + opt.mark + "</text>";
+    if (opt.tap) s += '<rect x="0" y="30" width="360" height="74" class="zm-hit"/>';
+    return s + "</svg>";
+  }
+
+  function racePanelHTML() {
+    var rd = raceData(), saved = raceSaved(), last = rd.games.slice(-1)[0];
+    var n0 = rd.names[0] || wpNames().hero;
+    return '<div class="panel">' +
+      "<h3>Гонка на двоих</h3>" +
+      '<p class="muted">Настольная игра для ребёнка и взрослого на одном экране. Дорога — числовая прямая от 0 до 100. Тяни карту, скажи, куда встанешь, и шагай. Одна игра — минут 10.</p>' +
+      '<div class="names-grid"><label class="f" for="race-n0">Первый игрок (ребёнок)<input type="text" id="race-n0" maxlength="14" value="' + esc(n0) + '" placeholder="Имя или боец"></label>' +
+        '<label class="f" for="race-n1">Второй игрок (взрослый)<input type="text" id="race-n1" maxlength="14" value="' + esc(rd.names[1] || "") + '" placeholder="Папа"></label></div>' +
+      '<div class="seg" role="group" aria-label="Карты"><button type="button" data-rl="1" aria-pressed="' + (rd.lvl === 1) + '">Карты: плюс и минус</button><button type="button" data-rl="2" aria-pressed="' + (rd.lvl === 2) + '">С умножением и делением</button></div>' +
+      '<label class="race-opt"><input type="checkbox" id="race-check"' + (rd.check ? " checked" : "") + "> Ребёнок проверяет ходы взрослого (взрослый иногда ошибается нарочно)</label>" +
+      '<div class="row"><button class="btn gold" id="race-start" type="button">Новая гонка</button>' +
+        (saved ? '<button class="btn ghost" id="race-resume" type="button">Продолжить: ' + esc(saved.names[0]) + " " + saved.pos[0] + " — " + esc(saved.names[1]) + " " + saved.pos[1] + "</button>" : "") +
+        (last && !saved ? '<span class="muted small">в прошлый раз первым был ' + esc(last.names ? last.names[last.w] : "") + "</span>" : "") + "</div></div>";
+  }
+  function bindRacePanel() {
+    var rd = raceData();
+    function keepNames() { rd.names = [$("race-n0").value.trim().slice(0, 14), $("race-n1").value.trim().slice(0, 14)]; rd.check = $("race-check").checked; save("math"); }
+    ["race-n0", "race-n1", "race-check"].forEach(function (id) { $(id).addEventListener("change", keepNames); });
+    document.querySelectorAll("[data-rl]").forEach(function (b) { b.addEventListener("click", function () { keepNames(); rd.lvl = +b.getAttribute("data-rl"); save("math"); renderMath(); }); });
+    $("race-start").addEventListener("click", function () { keepNames(); startRace(); });
+    if ($("race-resume")) $("race-resume").addEventListener("click", function () { math.race = raceSaved(); math.race.from = null; renderMath(); });
+  }
+  function startRace() {
+    var rd = raceData();
+    math.race = { lvl: rd.lvl, check: rd.check, names: [rd.names[0] || "Игрок", rd.names[1] || "Взрослый"], pos: [0, 0], stars: [0, 0], turn: 0, phase: "draw",
+      card: null, input: "", claim: null, res: null, pads: racePads(), n: 0, win: null, from: null, st: { kp: [0, 0], ap: [0, 0], ct: [0, 0] } };
+    raceKeep(); renderMath();
+  }
+
+  function renderRace() {
+    var R = math.race, v = $("view-math"), p = R.turn, nm = esc(R.names[p]), c = R.card, body = "";
+    var score = '<div class="race-score">' + [0, 1].map(function (q) {
+      return '<div class="rs p' + q + (q === p && R.phase !== "over" ? " on" : "") + '"><span class="nm">' + esc(R.names[q]) + "</span><b>" + R.pos[q] + '</b><span class="small">⭐ ' + R.stars[q] + "</span></div>";
+    }).join("") + "</div>";
+    var cardHTML = c ? '<div class="card-big' + (c.d < 0 ? " back" : "") + '">' + esc(c.t) + "</div>" + (c.k === "round" ? '<p class="muted small" style="text-align:center;margin:0">Шагай вперёд до ближайшего числа с нулём на конце.</p>' : c.k === "minus" ? '<p class="muted small" style="text-align:center;margin:0">Шаг назад.</p>' : "") : "";
+    var here = c ? R.pos[p] : 0, there = c ? here + c.d : 0;
+    function near(n) { return Math.abs(n - here) <= 40 ? n : here; }
+    var answerPad = '<div class="ans-row"><div class="answer" id="race-ans" aria-live="polite">' + esc(R.input) + "</div></div>" + padHTML().replace('id="m-pad"', 'id="race-pad"');
+    if (R.phase === "draw") {
+      body = '<div class="turn-banner p' + p + '">Ход: ' + nm + "</div>" +
+        (R.n === 0 ? '<div class="hint"><b>Правила.</b> Тяни карту и скажи, на какое число встанешь. Верно — получаешь ⭐. <span class="pad-ico up">▲</span> батут: +10. <span class="pad-ico gas">●</span> ядовитый газ: −10. Кто первым дойдёт до 100, тот победил. Звёзды — за точность.</div>' : "") +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="race-draw" type="button">Тянуть карту</button></div>';
+    } else if (R.phase === "answer") {
+      body = cardHTML + '<p class="ask">' + nm + ", ты на " + here + ". Куда встанешь?</p>" +
+        raceZoom(R, [here, there], { tap: true, mark: R.input ? +R.input : null }) +
+        '<p class="muted small" style="text-align:center;margin:0">Нажми на прямую или набери число.</p>' + answerPad;
+    } else if (R.phase === "check") {
+      body = cardHTML + '<p class="ask">' + nm + " на " + here + " и говорит: <b>" + R.claim + "</b>.<br>" + esc(R.names[0]) + ", проверь!</p>" +
+        raceZoom(R, [here, there, near(R.claim)], { mark: R.claim }) +
+        '<div class="row" style="justify-content:center"><button class="btn good big-end" type="button" data-rv="1">Верно</button><button class="btn bad big-end" type="button" data-rv="0">Ошибка</button></div>';
+    } else if (R.phase === "fix") {
+      body = cardHTML + '<p class="ask">' + esc(R.names[0]) + ", а куда на самом деле?</p>" +
+        raceZoom(R, [here, there, near(R.claim)], { tap: true, mark: R.input ? +R.input : null }) + answerPad;
+    } else if (R.phase === "result") {
+      var r = R.res, from = R.prev, land = R.landed, msg = { self: r.ok ? "Верно! +⭐" : "Почти. Правильно: " + land, agree: "Да, всё верно. Обоим по ⭐", falsealarm: "Нет, тут верно: " + land, missed: "Ошибка была! Правильно: " + land, fixed: "Поймал и исправил! +⭐", notfixed: "Ошибку поймал. Правильно: " + land }[r.kind];
+      var good = r.kind === "self" ? r.ok : r.kind === "agree" || r.kind === "fixed";
+      var hops = raceHops(from, c).reduce(function (a, q, i, arr) { if (i) a.push([arr[i - 1], q]); return a; }, []);
+      if (R.pad) hops.push([land, land + R.pad.d, 1]);
+      body = cardHTML + '<div class="feedback ' + (good ? "good" : "bad") + '"><div class="big">' + esc(msg) + "</div></div>" +
+        raceZoom(R, [from, land, R.pos[p]], { hops: hops }) +
+        '<p class="hint" style="justify-self:center">' + esc(raceWhy(from, c)) + "</p>" +
+        (R.pad ? '<p class="ask">' + (R.pad.d > 0 ? "Батут! " + land + " + 10 = " + (land + 10) : "Ядовитый газ! " + land + " − 10 = " + (land - 10)) + "</p>" : "") +
+        (R.win !== null ? '<p class="ask">' + nm + " на финише!</p>" : "") +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="race-next" type="button">' + (R.win !== null ? "Итоги" : "Ход: " + esc(R.names[1 - p])) + "</button></div>";
+    } else if (R.phase === "over") {
+      var w = R.win;
+      body = '<div class="feedback good"><div class="big">' + esc(R.names[w]) + " — первым до 100!</div></div>" +
+        '<div class="stats">' + stat("⭐ " + R.stars[0], esc(R.names[0]) + ": звёзды за точность") + stat("⭐ " + R.stars[1], esc(R.names[1]) + ": звёзды за точность") + "</div>" +
+        (R.st.ct[0] ? '<p class="muted" style="text-align:center">Ошибок взрослого поймано и исправлено: ' + R.st.ct[1] + " из " + R.st.ct[0] + ".</p>" : "") +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="race-again" type="button">Ещё гонка</button><button class="btn ghost" id="race-home" type="button">Назад</button></div>';
+    }
+    v.innerHTML = '<div class="panel race">' + score + raceTrack(R) + body +
+      (R.phase !== "over" ? '<div class="row" style="justify-content:center"><button class="btn ghost" id="race-pause" type="button">Пауза</button></div><p class="muted small" style="text-align:center;margin:0">На паузе игра сохранится, продолжить можно с вкладки «Счёт».</p>' : "") + "</div>";
+    if (R.from) {
+      var to = R.pos, same = to[0] === to[1];
+      R.from = null;
+      requestAnimationFrame(function () { requestAnimationFrame(function () { [0, 1].forEach(function (q) { var g = $("tok" + q); if (g) g.style.transform = "translate(" + (14 + Math.min(to[q], RACE_END) * 3.32 + (same ? (q ? 8 : -8) : 0)).toFixed(1) + "px,32px)"; }); }); });
+    }
+    if ($("race-pause")) $("race-pause").addEventListener("click", function () { raceKeep(); math.race = null; renderMath(); });
+    if ($("race-draw")) { $("race-draw").addEventListener("click", raceDraw); try { $("race-draw").focus({ preventScroll: true }); } catch (e) {} }
+    if ($("race-next")) { $("race-next").addEventListener("click", raceNext); try { $("race-next").focus({ preventScroll: true }); } catch (e) {} }
+    var pad = $("race-pad"); if (pad) pad.addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b) raceKey(b.getAttribute("data-k")); });
+    v.querySelectorAll("[data-rv]").forEach(function (b) { b.addEventListener("click", function () { raceVerdict(b.getAttribute("data-rv") === "1"); }); });
+    var z = $("race-zoom");
+    if (z && z.classList.contains("tap")) z.addEventListener("pointerdown", function (e) {
+      var rc = z.getBoundingClientRect(), lo = +z.getAttribute("data-lo"), hi = +z.getAttribute("data-hi");
+      var cell = Math.round(((e.clientX - rc.left) / rc.width * 360 - 14) / (332 / (hi - lo)) + lo);
+      R.input = String(Math.max(lo, Math.min(hi, cell))); renderRace();
+    });
+    if ($("race-again")) $("race-again").addEventListener("click", function () { startRace(); });
+    if ($("race-home")) $("race-home").addEventListener("click", function () { math.race = null; renderMath(); });
+  }
+  function raceDraw() { var R = math.race; R.card = raceCard(R.lvl, R.pos[R.turn]); R.phase = "answer"; R.input = ""; R.claim = null; raceKeep(); renderRace(); }
+  function raceKey(k) {
+    var R = math.race; if (!R || (R.phase !== "answer" && R.phase !== "fix")) return;
+    if (k === "del") R.input = R.input.slice(0, -1);
+    else if (k === "ok") { if (R.input) raceSubmit(parseInt(R.input, 10)); return; }
+    else if (/^[0-9]$/.test(k) && R.input.length < 3) R.input += k;
+    renderRace();
+  }
+  function raceSubmit(val) {
+    var R = math.race, p = R.turn, right = R.pos[p] + R.card.d;
+    if (R.phase === "fix") { var ok = val === right; if (ok) { R.st.ct[1]++; R.stars[0]++; } R.res = { kind: ok ? "fixed" : "notfixed" }; return raceMove(); }
+    if (p === 1 && R.check) { R.claim = val; R.phase = "check"; raceKeep(); return renderRace(); }
+    var st = p === 0 ? R.st.kp : R.st.ap, good = val === right;
+    st[0]++; if (good) { st[1]++; R.stars[p]++; }
+    R.res = { kind: "self", ok: good };
+    raceMove();
+  }
+  function raceVerdict(saysRight) {
+    var R = math.race, right = R.pos[1] + R.card.d, adultOk = R.claim === right;
+    R.st.ap[0]++;
+    if (adultOk) { R.st.ap[1]++; R.stars[1]++; if (saysRight) R.stars[0]++; R.res = { kind: saysRight ? "agree" : "falsealarm" }; return raceMove(); }
+    R.st.ct[0]++;
+    if (saysRight) { R.res = { kind: "missed" }; return raceMove(); }
+    R.phase = "fix"; R.input = ""; raceKeep(); renderRace();
+  }
+  function raceMove() {
+    var R = math.race, p = R.turn, b = R.pos[p] + R.card.d;
+    R.from = R.pos.slice(); R.prev = R.pos[p]; R.landed = b; R.pad = null;
+    if (b < RACE_END && R.pads[b]) { R.pad = { d: R.pads[b] }; b += R.pads[b]; }
+    R.pos[p] = Math.max(0, Math.min(RACE_END, b)); R.n++;
+    if (R.pos[p] >= RACE_END) R.win = p;
+    R.phase = "result"; raceKeep(); renderRace();
+  }
+  function raceNext() {
+    var R = math.race;
+    if (R.win !== null) {
+      R.phase = "over";
+      var rd = raceData(); rd.games.push({ d: dayKey(), w: R.win, names: R.names.slice(), stars: R.stars.slice(), kp: R.st.kp.slice(), ap: R.st.ap.slice(), ct: R.st.ct.slice(), n: R.n, lvl: R.lvl });
+      trim(rd.games, 200); save("math"); raceKeep(); renderRace(); renderHeader(); return;
+    }
+    R.turn = 1 - R.turn; R.phase = "draw"; R.card = null; R.res = null; raceKeep(); renderRace();
+  }
+  document.addEventListener("keydown", function (e) {
+    var R = math.race;
+    if (current !== "math" || !R || (R.phase !== "answer" && R.phase !== "fix") || !$("race-pad")) return;
+    if (/^[0-9]$/.test(e.key)) { raceKey(e.key); e.preventDefault(); }
+    else if (e.key === "Backspace") { raceKey("del"); e.preventDefault(); }
+    else if (e.key === "Enter") { raceKey("ok"); e.preventDefault(); }
+  });
+  function raceProgressHTML() {
+    var g = raceData().games; if (!g.length) return "";
+    var last = g.slice(-5), kp = [0, 0], ct = [0, 0];
+    last.forEach(function (x) { kp[0] += x.kp[0]; kp[1] += x.kp[1]; ct[0] += x.ct[0]; ct[1] += x.ct[1]; });
+    return '<div class="panel"><h3>Гонка на двоих</h3><div class="stats">' + stat(g.length, "игр сыграно") +
+      stat(kp[0] ? Math.round(kp[1] / kp[0] * 100) + "%" : "—", "своих ходов он посчитал верно (последние 5 игр)") +
+      (ct[0] ? stat(ct[1] + " из " + ct[0], "ошибок взрослого поймал и исправил") : "") + "</div>" +
+      '<p class="muted small">Ошибайтесь нарочно примерно раз в три хода, лучше всего при переходе через десяток (37 + 8 = 44): чтобы поймать ошибку, ему придётся пересчитать самому. Говорите вслух, как считаете: «до сорока три, и ещё пять».</p></div>';
   }
 
   /* ---------- word problems from the game ("Задачи бравлера"); numbers are made up ---------- */
@@ -2540,7 +2827,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
         }).join("") + '</div><p class="muted small">Полоса — доля верных ответов. Время ответа ребёнку не показывается, оно только для вас: обычное время в последнем раунде ' + (meds.length ? fmtSec(meds[meds.length - 1]) : "—") + (meds.length > 1 ? ", в первом из показанных " + fmtSec(meds[0]) : "") + ". Уверенное знание — около 3 секунд.</p>" : '<p class="muted">Раундов пока не было. Первый раунд — на вкладке «Счёт».</p>') +
         mapHTML("m") + legendHTML() +
       "</div>" +
-      gamesProgressHTML() + dfProgressHTML() + wpProgressHTML() + cmProgressHTML() + huntProgressHTML() +
+      gamesProgressHTML() + dfProgressHTML() + wpProgressHTML() + cmProgressHTML() + raceProgressHTML() + huntProgressHTML() +
       '<div class="panel"><h3>Слова</h3><div class="stats">' + ["dict", "check", "tsya", "own"].filter(function (c) { return byCat[c]; }).map(function (c) { return stat(byCat[c].m + " / " + byCat[c].n, CATS[c].toLowerCase() + " освоено"); }).join("") + "</div>" +
         (hardWords.length ? '<p class="muted">Трудные слова (ошибался несколько раз):</p><div class="wordlist">' + hardWords.map(function (w) { return '<span data-b="1">' + esc(w) + "</span>"; }).join("") + "</div>" : '<p class="muted">Трудных слов пока нет.</p>') +
       "</div>" +
@@ -2576,7 +2863,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
   }
 
   /* ---------- boot ---------- */
-  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl && !math.df && !math.cm) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); if (current === "games" && !games.spinning) renderGames(); }
+  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl && !math.df && !math.cm && !math.race) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); if (current === "games" && !games.spinning) renderGames(); }
   renderAll();
   try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "games", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
   try { var hs = (location.hash || "").slice(1); if (["math", "read", "words", "games", "prog"].indexOf(hs) >= 0) showTab(hs); } catch (e) {}
