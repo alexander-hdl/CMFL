@@ -309,6 +309,7 @@
 - [`research/08-russkiy-yazyk-9-let.md`](research/08-russkiy-yazyk-9-let.md) — русский язык в 9 лет: разбор диктантов по типам ошибок, мини-диктанты, морфологические игры, чтение, книги, когда к логопеду.
 - [`research/09-planshet-9-let.md`](research/09-planshet-9-let.md) — планшет в 9 лет: Shorts и Brawl Stars, пошаговая настройка iPad и Android, «последний матч», детский договор.
 - **Тренажёры на компьютере** («Тренировочная арена»): [claude.ai/artifact/NUnVhvzy88WsXPZpf4yvSm](https://claude.ai/artifact/NUnVhvzy88WsXPZpf4yvSm). Внутри таблица умножения с повторением через промежутки, числовая прямая, «Задачи бравлера» (текстовые задачи на числах из игры: сначала выбор действия, потом счёт), повторное чтение с замером слов в минуту и ошибок, слова под диктовку с самопроверкой по буквам, таблица Шульте как игра на внимание и экран прогресса для родителя. Исходник лежит в [`plan/trenazhery.html`](plan/trenazhery.html).
+- **Студия комиксов для пера XP-PEN**: [claude.ai/artifact/78TnnhbtiWef319zJ2SQM8](https://claude.ai/artifact/78TnnhbtiWef319zJ2SQM8). 3, 4 или 6 кадров, карандаш с нажимом, фломастер, заливка, ластик, облачка (реплика, мысль, крик, надпись) без автоисправления, шаг «Проверь 2 слова», альбом и скачивание картинки. Исходник лежит в [`plan/komiksy.html`](plan/komiksy.html).
 - [`research/10-chtenie-interaktiv.md`](research/10-chtenie-interaktiv.md) — чтение: «таблица Брагиса» (скорее всего, Шульте), скорочтение, что реально работает, компьютерные инструменты.
 - [`research/11-matematika-vychisleniya.md`](research/11-matematika-vychisleniya.md) — счёт: беглое знание таблицы, числовая прямая, приложения, ментальная арифметика.
 - [`research/12-xp-pen-i-kompyuter.md`](research/12-xp-pen-i-kompyuter.md) — XP-PEN и компьютер: стилус против ручки, рисование и комиксы, клавиатура, Scratch.
@@ -333,3 +334,4 @@
 | [`research/11-matematika-vychisleniya.md`](research/11-matematika-vychisleniya.md) | Счёт: таблица умножения, числовая прямая, приложения |
 | [`research/12-xp-pen-i-kompyuter.md`](research/12-xp-pen-i-kompyuter.md) | XP-PEN и компьютер: письмо, комиксы, клавиатура |
 | [`plan/trenazhery.html`](plan/trenazhery.html) | Исходник тренажёров «Тренировочная арена» |
+| [`plan/komiksy.html`](plan/komiksy.html) | Исходник «Студии комиксов» для пера XP-PEN |

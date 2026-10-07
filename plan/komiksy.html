@@ -1,0 +1,731 @@
+<title>Студия комиксов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Pangolin&family=Russo+One&display=swap">
+<style>
+/* Layout: an art desk. A white comic page sits on a halftone-dotted desk; the toolbar sticks above it so the pen always has the whole page. */
+:root {
+  --desk: #eef0f4;
+  --dot: rgba(40, 52, 90, 0.10);
+  --panel: #ffffff;
+  --ink: #161a24;
+  --muted: #5f6678;
+  --line: #d3d8e2;
+  --accent: #ff5a3c;
+  --accent-ink: #ffffff;
+  --sel: #2457d6;
+  --sel-bg: #e3ebff;
+  --good: #1f8a4c;
+
+  --f-display: "Russo One", "Nunito", system-ui, sans-serif;
+  --f-body: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-comic: "Pangolin", "Comic Sans MS", "Segoe Print", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #161a22; --dot: rgba(160, 180, 230, 0.07); --panel: #20263a; --ink: #eef1f7; --muted: #a3abc0; --line: #343c52;
+    --accent: #ff7158; --accent-ink: #1b0905; --sel: #8fb0ff; --sel-bg: #26345a; --good: #5fd39a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #161a22; --dot: rgba(160, 180, 230, 0.07); --panel: #20263a; --ink: #eef1f7; --muted: #a3abc0; --line: #343c52;
+  --accent: #ff7158; --accent-ink: #1b0905; --sel: #8fb0ff; --sel-bg: #26345a; --good: #5fd39a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background-color: var(--desk); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.3px); background-size: 14px 14px; color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.45; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--sel); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 48px; display: grid; gap: 14px; }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 400; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+h2 { font-size: 1.35rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+
+.head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: end; justify-content: space-between; }
+.idea { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--panel); border: 2px solid var(--ink); border-radius: 14px; padding: 8px 12px; box-shadow: 4px 4px 0 var(--ink); max-width: 560px; }
+.idea b { font-family: var(--f-display); font-weight: 400; color: var(--accent); }
+.steps { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; counter-reset: s; font-size: 0.92rem; }
+.steps li { counter-increment: s; display: flex; gap: 6px; align-items: baseline; }
+.steps li::before { content: counter(s); font-family: var(--f-display); color: var(--accent); }
+
+/* toolbar */
+.editor { display: grid; gap: 10px; }
+.editor:fullscreen { background: var(--desk); padding: 10px; overflow: auto; }
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--panel); border: 2px solid var(--ink); border-radius: 14px; padding: 8px; box-shadow: 4px 4px 0 var(--ink); }
+.group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.sep { width: 2px; align-self: stretch; background: var(--line); margin-inline: 2px; }
+.tb { border: 2px solid transparent; background: transparent; border-radius: 10px; padding: 6px 10px; min-height: 40px; font-weight: 800; cursor: pointer; }
+.tb:hover { background: var(--sel-bg); }
+.tb[aria-pressed="true"] { border-color: var(--sel); background: var(--sel-bg); color: var(--sel); }
+.sw { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+.sw[aria-pressed="true"] { outline: 3px solid var(--sel); outline-offset: 2px; }
+.dotsz { display: inline-block; border-radius: 50%; background: currentColor; vertical-align: middle; }
+
+/* stage */
+.stage { position: relative; width: 100%; border-radius: 6px; box-shadow: 6px 6px 0 var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; background: #fff; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+#c-paint { cursor: crosshair; }
+.stage.fill #c-paint { cursor: cell; }
+#c-frames, #c-bub { pointer-events: none; }
+.plabel { position: absolute; pointer-events: none; font-family: var(--f-display); font-size: clamp(0.65rem, 1.2vw, 0.9rem); color: #9aa3b8; background: rgba(255,255,255,0.85); padding: 1px 6px; border-radius: 6px; }
+.bubble { position: absolute; display: grid; grid-template-rows: auto 1fr; }
+.bubble textarea { width: 100%; height: 100%; resize: none; border: 0; background: transparent; color: #111; font-family: var(--f-comic); text-align: center; line-height: 1.15; padding: 0; overflow: hidden; outline: none; }
+.bubble .bar { display: flex; justify-content: space-between; opacity: 0; transition: opacity 0.15s; }
+.bubble:hover .bar, .bubble:focus-within .bar { opacity: 1; }
+.bubble .grip, .bubble .del { border: 0; background: var(--ink); color: var(--panel); border-radius: 8px; font-size: 0.75rem; padding: 2px 7px; cursor: grab; font-weight: 800; touch-action: none; }
+.bubble .del { cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.bubble .rs { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border-radius: 4px; background: var(--ink); cursor: nwse-resize; touch-action: none; opacity: 0; }
+.bubble:hover .rs, .bubble:focus-within .rs { opacity: 1; }
+.tail { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--sel); border: 2px solid #fff; cursor: move; touch-action: none; opacity: 0.25; }
+.tail:hover, .tail.on { opacity: 1; }
+
+.under { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 9px; padding: 6px 12px; font-weight: 800; cursor: pointer; min-height: 38px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+input[type="text"] { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; min-height: 42px; min-width: 0; }
+.btn { border: 2px solid var(--ink); border-radius: 12px; padding: 10px 18px; font-weight: 800; cursor: pointer; min-height: 46px; background: var(--panel); box-shadow: 3px 3px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn.hot { background: var(--accent); color: var(--accent-ink); }
+.btn[disabled] { opacity: 0.5; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.note { font-size: 0.85rem; color: var(--muted); }
+.msg { font-weight: 800; }
+.msg.ok { color: var(--good); }
+.msg.err { color: var(--accent); }
+
+/* check step + album */
+.card { background: var(--panel); border: 2px solid var(--ink); border-radius: 16px; padding: 16px; box-shadow: 4px 4px 0 var(--ink); display: grid; gap: 12px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border: 2px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 12px; font-family: var(--f-comic); font-size: 1.15rem; cursor: pointer; }
+.chips button[aria-pressed="true"] { border-color: var(--sel); background: var(--sel-bg); color: var(--sel); }
+.letters { display: flex; flex-wrap: wrap; gap: 5px; }
+.letters span { min-width: 1.6em; text-align: center; padding: 3px 6px; border-radius: 8px; background: var(--sel-bg); font-family: var(--f-display); font-size: 1.6rem; }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.album button { border: 2px solid var(--ink); border-radius: 12px; background: var(--panel); padding: 8px; display: grid; gap: 6px; cursor: pointer; text-align: left; box-shadow: 3px 3px 0 var(--ink); }
+.album img { width: 100%; border-radius: 6px; background: #fff; aspect-ratio: 3 / 2; object-fit: contain; }
+.album b { font-weight: 800; }
+.viewer img { width: 100%; border-radius: 8px; background: #fff; }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1>Студия комиксов</h1>
+      <p class="muted">Рисуй пером, придумывай реплики и собирай свой альбом.</p>
+    </div>
+    <div class="idea" aria-live="polite"><span>Идея:</span><b id="idea"></b><button class="tb" id="idea-next" type="button">Другая</button></div>
+  </header>
+  <ol class="steps">
+    <li>Придумай на листке: начало, проблема, развязка.</li>
+    <li>Нарисуй кадры пером.</li>
+    <li>Добавь облачка с репликами.</li>
+    <li>Проверь 2 слова.</li>
+    <li>Сохрани и покажи кому-нибудь.</li>
+  </ol>
+
+  <section class="editor" id="editor" aria-label="Редактор комикса">
+    <div class="toolbar" role="toolbar" aria-label="Инструменты">
+      <div class="group" id="tools">
+        <button class="tb" type="button" data-tool="pencil" aria-pressed="true">Карандаш</button>
+        <button class="tb" type="button" data-tool="marker" aria-pressed="false">Фломастер</button>
+        <button class="tb" type="button" data-tool="fill" aria-pressed="false">Заливка</button>
+        <button class="tb" type="button" data-tool="eraser" aria-pressed="false">Ластик</button>
+      </div>
+      <span class="sep"></span>
+      <div class="group" id="sizes" aria-label="Толщина">
+        <button class="tb" type="button" data-size="0" aria-pressed="false" aria-label="Тонко"><span class="dotsz" style="width:6px;height:6px"></span></button>
+        <button class="tb" type="button" data-size="1" aria-pressed="true" aria-label="Средне"><span class="dotsz" style="width:11px;height:11px"></span></button>
+        <button class="tb" type="button" data-size="2" aria-pressed="false" aria-label="Толсто"><span class="dotsz" style="width:17px;height:17px"></span></button>
+      </div>
+      <span class="sep"></span>
+      <div class="group" id="colors" aria-label="Цвет"></div>
+      <span class="sep"></span>
+      <div class="group">
+        <button class="tb" type="button" data-bub="speech">+ Реплика</button>
+        <button class="tb" type="button" data-bub="thought">+ Мысль</button>
+        <button class="tb" type="button" data-bub="shout">+ Крик</button>
+        <button class="tb" type="button" data-bub="caption">+ Надпись</button>
+      </div>
+      <span class="sep"></span>
+      <div class="group">
+        <button class="tb" type="button" id="undo" title="Ctrl+Z">Отменить</button>
+        <button class="tb" type="button" id="full">Весь экран</button>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <canvas id="c-bg"></canvas>
+      <canvas id="c-paint" aria-label="Страница комикса для рисования пером"></canvas>
+      <canvas id="c-frames"></canvas>
+      <canvas id="c-bub"></canvas>
+      <div id="labels"></div>
+      <div id="bubbles"></div>
+    </div>
+
+    <div class="under">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Сколько кадров" id="layouts">
+          <button type="button" data-layout="3" aria-pressed="true">3 кадра</button>
+          <button type="button" data-layout="4" aria-pressed="false">4 кадра</button>
+          <button type="button" data-layout="6" aria-pressed="false">6 кадров</button>
+        </div>
+        <label for="title" class="small muted">Название</label>
+        <input type="text" id="title" maxlength="60" placeholder="Как называется комикс?" spellcheck="false" autocomplete="off">
+      </div>
+      <div class="row">
+        <button class="btn" type="button" id="new">Новый комикс</button>
+        <button class="btn hot" type="button" id="to-check">Проверить и сохранить</button>
+      </div>
+    </div>
+    <p class="msg" id="confirm-line" hidden></p>
+    <p class="note">Кнопка на пере XP-PEN работает как ластик, если в драйвере она настроена на «ластик». Если перо не чувствует нажим, включите Windows Ink в настройках драйвера. В облачках автоисправление выключено: слова пишутся так, как их написал ты.</p>
+  </section>
+
+  <section class="card" id="check" hidden aria-labelledby="check-h">
+    <h2 id="check-h">Проверь 2 слова</h2>
+    <p>Нажми на два слова из облачков, в которых ты не уверен. Проверь их по буквам вместе со взрослым или по словарику. Нашёл ошибку — исправь её в облачке.</p>
+    <div class="chips" id="words"></div>
+    <div id="picked"></div>
+    <div class="row">
+      <button class="btn" type="button" id="back">Вернуться к рисунку</button>
+      <button class="btn hot" type="button" id="save">Сохранить в альбом</button>
+      <button class="btn" type="button" id="dl">Скачать картинку</button>
+      <span class="msg" id="save-msg" aria-live="polite"></span>
+    </div>
+    <p class="note">Для взрослого: ошибки красным не исправляем. Хвалим за идею и за то, что он сам нашёл и проверил слова. Комикс — это хобби и повод писать для настоящего читателя, а не урок почерка.</p>
+  </section>
+
+  <section class="card" aria-labelledby="album-h">
+    <h2 id="album-h">Мой альбом</h2>
+    <div id="album-body"><p class="muted">Здесь будут твои комиксы. Нарисуй первый и нажми «Проверить и сохранить».</p></div>
+  </section>
+
+  <section class="card viewer" id="viewer" hidden aria-labelledby="viewer-h">
+    <div class="row" style="justify-content:space-between"><h2 id="viewer-h"></h2><button class="btn" type="button" id="v-close">Закрыть</button></div>
+    <img id="v-img" alt="">
+    <div class="row">
+      <button class="btn" type="button" id="v-dl">Скачать</button>
+      <button class="btn" type="button" id="v-del">Удалить</button>
+      <span class="msg" id="v-msg"></span>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function dayKey(d) { d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+
+  /* ---------- ideas ---------- */
+  var IDEAS = [
+    "Боец находит сундук, а внутри что-то очень странное.",
+    "Последний матч: всё решает один выстрел.",
+    "Робот Тиль снова теряет буквы. Кто ему поможет?",
+    "Твой боец попадает в обычную школу.",
+    "Придумай нового бойца и покажи его суперспособность.",
+    "Кот, который научился играть в футбол.",
+    "Команда проигрывает, но у неё есть хитрый план.",
+    "Подводный турнир дельфинов.",
+    "День, когда все экраны в мире выключились.",
+    "Ты с другом строишь базу, а к вам идёт босс.",
+    "Новый вратарь, который боится мяча.",
+    "Тренер говорит: «Сегодня без суперспособностей!»"
+  ];
+  function nextIdea() { $("idea").textContent = IDEAS[Math.floor(Math.random() * IDEAS.length)]; }
+  $("idea-next").addEventListener("click", nextIdea);
+  nextIdea();
+
+  /* ---------- page geometry ---------- */
+  var LAYOUTS = {
+    "3": { W: 1500, H: 620, cols: 3, rows: 1, labels: ["Начало", "Проблема", "Развязка"] },
+    "4": { W: 1500, H: 1160, cols: 2, rows: 2, labels: ["Начало", "Проблема", "Попытка", "Развязка"] },
+    "6": { W: 1500, H: 1060, cols: 3, rows: 2, labels: ["1", "2", "3", "4", "5", "6"] }
+  };
+  var MARGIN = 28, GUT = 22, FRAME = 6;
+  var COLORS = ["#161616", "#e53935", "#fb8c00", "#fdd835", "#43a047", "#1e88e5", "#8e24aa", "#6d4c41", "#f2c49b", "#9e9e9e", "#ffffff"];
+  var SIZES = { pencil: [3, 6, 11], marker: [12, 22, 36], eraser: [18, 36, 64] };
+
+  var st = { tool: "pencil", size: 1, color: COLORS[0], layout: "3", bubbles: [], title: "" };
+  var L = LAYOUTS[st.layout];
+  var stage = $("stage"), cBg = $("c-bg"), cPaint = $("c-paint"), cFr = $("c-frames"), cBub = $("c-bub");
+  var gBg = cBg.getContext("2d"), gPaint = cPaint.getContext("2d", { willReadFrequently: true }), gFr = cFr.getContext("2d"), gBub = cBub.getContext("2d");
+
+  function panels() {
+    var pw = (L.W - 2 * MARGIN - (L.cols - 1) * GUT) / L.cols, ph = (L.H - 2 * MARGIN - (L.rows - 1) * GUT) / L.rows, out = [];
+    for (var r = 0; r < L.rows; r++) for (var c = 0; c < L.cols; c++) out.push({ x: MARGIN + c * (pw + GUT), y: MARGIN + r * (ph + GUT), w: pw, h: ph });
+    return out;
+  }
+  function panelAt(x, y) { var ps = panels(); for (var i = 0; i < ps.length; i++) { var p = ps[i]; if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) return p; } return null; }
+
+  function setupCanvases() {
+    [cBg, cPaint, cFr, cBub].forEach(function (c) { c.width = L.W; c.height = L.H; });
+    stage.style.aspectRatio = L.W + " / " + L.H;
+    gBg.fillStyle = "#ffffff"; gBg.fillRect(0, 0, L.W, L.H);
+    drawFrames(gFr);
+    var lab = $("labels"); lab.innerHTML = "";
+    panels().forEach(function (p, i) {
+      var s = document.createElement("span"); s.className = "plabel"; s.textContent = L.labels[i] || "";
+      s.style.left = ((p.x + 10) / L.W * 100) + "%"; s.style.top = ((p.y + 10) / L.H * 100) + "%";
+      lab.appendChild(s);
+    });
+  }
+  function drawFrames(g) {
+    g.clearRect(0, 0, L.W, L.H);
+    g.strokeStyle = "#111"; g.lineWidth = FRAME; g.lineJoin = "round";
+    panels().forEach(function (p) { g.strokeRect(p.x, p.y, p.w, p.h); });
+  }
+
+  /* ---------- toolbar ---------- */
+  var colorsEl = $("colors");
+  COLORS.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "sw"; b.style.background = c; b.setAttribute("data-color", c);
+    b.setAttribute("aria-label", "Цвет " + (i + 1)); b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    colorsEl.appendChild(b);
+  });
+  function press(groupSel, attr, val) { document.querySelectorAll(groupSel + " [" + attr + "]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute(attr) === String(val) ? "true" : "false"); }); }
+  $("tools").addEventListener("click", function (e) { var b = e.target.closest("[data-tool]"); if (!b) return; st.tool = b.getAttribute("data-tool"); press("#tools", "data-tool", st.tool); stage.classList.toggle("fill", st.tool === "fill"); });
+  $("sizes").addEventListener("click", function (e) { var b = e.target.closest("[data-size]"); if (!b) return; st.size = +b.getAttribute("data-size"); press("#sizes", "data-size", st.size); });
+  colorsEl.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-color]"); if (!b) return; st.color = b.getAttribute("data-color"); press("#colors", "data-color", st.color);
+    if (st.tool === "eraser") { st.tool = "pencil"; press("#tools", "data-tool", "pencil"); }
+  });
+
+  /* ---------- undo ---------- */
+  var undoStack = [];
+  function pushUndo(entry) { undoStack.push(entry); if (undoStack.length > 25) undoStack.shift(); }
+  function undo() {
+    var u = undoStack.pop(); if (!u) return;
+    if (u.kind === "paint") gPaint.putImageData(u.data, u.x, u.y);
+    if (u.kind === "bubbles") { st.bubbles = JSON.parse(u.json); renderBubbles(); }
+    queueDraft();
+  }
+  $("undo").addEventListener("click", undo);
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "я") && !(e.target && e.target.tagName === "TEXTAREA")) { e.preventDefault(); undo(); }
+  });
+  function snapPanel(p) {
+    var x = Math.max(0, Math.floor(p.x)), y = Math.max(0, Math.floor(p.y)), w = Math.ceil(p.w) + 1, h = Math.ceil(p.h) + 1;
+    return { kind: "paint", x: x, y: y, data: gPaint.getImageData(x, y, w, h) };
+  }
+
+  /* ---------- drawing ---------- */
+  var drawing = null;
+  function toPage(e) { var r = stage.getBoundingClientRect(); return { x: (e.clientX - r.left) * L.W / r.width, y: (e.clientY - r.top) * L.H / r.height }; }
+  function widthFor(e, tool) {
+    var base = SIZES[tool][st.size];
+    if (tool === "pencil") { var p = e.pointerType === "pen" && e.pressure > 0 ? e.pressure : 0.5; return Math.max(1, base * (0.35 + p * 1.3)); }
+    return base;
+  }
+  cPaint.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0 && !(e.pointerType === "pen" && (e.buttons & 32))) return;
+    var pt = toPage(e), panel = panelAt(pt.x, pt.y);
+    if (!panel) return;
+    e.preventDefault();
+    var tool = (e.pointerType === "pen" && (e.buttons & 32)) ? "eraser" : st.tool;
+    pushUndo(snapPanel(panel));
+    if (tool === "fill") { floodFill(pt, panel); queueDraft(); return; }
+    try { cPaint.setPointerCapture(e.pointerId); } catch (x) {}
+    drawing = { tool: tool, panel: panel, last: pt };
+    stroke(pt, pt, widthFor(e, tool), tool, panel);
+  });
+  cPaint.addEventListener("pointermove", function (e) {
+    if (!drawing) return; e.preventDefault();
+    var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    if (!evs.length) evs = [e];
+    evs.forEach(function (ev) { var pt = toPage(ev); stroke(drawing.last, pt, widthFor(ev, drawing.tool), drawing.tool, drawing.panel); drawing.last = pt; });
+  });
+  function endStroke() { if (drawing) { drawing = null; queueDraft(); } }
+  cPaint.addEventListener("pointerup", endStroke);
+  cPaint.addEventListener("pointercancel", endStroke);
+  function stroke(a, b, w, tool, p) {
+    gPaint.save();
+    gPaint.beginPath(); gPaint.rect(p.x + FRAME / 2, p.y + FRAME / 2, p.w - FRAME, p.h - FRAME); gPaint.clip();
+    gPaint.globalCompositeOperation = tool === "eraser" ? "destination-out" : "source-over";
+    gPaint.strokeStyle = tool === "eraser" ? "#000" : st.color;
+    gPaint.lineWidth = w; gPaint.lineCap = "round"; gPaint.lineJoin = "round";
+    gPaint.beginPath(); gPaint.moveTo(a.x, a.y); gPaint.lineTo(b.x + 0.01, b.y); gPaint.stroke();
+    gPaint.restore();
+  }
+  function hexRgb(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function floodFill(pt, p) {
+    var x0 = Math.ceil(p.x + FRAME / 2), y0 = Math.ceil(p.y + FRAME / 2), w = Math.floor(p.w - FRAME), h = Math.floor(p.h - FRAME);
+    var img = gPaint.getImageData(x0, y0, w, h), d = img.data;
+    var sx = Math.floor(pt.x - x0), sy = Math.floor(pt.y - y0);
+    if (sx < 0 || sy < 0 || sx >= w || sy >= h) return;
+    var i0 = (sy * w + sx) * 4, t = [d[i0], d[i0 + 1], d[i0 + 2], d[i0 + 3]], f = hexRgb(st.color);
+    function same(i) {
+      if (t[3] < 40) return d[i + 3] < 110;
+      return Math.abs(d[i] - t[0]) + Math.abs(d[i + 1] - t[1]) + Math.abs(d[i + 2] - t[2]) + Math.abs(d[i + 3] - t[3]) < 90;
+    }
+    if (t[3] > 200 && Math.abs(t[0] - f[0]) + Math.abs(t[1] - f[1]) + Math.abs(t[2] - f[2]) < 6) return;
+    var seen = new Uint8Array(w * h), stack = [sx, sy];
+    while (stack.length) {
+      var y = stack.pop(), x = stack.pop(), idx = y * w + x;
+      while (x > 0 && !seen[idx - 1] && same((idx - 1) * 4)) { x--; idx--; }
+      var up = false, dn = false;
+      while (x < w && !seen[idx] && same(idx * 4)) {
+        seen[idx] = 1; var k = idx * 4; d[k] = f[0]; d[k + 1] = f[1]; d[k + 2] = f[2]; d[k + 3] = 255;
+        if (y > 0) { var u = idx - w; if (!seen[u] && same(u * 4)) { if (!up) { stack.push(x, y - 1); up = true; } } else up = false; }
+        if (y < h - 1) { var v = idx + w; if (!seen[v] && same(v * 4)) { if (!dn) { stack.push(x, y + 1); dn = true; } } else dn = false; }
+        x++; idx++;
+      }
+    }
+    // soften the seam next to anti-aliased lines
+    for (var j = 0; j < w * h; j++) {
+      if (seen[j]) continue;
+      var kk = j * 4; if (d[kk + 3] > 0 && d[kk + 3] < 255) {
+        var xx = j % w, nb = (xx > 0 && seen[j - 1]) || (xx < w - 1 && seen[j + 1]) || (j >= w && seen[j - w]) || (j < w * (h - 1) && seen[j + w]);
+        if (nb) { var a = d[kk + 3] / 255; d[kk] = Math.round(d[kk] * a + f[0] * (1 - a)); d[kk + 1] = Math.round(d[kk + 1] * a + f[1] * (1 - a)); d[kk + 2] = Math.round(d[kk + 2] * a + f[2] * (1 - a)); d[kk + 3] = 255; }
+      }
+    }
+    gPaint.putImageData(img, x0, y0);
+  }
+
+  /* ---------- speech bubbles ---------- */
+  var FONT_PX = 32;
+  function newBubble(kind) {
+    var ps = panels(), n = st.bubbles.length, p = ps[n % ps.length], round = Math.floor(n / ps.length);
+    var w = Math.min(kind === "caption" ? 300 : 330, p.w - 40), h = kind === "caption" ? 90 : 160;
+    var x = Math.min(L.W - w - 40, p.x + 24 + (round % 2) * 60), y = Math.min(L.H - h - 40, p.y + 22 + (round % 3) * 70);
+    pushUndo({ kind: "bubbles", json: JSON.stringify(st.bubbles) });
+    var b = { id: "b" + Date.now().toString(36) + n, kind: kind, x: x, y: y, w: w, h: h, tx: x + w * 0.35, ty: y + h + 80, text: "" };
+    st.bubbles.push(b);
+    renderBubbles();
+    var ta = document.querySelector('[data-bid="' + b.id + '"] textarea'); if (ta) ta.focus();
+    queueDraft();
+  }
+  document.querySelector(".toolbar").addEventListener("click", function (e) { var b = e.target.closest("[data-bub]"); if (b) newBubble(b.getAttribute("data-bub")); });
+
+  function bubblePath(g, b) {
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2, rx = b.w / 2, ry = b.h / 2;
+    g.beginPath();
+    if (b.kind === "caption") { g.rect(b.x, b.y, b.w, b.h); return; }
+    if (b.kind === "shout") {
+      var spikes = 18;
+      for (var i = 0; i <= spikes * 2; i++) {
+        var a = i / (spikes * 2) * Math.PI * 2, r = i % 2 ? 1.12 : 0.9;
+        var px = cx + Math.cos(a) * rx * r, py = cy + Math.sin(a) * ry * r;
+        if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+      }
+      g.closePath(); return;
+    }
+    if (b.kind === "thought") {
+      var bumps = 11;
+      for (var k = 0; k < bumps; k++) {
+        var a1 = k / bumps * Math.PI * 2, bx = cx + Math.cos(a1) * rx * 0.86, by = cy + Math.sin(a1) * ry * 0.86;
+        g.moveTo(bx + rx * 0.3, by); g.ellipse(bx, by, rx * 0.3, ry * 0.36, 0, 0, Math.PI * 2);
+      }
+      g.moveTo(cx + rx * 0.9, cy); g.ellipse(cx, cy, rx * 0.9, ry * 0.86, 0, 0, Math.PI * 2);
+      return;
+    }
+    g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  }
+  function tailPath(g, b) {
+    if (b.kind === "caption") return false;
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    if (b.kind === "thought") {
+      g.beginPath();
+      [[0.55, 18], [0.78, 11], [0.95, 7]].forEach(function (t) { var x = cx + (b.tx - cx) * t[0], y = cy + (b.ty - cy) * t[0]; g.moveTo(x + t[1], y); g.arc(x, y, t[1], 0, Math.PI * 2); });
+      return true;
+    }
+    var ang = Math.atan2(b.ty - cy, b.tx - cx), spread = 0.22;
+    var p1 = { x: cx + Math.cos(ang - spread) * b.w / 2 * 0.8, y: cy + Math.sin(ang - spread) * b.h / 2 * 0.8 };
+    var p2 = { x: cx + Math.cos(ang + spread) * b.w / 2 * 0.8, y: cy + Math.sin(ang + spread) * b.h / 2 * 0.8 };
+    g.beginPath(); g.moveTo(p1.x, p1.y); g.lineTo(b.tx, b.ty); g.lineTo(p2.x, p2.y); g.closePath();
+    return true;
+  }
+  function drawBubbleShapes(g) {
+    st.bubbles.forEach(function (b) {
+      g.lineWidth = 4; g.strokeStyle = "#111"; g.fillStyle = b.kind === "caption" ? "#fff4c2" : "#ffffff";
+      if (tailPath(g, b)) { g.fill(); g.stroke(); }
+      bubblePath(g, b); g.fill(); g.stroke();
+      if (b.kind !== "thought" && tailPath(g, b)) {
+        // hide the tail's inner edge so tail and body read as one shape
+        g.save(); bubblePath(g, b); g.clip(); g.fillStyle = "#ffffff"; tailPath(g, b); g.fill(); g.restore();
+      }
+    });
+  }
+  function textBox(b) {
+    if (b.kind === "caption") return { x: b.x + 10, y: b.y + 8, w: b.w - 20, h: b.h - 16 };
+    return { x: b.x + b.w * 0.15, y: b.y + b.h * 0.18, w: b.w * 0.7, h: b.h * 0.64 };
+  }
+  function redrawShapes() { gBub.clearRect(0, 0, L.W, L.H); drawBubbleShapes(gBub); }
+  function placeBubble(b) {
+    var el = document.querySelector('[data-bid="' + b.id + '"]'); if (!el) return;
+    var r = stage.getBoundingClientRect(), k = r.width / L.W, tb = textBox(b);
+    el.style.left = (tb.x / L.W * 100) + "%"; el.style.top = ((tb.y - 26 / k) / L.H * 100) + "%";
+    el.style.width = (tb.w / L.W * 100) + "%"; el.style.height = ((tb.h + 26 / k) / L.H * 100) + "%";
+    var t = document.querySelector('[data-tail="' + b.id + '"]');
+    if (t) { t.style.left = (b.tx / L.W * 100) + "%"; t.style.top = (b.ty / L.H * 100) + "%"; }
+  }
+  function renderBubbles() {
+    redrawShapes();
+    var layer = $("bubbles"), r = stage.getBoundingClientRect(), k = r.width / L.W;
+    var keepFocus = document.activeElement && document.activeElement.closest && document.activeElement.closest(".bubble");
+    var focusedId = keepFocus ? keepFocus.getAttribute("data-bid") : null, caret = keepFocus ? document.activeElement.selectionStart : 0;
+    layer.innerHTML = "";
+    st.bubbles.forEach(function (b) {
+      var tb = textBox(b);
+      var el = document.createElement("div");
+      el.className = "bubble"; el.setAttribute("data-bid", b.id);
+      el.style.left = (tb.x / L.W * 100) + "%"; el.style.top = ((tb.y - 26 / k) / L.H * 100) + "%";
+      el.style.width = (tb.w / L.W * 100) + "%"; el.style.height = ((tb.h + 26 / k) / L.H * 100) + "%";
+      el.innerHTML = '<div class="bar"><button type="button" class="grip" aria-label="Передвинуть облачко">двигать</button><button type="button" class="del" aria-label="Удалить облачко">×</button></div>' +
+        '<textarea spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Текст в облачке" placeholder="' + (b.kind === "caption" ? "Тем временем…" : b.kind === "thought" ? "Думает…" : "Говорит…") + '"></textarea><span class="rs" aria-hidden="true"></span>';
+      var ta = el.querySelector("textarea");
+      ta.value = b.text; ta.style.fontSize = Math.max(10, FONT_PX * k) + "px";
+      ta.addEventListener("input", function () { b.text = ta.value; queueDraft(); });
+      ta.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); });
+      dragHandle(el.querySelector(".grip"), b, "move");
+      dragHandle(el.querySelector(".rs"), b, "resize");
+      el.querySelector(".del").addEventListener("click", function () {
+        pushUndo({ kind: "bubbles", json: JSON.stringify(st.bubbles) });
+        st.bubbles = st.bubbles.filter(function (x) { return x !== b; }); renderBubbles(); queueDraft();
+      });
+      layer.appendChild(el);
+      if (b.kind !== "caption") {
+        var t = document.createElement("span"); t.className = "tail"; t.title = "Хвостик: тяни к тому, кто говорит"; t.setAttribute("data-tail", b.id);
+        t.style.left = (b.tx / L.W * 100) + "%"; t.style.top = (b.ty / L.H * 100) + "%";
+        dragHandle(t, b, "tail");
+        layer.appendChild(t);
+      }
+      if (b.id === focusedId) { ta.focus(); try { ta.setSelectionRange(caret, caret); } catch (x) {} }
+    });
+  }
+  function dragHandle(handle, b, mode) {
+    handle.addEventListener("pointerdown", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      try { handle.setPointerCapture(e.pointerId); } catch (x) {}
+      var start = toPage(e), orig = { x: b.x, y: b.y, w: b.w, h: b.h, tx: b.tx, ty: b.ty };
+      handle.classList.add("on");
+      function mv(ev) {
+        var p = toPage(ev), dx = p.x - start.x, dy = p.y - start.y;
+        if (mode === "move") { b.x = clamp(orig.x + dx, 0, L.W - b.w); b.y = clamp(orig.y + dy, 0, L.H - b.h); b.tx = orig.tx + (b.x - orig.x); b.ty = orig.ty + (b.y - orig.y); }
+        if (mode === "resize") { b.w = clamp(orig.w + dx, 140, L.W - b.x); b.h = clamp(orig.h + dy, 70, L.H - b.y); }
+        if (mode === "tail") { b.tx = clamp(orig.tx + dx, 0, L.W); b.ty = clamp(orig.ty + dy, 0, L.H); }
+        redrawShapes(); placeBubble(b);
+      }
+      function up() { handle.classList.remove("on"); handle.removeEventListener("pointermove", mv); handle.removeEventListener("pointerup", up); handle.removeEventListener("pointercancel", up); queueDraft(); }
+      handle.addEventListener("pointermove", mv); handle.addEventListener("pointerup", up); handle.addEventListener("pointercancel", up);
+    });
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  var resizeT = null;
+  window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(renderBubbles, 120); });
+
+  /* ---------- draft in this browser ---------- */
+  var DRAFT = "comic-draft-v1", draftT = null;
+  function queueDraft() {
+    clearTimeout(draftT);
+    draftT = setTimeout(function () {
+      try { localStorage.setItem(DRAFT, JSON.stringify({ layout: st.layout, title: $("title").value, bubbles: st.bubbles, paint: cPaint.toDataURL("image/png") })); } catch (e) {}
+    }, 1000);
+  }
+  function loadDraft() {
+    var d = null;
+    try { d = JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) {}
+    if (!d || !LAYOUTS[d.layout]) return;
+    st.layout = d.layout; L = LAYOUTS[st.layout]; press("#layouts", "data-layout", st.layout);
+    setupCanvases();
+    st.bubbles = Array.isArray(d.bubbles) ? d.bubbles : [];
+    $("title").value = d.title || "";
+    if (d.paint) { var img = new Image(); img.onload = function () { gPaint.drawImage(img, 0, 0); }; img.src = d.paint; }
+    renderBubbles();
+  }
+  $("title").addEventListener("input", queueDraft);
+
+  function isEmpty() {
+    if (st.bubbles.some(function (b) { return b.text.trim(); })) return false;
+    var d = gPaint.getImageData(0, 0, L.W, L.H).data;
+    for (var i = 3; i < d.length; i += 64) if (d[i] > 0) return false;
+    return true;
+  }
+  function confirmLine(text, onYes) {
+    var line = $("confirm-line");
+    line.hidden = false; line.className = "msg";
+    line.innerHTML = esc(text) + ' <button class="btn" type="button" id="cf-yes">Да</button> <button class="btn" type="button" id="cf-no">Нет</button>';
+    $("cf-yes").addEventListener("click", function () { line.hidden = true; onYes(); });
+    $("cf-no").addEventListener("click", function () { line.hidden = true; });
+  }
+  function resetPage(layout) {
+    st.layout = layout; L = LAYOUTS[layout]; press("#layouts", "data-layout", layout);
+    st.bubbles = []; undoStack = [];
+    setupCanvases(); gPaint.clearRect(0, 0, L.W, L.H); renderBubbles(); queueDraft();
+  }
+  $("layouts").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-layout]"); if (!b) return;
+    var lay = b.getAttribute("data-layout"); if (lay === st.layout) return;
+    if (isEmpty()) resetPage(lay);
+    else confirmLine("Если поменять число кадров, рисунок начнётся заново. Поменять?", function () { resetPage(lay); });
+  });
+  $("new").addEventListener("click", function () {
+    if (isEmpty()) { resetPage(st.layout); $("title").value = ""; return; }
+    confirmLine("Начать новый комикс? Этот рисунок сотрётся, если ты его не сохранил.", function () { resetPage(st.layout); $("title").value = ""; queueDraft(); nextIdea(); });
+  });
+
+  /* ---------- fullscreen ---------- */
+  $("full").addEventListener("click", function () {
+    var ed = $("editor");
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (ed.requestFullscreen) ed.requestFullscreen().catch(function () {});
+    } catch (e) {}
+  });
+  document.addEventListener("fullscreenchange", function () { $("full").textContent = document.fullscreenElement ? "Выйти" : "Весь экран"; setTimeout(renderBubbles, 150); });
+
+  /* ---------- export ---------- */
+  function wrapLines(g, text, maxW) {
+    var out = [];
+    text.split(/\n/).forEach(function (para) {
+      var words = para.split(/\s+/).filter(Boolean), line = "";
+      if (!words.length) { out.push(""); return; }
+      words.forEach(function (w) { var t = line ? line + " " + w : w; if (g.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; });
+      out.push(line);
+    });
+    return out;
+  }
+  function renderPNG() {
+    var ready = (document.fonts && document.fonts.load) ? document.fonts.load(FONT_PX + 'px "Pangolin"').catch(function () {}) : Promise.resolve();
+    return ready.then(function () {
+      var c = document.createElement("canvas"); c.width = L.W; c.height = L.H;
+      var g = c.getContext("2d");
+      g.fillStyle = "#fff"; g.fillRect(0, 0, L.W, L.H);
+      g.drawImage(cPaint, 0, 0); drawFrames(g); drawFrames(gFr);
+      drawBubbleShapes(g);
+      g.fillStyle = "#111"; g.textAlign = "center"; g.textBaseline = "middle";
+      st.bubbles.forEach(function (b) {
+        if (!b.text.trim()) return;
+        var tb = textBox(b), size = FONT_PX, lines;
+        do { g.font = size + 'px "Pangolin", "Comic Sans MS", cursive'; lines = wrapLines(g, b.text, tb.w); size -= 2; } while (lines.length * (size + 2) * 1.15 > tb.h && size > 16);
+        var lh = (size + 2) * 1.15, y0 = tb.y + tb.h / 2 - (lines.length - 1) * lh / 2;
+        lines.forEach(function (ln, i) { g.fillText(ln, tb.x + tb.w / 2, y0 + i * lh); });
+      });
+      var title = $("title").value.trim();
+      if (title) { g.font = '22px "Russo One", sans-serif'; g.fillStyle = "#555"; g.textAlign = "right"; g.textBaseline = "alphabetic"; g.fillText(title, L.W - MARGIN, L.H - 6); }
+      return new Promise(function (res) { c.toBlob(function (blob) { res(blob); }, "image/png"); });
+    });
+  }
+  function fileName() { var t = $("title").value.trim().replace(/[^\wА-Яа-яЁё -]+/g, "").replace(/\s+/g, "-").slice(0, 40); return "komiks-" + (t || dayKey()) + ".png"; }
+
+  /* ---------- check step ---------- */
+  var picked = [];
+  function wordsInBubbles() {
+    var seen = {}, out = [];
+    st.bubbles.forEach(function (b) { (b.text.match(/[А-Яа-яЁё-]{3,}/g) || []).forEach(function (w) { var k = w.toLowerCase().replace(/^-+|-+$/g, ""); if (k.length >= 3 && !seen[k]) { seen[k] = 1; out.push(k); } }); });
+    return out;
+  }
+  function renderCheck() {
+    var ws = wordsInBubbles();
+    $("words").innerHTML = ws.length ? ws.map(function (w) { return '<button type="button" aria-pressed="' + (picked.indexOf(w) >= 0) + '" data-w="' + esc(w) + '">' + esc(w) + "</button>"; }).join("") : '<p class="muted">В облачках пока нет слов. Добавь хотя бы одну реплику — комикс без слов тоже можно сохранить.</p>';
+    $("picked").innerHTML = picked.map(function (w) { return '<div class="letters" aria-label="' + esc(w) + '">' + w.split("").map(function (ch) { return "<span>" + esc(ch) + "</span>"; }).join("") + "</div>"; }).join("") +
+      (picked.length ? '<p class="note">Сверь по буквам: все ли на месте? Где трудное место? Если сомневаешься — спроси взрослого или посмотри в словарике.</p>' : "");
+  }
+  $("words").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-w]"); if (!b) return;
+    var w = b.getAttribute("data-w"), i = picked.indexOf(w);
+    if (i >= 0) picked.splice(i, 1); else { picked.push(w); if (picked.length > 2) picked.shift(); }
+    renderCheck();
+  });
+  $("to-check").addEventListener("click", function () {
+    picked = []; $("save-msg").textContent = ""; $("check").hidden = false; renderCheck();
+    $("check").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("back").addEventListener("click", function () { $("check").hidden = true; stage.scrollIntoView({ behavior: "smooth", block: "center" }); });
+
+  /* ---------- runtime capabilities: album (db + assets) and downloads ---------- */
+  var cap = { db: null, assets: null, dl: null, comics: [] };
+  function use(name) { try { return window.claude && typeof window.claude.use === "function" ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } }
+  function setMsg(id, text, ok) { var m = $(id); m.textContent = text; m.className = "msg " + (ok ? "ok" : "err"); }
+
+  $("save").addEventListener("click", function () {
+    var btn = $("save"); btn.disabled = true; setMsg("save-msg", "Сохраняю…", true);
+    Promise.all([use("db"), use("assets")]).then(function (r) {
+      var db = r[0], assets = r[1];
+      if (!db || !assets) { btn.disabled = false; setMsg("save-msg", "Альбом здесь недоступен. Нажми «Скачать картинку», чтобы сохранить комикс файлом.", false); return; }
+      return renderPNG().then(function (blob) { return assets.upload(blob, { type: "image/png" }); }).then(function (up) {
+        return db.collection("comics").add({ title: $("title").value.trim() || "Без названия", d: dayKey(), ts: Date.now(), asset: up.id, layout: st.layout, checked: picked.slice(0, 2) });
+      }).then(function () {
+        btn.disabled = false; setMsg("save-msg", "Сохранено в альбом! Покажи его кому-нибудь.", true);
+      }, function (e) {
+        btn.disabled = false;
+        var code = e && e.code;
+        setMsg("save-msg", code === "quota_or_state" || code === "quota_exceeded" ? "Альбом переполнен. Удалите старые комиксы или скачайте этот картинкой." : code === "rate_limited" ? "Слишком часто. Подожди минутку и попробуй ещё раз." : "Не получилось сохранить. Попробуй ещё раз или скачай картинку.", false);
+      });
+    });
+  });
+  function download(blobPromise, name, msgId) {
+    use("downloads").then(function (dl) {
+      if (!dl) { setMsg(msgId, "Скачивание здесь недоступно.", false); return; }
+      blobPromise().then(function (blob) { return dl.save({ filename: name, data: blob }); }).then(function () { setMsg(msgId, "Готово!", true); }, function (e) {
+        if (e && e.code === "declined") { setMsg(msgId, "", true); return; }
+        setMsg(msgId, "Не получилось скачать.", false);
+      });
+    });
+  }
+  $("dl").addEventListener("click", function () { download(renderPNG, fileName(), "save-msg"); });
+
+  function renderAlbum() {
+    var body = $("album-body");
+    if (!cap.comics.length) { body.innerHTML = '<p class="muted">Здесь будут твои комиксы. Нарисуй первый и нажми «Проверить и сохранить».</p>'; return; }
+    body.innerHTML = '<div class="album">' + cap.comics.map(function (c) {
+      return '<button type="button" data-cid="' + esc(c.id) + '"><img src="/_blob/' + esc(c.asset) + '" alt="' + esc(c.title) + '" loading="lazy"><b>' + esc(c.title) + '</b><span class="muted small">' + esc(c.d.split("-").reverse().join(".")) + (c.checked && c.checked.length ? " · проверил: " + esc(c.checked.join(", ")) : "") + "</span></button>";
+    }).join("") + "</div>";
+  }
+  $("album-body").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cid]"); if (!b) return;
+    var c = cap.comics.filter(function (x) { return x.id === b.getAttribute("data-cid"); })[0]; if (!c) return;
+    openViewer(c);
+  });
+  var viewing = null;
+  function openViewer(c) {
+    viewing = c; $("viewer").hidden = false; $("viewer-h").textContent = c.title; $("v-img").src = "/_blob/" + c.asset; $("v-img").alt = c.title; $("v-msg").textContent = "";
+    $("viewer").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  $("v-close").addEventListener("click", function () { $("viewer").hidden = true; viewing = null; });
+  $("v-dl").addEventListener("click", function () {
+    if (!viewing) return; var c = viewing;
+    download(function () { return fetch("/_blob/" + c.asset).then(function (r) { return r.blob(); }); }, "komiks-" + (c.title || "bez-nazvaniya").replace(/\s+/g, "-").slice(0, 40) + ".png", "v-msg");
+  });
+  $("v-del").addEventListener("click", function () {
+    if (!viewing) return; var c = viewing, m = $("v-msg");
+    m.className = "msg"; m.innerHTML = 'Удалить этот комикс навсегда? <button class="btn" type="button" id="vd-yes">Да</button> <button class="btn" type="button" id="vd-no">Нет</button>';
+    $("vd-no").addEventListener("click", function () { m.textContent = ""; });
+    $("vd-yes").addEventListener("click", function () {
+      Promise.all([use("db"), use("assets")]).then(function (r) {
+        var db = r[0], assets = r[1];
+        if (!db) { setMsg("v-msg", "Удаление здесь недоступно.", false); return; }
+        db.collection("comics").doc(c.id).delete().then(function () {
+          if (assets) assets.delete(c.asset).catch(function () {});
+          $("viewer").hidden = true; viewing = null;
+        }, function () { setMsg("v-msg", "Не получилось удалить.", false); });
+      });
+    });
+  });
+
+  /* ---------- boot ---------- */
+  setupCanvases();
+  loadDraft();
+  renderBubbles();
+  use("db").then(function (db) {
+    if (!db) return;
+    cap.db = db;
+    db.collection("comics").onSnapshot(function (snap) {
+      cap.comics = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || "Без названия"), d: String(x.d || ""), ts: +x.ts || 0, asset: String(x.asset || ""), checked: Array.isArray(x.checked) ? x.checked.map(String) : [] }; })
+        .filter(function (c) { return /^[0-9a-f]{32}$/.test(c.asset); })
+        .sort(function (a, b) { return b.ts - a.ts; });
+      renderAlbum();
+    }, function () {});
+  });
+  use("downloads").then(function (dl) { if (!dl) { $("dl").hidden = true; $("v-dl").hidden = true; } });
+})();
+</script>
