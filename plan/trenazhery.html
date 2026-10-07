@@ -1,0 +1,1098 @@
+<title>Тренировочная арена</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=Russo+One&display=swap">
+<style>
+/* Layout: a single-column game screen. Night-pitch arena, chunky display numerals, gold for progress. One committed dark look. */
+:root {
+  --bg: #0e1d27;
+  --panel: #16303d;
+  --panel-2: #1d3b4a;
+  --line: #2a4d5d;
+  --ink: #f2f6ee;
+  --muted: #9db3bc;
+  --gold: #ffc83d;
+  --gold-ink: #2a1d00;
+  --good: #5ddc8c;
+  --bad: #ff6f61;
+  --blue: #6fc3ff;
+  --paper: #fbfaf3;
+  --paper-line: #b9c9e6;
+  --paper-ink: #1d3b8f;
+  --b1: #ff6f61; --b2: #ff9f4a; --b3: #ffd24a; --b4: #9be27a; --b5: #43c97a; --b0: #2a4d5d;
+
+  --f-display: "Russo One", "Nunito", system-ui, sans-serif;
+  --f-body: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 18px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body { color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.45; -webkit-text-size-adjust: 100%; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 12px 48px; display: grid; gap: 16px; }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 400; line-height: 1.15; text-wrap: balance; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+
+/* Top bar */
+.top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.brand { display: grid; gap: 2px; }
+.brand h1 { font-size: 1.45rem; letter-spacing: 0.01em; }
+.brand .muted { font-size: 0.85rem; }
+.trophies { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 2px solid var(--line); border-radius: 999px; padding: 6px 14px 6px 8px; }
+.trophies svg { width: 28px; height: 28px; flex: none; }
+.trophies b { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.trophies span { font-size: 0.8rem; color: var(--muted); line-height: 1.1; }
+
+/* Tabs */
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: var(--panel); padding: 6px; border-radius: var(--r); }
+.tabs button { border: 0; background: transparent; padding: 10px 4px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; color: var(--muted); min-height: 46px; }
+.tabs button[aria-selected="true"] { background: var(--gold); color: var(--gold-ink); }
+.today { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 999px; padding: 3px 10px; font-weight: 700; color: var(--muted); }
+.chip.on { border-color: var(--good); color: var(--good); }
+
+/* Panels */
+section[role="tabpanel"] { display: grid; gap: 16px; }
+.panel { background: var(--panel); border: 2px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 2px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 8px 12px; font-weight: 700; cursor: pointer; min-height: 42px; }
+.seg button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+.btn { border: 0; border-radius: 14px; padding: 14px 22px; font-weight: 800; font-size: 1.05rem; cursor: pointer; min-height: 52px; }
+.btn.gold { background: var(--gold); color: var(--gold-ink); box-shadow: 0 4px 0 #b9861a; }
+.btn.gold:active { transform: translateY(2px); box-shadow: 0 2px 0 #b9861a; }
+.btn.ghost { background: var(--panel-2); border: 2px solid var(--line); }
+.btn.good { background: var(--good); color: #062512; }
+.btn.bad { background: var(--bad); color: #2b0703; }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+
+/* Math */
+.problem { font-family: var(--f-display); font-size: clamp(2.8rem, 13vw, 5rem); text-align: center; line-height: 1; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+.answer { font-family: var(--f-display); font-size: clamp(2.2rem, 10vw, 3.4rem); text-align: center; min-height: 1.3em; color: var(--gold); border-bottom: 3px dashed var(--line); width: 4.2ch; margin: 0 auto; font-variant-numeric: tabular-nums; }
+.dots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); }
+.dots i.ok { background: var(--good); border-color: var(--good); }
+.dots i.no { background: var(--bad); border-color: var(--bad); }
+.dots i.cur { border-color: var(--gold); }
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 360px; width: 100%; margin: 0 auto; }
+.pad button { border: 0; background: var(--panel-2); border-radius: 14px; font-family: var(--f-display); font-size: 1.7rem; min-height: 60px; cursor: pointer; box-shadow: 0 3px 0 #0b1a22; }
+.pad button:active { transform: translateY(2px); box-shadow: 0 1px 0 #0b1a22; }
+.pad .ok { background: var(--gold); color: var(--gold-ink); font-size: 1.2rem; }
+.pad .del { font-size: 1.2rem; }
+.feedback { text-align: center; display: grid; gap: 8px; justify-items: center; }
+.feedback .big { font-family: var(--f-display); font-size: 2rem; }
+.feedback.good .big { color: var(--good); }
+.feedback.bad .big { color: var(--bad); }
+.hint { background: var(--panel-2); border-radius: 14px; padding: 12px 14px; max-width: 46ch; }
+.newfact { background: var(--panel-2); border: 2px dashed var(--gold); border-radius: 14px; padding: 14px; text-align: center; display: grid; gap: 6px; }
+.newfact b { font-family: var(--f-display); font-weight: 400; font-size: 2rem; color: var(--gold); }
+
+.map { display: grid; grid-template-columns: 28px repeat(8, 1fr); gap: 4px; font-variant-numeric: tabular-nums; max-width: 420px; }
+.map div { aspect-ratio: 1; display: grid; place-items: center; border-radius: 7px; font-size: 0.8rem; font-weight: 800; min-width: 0; }
+.map .h { color: var(--muted); font-family: var(--f-display); font-weight: 400; aspect-ratio: auto; min-height: 22px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 5px; vertical-align: -1px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { background: var(--panel-2); border-radius: 14px; padding: 12px; display: grid; gap: 2px; }
+.stat b { font-family: var(--f-display); font-weight: 400; font-size: 1.6rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.85rem; color: var(--muted); }
+
+/* Reading */
+.text-list { display: grid; gap: 8px; }
+.text-item { display: flex; gap: 10px; justify-content: space-between; align-items: center; background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; }
+.text-item b { font-weight: 800; }
+.text-item .muted { font-size: 0.85rem; }
+.reader { background: var(--paper); color: #1b2333; border-radius: 14px; padding: 18px 18px; font-size: 1.35rem; line-height: 1.75; font-family: var(--f-body); font-weight: 700; }
+.reader.big { font-size: 1.6rem; }
+.reader.spaced { letter-spacing: 0.08em; word-spacing: 0.2em; }
+.reader .w { border-radius: 6px; padding: 0 1px; cursor: default; }
+.reader.marking .w { cursor: pointer; }
+.reader .w.err { background: #ffd2cc; color: #9b1c10; text-decoration: line-through; text-decoration-thickness: 2px; }
+.reader .w.say { background: #fff0b3; }
+.timer { font-family: var(--f-display); font-size: 2.4rem; text-align: center; color: var(--gold); font-variant-numeric: tabular-nums; }
+.bars { display: grid; gap: 6px; }
+.bar { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 0.9rem; }
+.bar .track { height: 18px; background: var(--panel-2); border-radius: 6px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--blue); border-radius: 6px; }
+.bar .fill.best { background: var(--gold); }
+.bar b { font-family: var(--f-display); font-weight: 400; text-align: right; font-variant-numeric: tabular-nums; }
+textarea, input[type="text"] { font: inherit; color: var(--ink); background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; }
+textarea { min-height: 140px; resize: vertical; }
+label.f { display: grid; gap: 6px; font-weight: 700; }
+.qs { display: grid; gap: 6px; background: var(--panel-2); border-radius: 14px; padding: 12px 14px; }
+
+/* Number line */
+.nl { position: relative; height: 96px; margin: 8px 18px 0; cursor: crosshair; touch-action: none; }
+.nl-line { position: absolute; left: 0; right: 0; top: 44px; height: 6px; border-radius: 3px; background: var(--ink); }
+.nl-end { position: absolute; top: 58px; transform: translateX(-50%); font-family: var(--f-display); color: var(--muted); }
+.nl-end::before { content: ""; position: absolute; left: 50%; top: -22px; width: 3px; height: 18px; background: var(--ink); transform: translateX(-50%); }
+.nl-mark { position: absolute; top: 22px; width: 4px; height: 50px; border-radius: 2px; transform: translateX(-50%); }
+.nl-mark.you { background: var(--blue); }
+.nl-mark.true { background: var(--gold); }
+.nl-mark.true em { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); font-style: normal; font-family: var(--f-display); color: var(--gold); }
+.goal { text-align: center; font-weight: 800; color: var(--muted); }
+.goal.met { color: var(--good); }
+.errn { font-size: 0.8rem; color: var(--bad); font-weight: 800; white-space: nowrap; }
+.errn.ok { color: var(--good); }
+/* Schulte */
+.schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
+.schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
+.schulte button.found { background: var(--panel-2); color: var(--muted); }
+.schulte button.miss { background: var(--bad); color: #2b0703; }
+.sch-next { font-family: var(--f-display); font-weight: 400; color: var(--gold); font-size: 1.3rem; }
+
+/* Words */
+.say-box { text-align: center; display: grid; gap: 10px; justify-items: center; }
+.say-box .sent { font-size: 1.3rem; font-weight: 800; }
+.sheet { position: relative; border-radius: 14px; overflow: hidden; background-color: var(--paper);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 34px, var(--paper-line) 34px, var(--paper-line) 35.5px, transparent 35.5px, transparent 48px, var(--paper-line) 48px, var(--paper-line) 49.5px, transparent 49.5px, transparent 66px);
+  touch-action: none; height: 200px; }
+.sheet canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.reveal { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.reveal span { min-width: 1.6em; padding: 4px 6px; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: 2rem; text-align: center; line-height: 1.2; }
+.reveal span.hot { background: var(--gold); color: var(--gold-ink); }
+.check-tip { background: var(--panel-2); border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; }
+.wordlist { display: flex; flex-wrap: wrap; gap: 6px; }
+.wordlist span { background: var(--panel-2); border: 2px solid var(--line); border-radius: 10px; padding: 3px 9px; font-weight: 700; font-size: 0.95rem; }
+.wordlist span[data-b="1"] { border-color: var(--b1); }
+.wordlist span[data-b="2"] { border-color: var(--b2); }
+.wordlist span[data-b="3"] { border-color: var(--b3); }
+.wordlist span[data-b="4"], .wordlist span[data-b="5"] { border-color: var(--b5); }
+
+/* Progress */
+.days { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; }
+.days i { aspect-ratio: 1; border-radius: 5px; background: var(--panel-2); border: 1px solid var(--line); }
+.days i.on { background: var(--good); border-color: var(--good); }
+.tips { display: grid; gap: 6px; padding-left: 1.1em; margin: 0; }
+.note { font-size: 0.85rem; color: var(--muted); }
+.ex { font-size: 0.8rem; color: var(--gold); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Тренировочная арена</h1>
+      <p class="muted">Счёт, чтение и слова. Одна тренировка — 5 минут.</p>
+    </div>
+    <div class="trophies" title="Трофей — это пример или слово, которое ты уже знаешь твёрдо">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4h14v6a7 7 0 0 1-14 0z" fill="#ffc83d"/><path d="M9 6H4v2a5 5 0 0 0 5 5M23 6h5v2a5 5 0 0 1-5 5" fill="none" stroke="#ffc83d" stroke-width="2.4"/><rect x="14" y="16" width="4" height="6" fill="#e0a92a"/><rect x="9" y="22" width="14" height="5" rx="1.5" fill="#ffc83d"/></svg>
+      <b id="trophy-count">0</b>
+      <span>трофеев</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Тренажёры">
+    <button role="tab" id="tab-math" aria-selected="true" data-tab="math">Счёт</button>
+    <button role="tab" id="tab-read" aria-selected="false" data-tab="read">Чтение</button>
+    <button role="tab" id="tab-words" aria-selected="false" data-tab="words">Слова</button>
+    <button role="tab" id="tab-prog" aria-selected="false" data-tab="prog">Прогресс</button>
+  </nav>
+  <div class="today" id="today"></div>
+
+  <!-- MATH -->
+  <section id="view-math" role="tabpanel" aria-labelledby="tab-math"></section>
+  <!-- READING -->
+  <section id="view-read" role="tabpanel" aria-labelledby="tab-read" hidden></section>
+  <!-- WORDS -->
+  <section id="view-words" role="tabpanel" aria-labelledby="tab-words" hidden></section>
+  <!-- PROGRESS -->
+  <section id="view-prog" role="tabpanel" aria-labelledby="tab-prog" hidden></section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function dayKey(d) { d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function addDays(key, n) { var p = key.split("-"); var d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return dayKey(d); }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function median(arr) { if (!arr.length) return 0; var s = arr.slice().sort(function (a, b) { return a - b; }); var m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+  function fmtSec(ms) { return (ms / 1000).toFixed(1).replace(".", ",") + " с"; }
+  var INTERVALS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14 };
+  function boxColor(b) { return ["var(--b0)", "var(--b1)", "var(--b2)", "var(--b3)", "var(--b4)", "var(--b5)"][b || 0]; }
+
+  /* ---------- storage: shared db when available, browser otherwise ---------- */
+  var DOCS = ["math", "words", "reading"];
+  var data = {
+    math: { facts: {}, sessions: [], nl: [] },
+    words: { custom: [], prog: {}, sessions: [] },
+    reading: { custom: [], runs: [], schulte: [] }
+  };
+  var LS = "arena-v1-";
+  DOCS.forEach(function (k) {
+    try { var v = JSON.parse(localStorage.getItem(LS + k) || "null"); if (v && typeof v === "object") data[k] = Object.assign(data[k], v); } catch (e) {}
+  });
+  var store = { mode: "local", refs: {}, timers: {}, writing: {}, again: {} };
+  function save(k) {
+    try { localStorage.setItem(LS + k, JSON.stringify(data[k])); } catch (e) {}
+    if (store.mode !== "db" || !store.refs[k]) return;
+    clearTimeout(store.timers[k]);
+    store.timers[k] = setTimeout(function () { store.timers[k] = null; flush(k); }, 700);
+  }
+  function flush(k) {
+    if (store.writing[k]) { store.again[k] = true; return; }
+    store.writing[k] = true;
+    store.refs[k].set(JSON.parse(JSON.stringify(data[k]))).then(function () {
+      store.writing[k] = false;
+      if (store.again[k]) { store.again[k] = false; flush(k); }
+    }, function (e) {
+      store.writing[k] = false;
+      if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) { store.mode = "readonly"; }
+      else if (e && e.code === "unavailable") { setTimeout(function () { flush(k); }, 900 + Math.random() * 900); }
+    });
+  }
+  function trim(arr, n) { if (arr.length > n) arr.splice(0, arr.length - n); }
+
+  /* ---------- content: math ---------- */
+  var PAIRS = [];
+  for (var a = 2; a <= 9; a++) for (var b = a; b <= 9; b++) PAIRS.push([a, b]);
+  function factKey(op, a, b) { return op + ":" + Math.min(a, b) + "x" + Math.max(a, b); }
+  function mulHint(a, b) {
+    var x = Math.min(a, b), y = Math.max(a, b), p = a * b;
+    if (x === y) return "Квадрат: " + x + " × " + x + " = " + p + ". Его просто запоминаем.";
+    if (x === 2) return "Умножить на 2 — значит удвоить: " + y + " + " + y + " = " + p + ".";
+    if (y === 9 || x === 9) { var o = x === 9 ? y : x; return "На 9: сначала на 10, потом отними одно: " + o + " × 10 = " + (o * 10) + ", " + (o * 10) + " − " + o + " = " + p + "."; }
+    if (x === 5 || y === 5) { var q = x === 5 ? y : x; return "На 5: половина от ×10. " + q + " × 10 = " + (q * 10) + ", половина — " + p + "."; }
+    if (x === 4 || y === 4) { var r = x === 4 ? y : x; return "На 4: удвой два раза. " + r + " × 2 = " + (r * 2) + ", ещё раз удвоить — " + p + "."; }
+    if (x === 3) return "На 3: удвой и прибавь ещё одно. " + y + " × 2 = " + (y * 2) + ", + " + y + " = " + p + ".";
+    if (x === 6) return "На 6: сначала на 5, потом прибавь ещё одно. " + y + " × 5 = " + (y * 5) + ", + " + y + " = " + p + ".";
+    return y + " × " + x + " = " + y + " × 5 + " + y + " × " + (x - 5) + " = " + (y * 5) + " + " + (y * (x - 5)) + " = " + p + ".";
+  }
+  function divHint(dividend, divisor, q) { return "Думай наоборот: " + divisor + " × ? = " + dividend + ". " + divisor + " × " + q + " = " + dividend + ", значит, ответ " + q + "."; }
+
+  /* ---------- content: reading (original texts) ---------- */
+  var TEXTS = [
+    { id: "t-dolphin", title: "Как спят дельфины", text: "Дельфин живёт в море, но дышит воздухом, как мы. Значит, во сне он не может просто закрыть глаза и надолго уйти под воду. Как же он отдыхает? Учёные выяснили удивительную вещь. Дельфин спит по очереди половинками мозга. Одна половина отдыхает, а другая следит за дыханием и за тем, что происходит вокруг. У спящего дельфина один глаз бывает открыт. Через некоторое время половинки меняются. Так дельфин может отдыхать и при этом не забывает подниматься к поверхности, чтобы сделать вдох.", qs: ["Почему дельфину нельзя крепко уснуть под водой?", "Что делает вторая половина мозга, пока первая отдыхает?"] },
+    { id: "t-keeper", title: "Новый вратарь", text: "Тимур никогда не стоял на воротах. Он любил бегать в нападении и забивать голы. Но в субботу вратарь их команды заболел, и тренер посмотрел на Тимура. Тимур надел большие перчатки и встал между штангами. Первый мяч пролетел мимо него, и соперники обрадовались. Тимур покраснел, но не ушёл. Он стал внимательно следить за ногами нападающих. Когда соперник снова ударил, Тимур прыгнул влево и поймал мяч двумя руками. Ребята закричали от радости. После игры тренер сказал: «Сегодня ты научился новому делу».", qs: ["Почему Тимур встал на ворота?", "Что помогло ему поймать мяч?"] },
+    { id: "t-cat", title: "Зачем кошке усы", text: "Усы у кошки — не просто украшение. Это очень чуткий инструмент. Кошачьи усы улавливают даже слабое движение воздуха. Поэтому кошка может в темноте обойти стул или найти дверь в другую комнату. Усы помогают ей понять, пролезет ли она в узкую щель. Ещё по усам можно узнать настроение кошки. Когда она спокойна, усы висят свободно. Когда кошка охотится или чем-то заинтересована, усы смотрят вперёд. Поэтому кошкам никогда нельзя подстригать усы.", qs: ["Как усы помогают кошке в темноте?", "Как по усам понять, что кошка охотится?"] },
+    { id: "t-robot", title: "Робот, который терял буквы", text: "В одном городе жил робот Тиль. Он писал письма для всех жителей. Однажды у Тиля сломалась маленькая деталь, и он начал терять буквы. Вместо «стол» он написал «сол», а вместо «кошка» — «кшка». Люди читали письма и смеялись. Тиль расстроился. Тогда девочка Лиза придумала план. Она дала роботу карандаш и сказала: «После каждого письма веди карандашом под каждой буквой и проверяй, все ли на месте». Тиль стал проверять. Скоро все буквы вернулись в его письма, а жители стали говорить ему спасибо.", qs: ["Почему жители смеялись над письмами?", "Как Тиль научился не терять буквы?"] }
+  ];
+
+  /* ---------- content: words (starter set; capitals mark the tricky letters) ---------- */
+  var STARTER = [
+    // словарные
+    { id: "d1", w: "кОрова", cat: "dict" }, { id: "d2", w: "мОлОко", cat: "dict" }, { id: "d3", w: "сОбака", cat: "dict" },
+    { id: "d4", w: "вОрона", cat: "dict" }, { id: "d5", w: "сОрока", cat: "dict" }, { id: "d6", w: "кАпуста", cat: "dict" },
+    { id: "d7", w: "кАрАндаш", cat: "dict" }, { id: "d8", w: "хОрОшо", cat: "dict" }, { id: "d9", w: "рАбота", cat: "dict" },
+    { id: "d10", w: "тЕтрадь", cat: "dict" }, { id: "d11", w: "пЕнал", cat: "dict" }, { id: "d12", w: "бЕрёза", cat: "dict" },
+    { id: "d13", w: "мОроз", cat: "dict" }, { id: "d14", w: "рЕбята", cat: "dict" }, { id: "d15", w: "гОрод", cat: "dict" },
+    // проверяемые
+    { id: "c1", w: "вОда", cat: "check", hint: "во́ды" }, { id: "c2", w: "лИса", cat: "check", hint: "ли́сы" },
+    { id: "c3", w: "трАва", cat: "check", hint: "тра́вы" }, { id: "c4", w: "зИма", cat: "check", hint: "зи́мы" },
+    { id: "c5", w: "гОра", cat: "check", hint: "го́ры" }, { id: "c6", w: "звЕзда", cat: "check", hint: "звёзды" },
+    { id: "c7", w: "рЕка", cat: "check", hint: "ре́ки" }, { id: "c8", w: "грИбной", cat: "check", hint: "гриб" },
+    { id: "c9", w: "лЕсник", cat: "check", hint: "лес" }, { id: "c10", w: "сАды", cat: "check", hint: "сад" },
+    // -тся / -ться
+    { id: "s1", w: "учиТСЯ", cat: "tsya", s: "Мальчик учится в третьем классе.", hint: "что делает? — без ь" },
+    { id: "s2", w: "учиТЬСЯ", cat: "tsya", s: "Надо учиться каждый день.", hint: "что делать? — с ь" },
+    { id: "s3", w: "прячеТСЯ", cat: "tsya", s: "Боец прячется в кустах.", hint: "что делает? — без ь" },
+    { id: "s4", w: "спрятаТЬСЯ", cat: "tsya", s: "Ему надо спрятаться за камнем.", hint: "что делать? — с ь" },
+    { id: "s5", w: "катиТСЯ", cat: "tsya", s: "Мяч катится по полю.", hint: "что делает? — без ь" },
+    { id: "s6", w: "собираТЬСЯ", cat: "tsya", s: "Пора собираться в школу.", hint: "что делать? — с ь" },
+    { id: "s7", w: "боиТСЯ", cat: "tsya", s: "Он не боится темноты.", hint: "что делает? — без ь" },
+    { id: "s8", w: "ссориТЬСЯ", cat: "tsya", s: "С друзьями не надо ссориться.", hint: "что делать? — с ь" }
+  ];
+  var CATS = { dict: "Словарные", check: "Проверяемые", tsya: "-тся / -ться", own: "Мои слова" };
+  function allWords() { return STARTER.concat(data.words.custom || []); }
+  function plain(w) { return w.toLowerCase(); }
+
+  /* ---------- tabs ---------- */
+  var current = "math";
+  function showTab(t) {
+    current = t;
+    ["math", "read", "words", "prog"].forEach(function (k) {
+      $("view-" + k).hidden = k !== t;
+      $("tab-" + k).setAttribute("aria-selected", k === t ? "true" : "false");
+    });
+    if (t === "prog") renderProgress();
+    try { localStorage.setItem(LS + "tab", t); } catch (e) {}
+  }
+  document.querySelector(".tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-tab]"); if (!b) return;
+    if (busy()) return;
+    showTab(b.getAttribute("data-tab"));
+  });
+  function busy() { return math.round || words.round; }
+
+  /* ---------- header: trophies + today ---------- */
+  function trophyCount() {
+    var n = 0, f = data.math.facts || {}, p = data.words.prog || {};
+    Object.keys(f).forEach(function (k) { if ((f[k].b || 0) >= 4) n++; });
+    Object.keys(p).forEach(function (k) { if ((p[k].b || 0) >= 4) n++; });
+    return n;
+  }
+  function todayDone() {
+    var t = dayKey();
+    return {
+      math: (data.math.sessions || []).some(function (s) { return s.d === t; }),
+      read: (data.reading.runs || []).some(function (r) { return r.d === t; }),
+      words: (data.words.sessions || []).some(function (s) { return s.d === t; })
+    };
+  }
+  function renderHeader() {
+    $("trophy-count").textContent = trophyCount();
+    var d = todayDone();
+    $("today").innerHTML = "<span>Сегодня:</span>" +
+      '<span class="chip' + (d.math ? " on" : "") + '">' + (d.math ? "✓ " : "") + "счёт</span>" +
+      '<span class="chip' + (d.read ? " on" : "") + '">' + (d.read ? "✓ " : "") + "чтение</span>" +
+      '<span class="chip' + (d.words ? " on" : "") + '">' + (d.words ? "✓ " : "") + "слова</span>" +
+      '<span class="small">Хватит двух тренировок в день.</span>';
+  }
+
+  /* =====================================================================
+     MATH
+     ===================================================================== */
+  var math = { op: "m", round: null, nl: null };
+  try { var savedOp = localStorage.getItem(LS + "op"); if (savedOp === "m" || savedOp === "d" || savedOp === "x") math.op = savedOp; } catch (e) {}
+  var ROUND = 15;
+
+  function factState(k) { return data.math.facts[k] || null; }
+  function ease(it) { var x = Math.min(it.a, it.b), y = Math.max(it.a, it.b); if (x === 2) return 0; if (x === 5 || y === 5) return 1; if (x === y) return 2; if (y === 9) return 3; if (x === 3 || x === 4) return 4; return 5; }
+  function buildItem(it) {
+    var a = it.a, b = it.b;
+    if (Math.random() < 0.5) { var t = a; a = b; b = t; }
+    if (it.op === "m") return { k: it.k, op: "m", text: a + " × " + b, ans: a * b, hint: mulHint(a, b), fact: a + " × " + b + " = " + (a * b) };
+    var prod = a * b;
+    return { k: it.k, op: "d", text: prod + " : " + a, ans: b, hint: divHint(prod, a, b), fact: prod + " : " + a + " = " + b };
+  }
+  // A round mixes a few hard facts with many known ones, so about 4 of 5 answers succeed.
+  function pickMath() {
+    var today = dayKey();
+    var ops = math.op === "x" ? ["m", "d"] : [math.op];
+    var items = [];
+    ops.forEach(function (op) { PAIRS.forEach(function (p) { items.push({ op: op, a: p[0], b: p[1], k: factKey(op, p[0], p[1]) }); }); });
+    var hard = [], fresh = [], dueKnown = [], known = [];
+    items.forEach(function (it) {
+      var s = factState(it.k);
+      if (!s || !s.b) fresh.push(it);
+      else if (s.b <= 2) hard.push(it);
+      else if ((s.due || today) <= today && s.b < 5) dueKnown.push(it);
+      else known.push(it);
+    });
+    hard.sort(function (x, y) {
+      var a = factState(x.k), b = factState(y.k);
+      return (((a.due || today) > today) ? 1 : 0) - (((b.due || today) > today) ? 1 : 0) || a.b - b.b || Math.random() - 0.5;
+    });
+    fresh.sort(function (x, y) { return ease(x) - ease(y) || Math.random() - 0.5; });
+    shuffle(dueKnown); shuffle(known);
+    var chosen = hard.slice(0, 4).concat(fresh.slice(0, 5));
+    chosen = chosen.concat(dueKnown.slice(0, Math.max(0, ROUND - chosen.length)));
+    while (chosen.length < ROUND && known.length) chosen.push(known.pop());
+    var moreFresh = fresh.slice(5), moreHard = hard.slice(4);
+    while (chosen.length < ROUND && moreFresh.length) chosen.push(moreFresh.shift());
+    while (chosen.length < ROUND && moreHard.length) chosen.push(moreHard.shift());
+    return shuffle(chosen).map(buildItem);
+  }
+
+  function renderMath() {
+    var v = $("view-math");
+    if (math.round) return renderMathRound();
+    if (math.nl) return renderNL();
+    var mastered = 0, f = data.math.facts;
+    PAIRS.forEach(function (p) { var s = f[factKey("m", p[0], p[1])]; if (s && s.b >= 4) mastered++; });
+    var last = (data.math.sessions || []).slice(-1)[0];
+    var nls = (data.math.nl || []).slice(-1)[0];
+    v.innerHTML =
+      '<div class="panel">' +
+        '<h2>Таблица умножения</h2>' +
+        '<p class="muted">15 примеров. Отвечай спокойно, часов тут нет. Знакомые примеры будут попадаться реже, а трудные — чаще, пока не станут твоими.</p>' +
+        '<div class="seg" role="group" aria-label="Что тренируем">' +
+          segBtn("m", "Умножение") + segBtn("d", "Деление") + segBtn("x", "Вперемешку") +
+        "</div>" +
+        '<div class="row"><button class="btn gold" id="math-start" type="button">Начать раунд</button>' + (last ? '<span class="muted small">прошлый раунд: ' + last.ok + " из " + last.n + "</span>" : "") + "</div>" +
+      "</div>" +
+      '<div class="panel">' +
+        '<div class="row" style="justify-content:space-between"><h3>Карта таблицы</h3><span class="muted small">освоено ' + mastered + " из " + PAIRS.length + "</span></div>" +
+        mapHTML("m") +
+        legendHTML() +
+        '<p class="note">Пример становится зелёным, когда ты верно и уверенно ответил на него в три разных дня.</p>' +
+      "</div>" +
+      '<div class="panel">' +
+        "<h3>Числовая прямая</h3>" +
+        '<p class="muted">Покажи пером или пальцем, где на линии живёт число. Это тренирует чувство числа: сколько это — много или мало.</p>' +
+        '<div class="row"><button class="btn ghost" id="nl-start" type="button">10 чисел</button>' + (nls ? '<span class="muted small">в прошлый раз промах в среднем ' + nls.err.toFixed(1).replace(".", ",") + "%</span>" : "") + "</div>" +
+      "</div>";
+    v.querySelectorAll(".seg button").forEach(function (btn) {
+      btn.addEventListener("click", function () { math.op = btn.getAttribute("data-op"); try { localStorage.setItem(LS + "op", math.op); } catch (e) {} renderMath(); });
+    });
+    $("math-start").addEventListener("click", startMath);
+    $("nl-start").addEventListener("click", startNL);
+  }
+  function segBtn(op, label) { return '<button type="button" data-op="' + op + '" aria-pressed="' + (math.op === op) + '">' + label + "</button>"; }
+  function stat(big, small) { return '<div class="stat"><b>' + big + "</b><span>" + small + "</span></div>"; }
+  function mapHTML(op) {
+    var h = '<div class="map" role="img" aria-label="Карта таблицы умножения: цвет показывает, насколько хорошо выучен пример"><div class="h"></div>';
+    for (var c = 2; c <= 9; c++) h += '<div class="h">' + c + "</div>";
+    for (var r = 2; r <= 9; r++) {
+      h += '<div class="h">' + r + "</div>";
+      for (var c2 = 2; c2 <= 9; c2++) {
+        var s = data.math.facts[factKey(op, r, c2)];
+        var bx = s ? s.b || 0 : 0;
+        h += '<div style="background:' + boxColor(bx) + ";color:" + (bx >= 3 ? "#13250f" : "var(--ink)") + '" title="' + r + " × " + c2 + " = " + r * c2 + '">' + (bx ? r * c2 : "") + "</div>";
+      }
+    }
+    return h + "</div>";
+  }
+  function legendHTML() {
+    return '<div class="legend"><span><i style="background:var(--b0)"></i>ещё не было</span><span><i style="background:var(--b1)"></i>учим</span><span><i style="background:var(--b3)"></i>почти</span><span><i style="background:var(--b5)"></i>освоен</span></div>';
+  }
+
+  function startMath() {
+    math.round = { items: pickMath(), i: 0, input: "", results: [], times: [], phase: "ask", t0: performance.now() };
+    renderMath();
+  }
+  function dotsHTML(R) {
+    return '<div class="dots" aria-label="Пример ' + (R.i + 1) + " из " + R.items.length + '">' + R.items.map(function (_, j) {
+      var r = R.results[j]; return "<i class=\"" + (r === true ? "ok" : r === false ? "no" : j === R.i ? "cur" : "") + "\"></i>";
+    }).join("") + "</div>";
+  }
+  function padHTML() {
+    return '<div class="pad" id="m-pad">' +
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (n) { return '<button type="button" data-k="' + n + '">' + n + "</button>"; }).join("") +
+      '<button type="button" class="del" data-k="del" aria-label="Стереть">⌫</button><button type="button" data-k="0">0</button><button type="button" class="ok" data-k="ok">Ответ</button>' +
+      "</div>";
+  }
+  function renderMathRound() {
+    var R = math.round, v = $("view-math"), it = R.items[R.i];
+    if (R.phase === "ask") {
+      v.innerHTML = '<div class="panel">' + dotsHTML(R) +
+        '<div class="problem">' + esc(it.text) + " =</div>" +
+        '<div class="answer" id="m-ans" aria-live="polite">' + esc(R.input) + "</div>" + padHTML() +
+        '<div class="row" style="justify-content:center"><button class="btn ghost" id="m-stop" type="button">Закончить раунд</button></div></div>';
+    } else if (R.phase === "good") {
+      v.innerHTML = '<div class="panel">' + dotsHTML(R) +
+        '<div class="feedback good"><div class="big">Верно!</div><div class="problem" style="font-size:2.4rem">' + esc(it.fact) + "</div></div></div>";
+      return;
+    } else if (R.phase === "copy") {
+      v.innerHTML = '<div class="panel">' + dotsHTML(R) +
+        '<div class="feedback bad"><div class="big">Почти</div>' +
+          '<div class="problem" style="font-size:2.4rem">' + esc(it.fact) + "</div>" +
+          '<p class="hint">' + esc(it.hint) + "</p>" +
+          "<p><b>Посмотри и напиши ответ сам:</b></p>" +
+          '<div class="problem" style="font-size:2rem">' + esc(it.text) + " = ?</div>" +
+        "</div>" +
+        '<div class="answer" id="m-ans" aria-live="polite">' + esc(R.input) + "</div>" + padHTML() +
+        '<p class="muted small" style="text-align:center">Этот пример вернётся ещё раз через пару вопросов.</p></div>';
+    }
+    var pad = $("m-pad");
+    if (pad) pad.addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b) key(b.getAttribute("data-k")); });
+    var st = $("m-stop"); if (st) st.addEventListener("click", finishMath);
+  }
+  function key(k) {
+    var R = math.round; if (!R) return;
+    if (R.phase !== "ask" && R.phase !== "copy") return;
+    if (k === "del") R.input = R.input.slice(0, -1);
+    else if (k === "ok") {
+      if (!R.input) return;
+      if (R.phase === "ask") answerMath();
+      else if (parseInt(R.input, 10) === R.items[R.i].ans) nextMath();
+      else { R.input = ""; var el0 = $("m-ans"); if (el0) el0.textContent = ""; }
+      return;
+    }
+    else if (/^[0-9]$/.test(k) && R.input.length < 3) R.input += k;
+    var el = $("m-ans"); if (el) el.textContent = R.input;
+  }
+  document.addEventListener("keydown", function (e) {
+    if (current === "math" && math.round) {
+      if (/^[0-9]$/.test(e.key)) { key(e.key); e.preventDefault(); }
+      else if (e.key === "Backspace") { key("del"); e.preventDefault(); }
+      else if (e.key === "Enter") { key("ok"); e.preventDefault(); }
+    }
+  });
+  function answerMath() {
+    var R = math.round, it = R.items[R.i];
+    var ms = Math.round(performance.now() - R.t0);
+    var ok = parseInt(R.input, 10) === it.ans;
+    var today = dayKey();
+    if (!it.again) {
+      var s = data.math.facts[it.k] || { b: 0, n: 0, ok: 0 };
+      s.n = (s.n || 0) + 1;
+      if (ok) {
+        s.ok = (s.ok || 0) + 1;
+        if (!s.b) s.b = ms <= 5000 ? 2 : 1;
+        else if (s.up !== today) {
+          // Moving up needs a confident answer, and only once a day: mastery = three different days.
+          var limit = s.b >= 3 ? 3500 : 5000;
+          if (ms <= limit) { s.b = Math.min(5, s.b + 1); s.up = today; }
+        }
+        R.times.push(ms);
+      } else s.b = 1;
+      s.due = addDays(today, INTERVALS[s.b] || 0);
+      s.last = today;
+      data.math.facts[it.k] = s;
+      save("math");
+    }
+    R.results[R.i] = ok;
+    R.input = "";
+    if (ok) {
+      R.phase = "good"; renderMath();
+      var at = R.i;
+      setTimeout(function () { if (math.round === R && R.i === at && R.phase === "good") nextMath(); }, 650);
+    } else {
+      if ((it.tries || 0) < 2) {
+        var again = Object.assign({}, it, { again: true, tries: (it.tries || 0) + 1 });
+        R.items.splice(Math.min(R.items.length, R.i + 3), 0, again);
+      }
+      R.phase = "copy"; renderMath();
+    }
+  }
+  function nextMath() {
+    var R = math.round;
+    R.i++; R.input = "";
+    if (R.i >= R.items.length) { finishMath(); return; }
+    R.phase = "ask";
+    R.t0 = performance.now();
+    renderMath();
+  }
+  function finishMath() {
+    var R = math.round; math.round = null;
+    var answered = R.results.filter(function (x) { return x === true || x === false; });
+    var ok = answered.filter(function (x) { return x; }).length;
+    var med = Math.round(median(R.times));
+    if (answered.length) {
+      data.math.sessions.push({ d: dayKey(), n: answered.length, ok: ok, med: med, op: math.op });
+      trim(data.math.sessions, 400);
+      save("math");
+    }
+    var hard = [];
+    R.items.forEach(function (it, j) { if (R.results[j] === false && hard.indexOf(it.fact) < 0) hard.push(it.fact); });
+    $("view-math").innerHTML = '<div class="panel">' +
+      "<h2>Раунд окончен</h2>" +
+      '<div class="stats">' +
+        stat(ok + " из " + answered.length, "верных ответов") +
+        stat(String(trophyCount()), "трофеев всего") +
+      "</div>" +
+      (hard.length ? '<div><p class="muted">Над этими ещё поработаем:</p><div class="wordlist">' + hard.map(function (h) { return "<span data-b=\"1\">" + esc(h) + "</span>"; }).join("") + "</div></div>" : "<p>Без единой ошибки. Отличный раунд!</p>") +
+      '<div class="row"><button class="btn gold" id="m-again" type="button">Ещё раунд</button><button class="btn ghost" id="m-home" type="button">Хватит на сегодня</button></div>' +
+      "</div>";
+    $("m-again").addEventListener("click", startMath);
+    $("m-home").addEventListener("click", function () { renderMath(); });
+    renderHeader();
+  }
+
+  /* ---------- number line ---------- */
+  var NL_N = 10;
+  function nlRange() {
+    var hist = (data.math.nl || []).filter(function (s) { return s.range === 100; }).slice(-2);
+    return hist.length === 2 && hist.every(function (s) { return s.err < 5; }) ? 1000 : 100;
+  }
+  function startNL() {
+    var range = nlRange(), nums = [];
+    while (nums.length < NL_N) {
+      var x = Math.floor(Math.random() * (range - 1)) + 1;
+      if (x % (range / 10) === 0 && Math.random() < 0.7) continue;
+      if (nums.indexOf(x) < 0) nums.push(x);
+    }
+    math.nl = { range: range, nums: nums, i: 0, errs: [], shown: null };
+    renderMath();
+  }
+  function renderNL() {
+    var N = math.nl, v = $("view-math"), target = N.nums[N.i];
+    var marks = "";
+    if (N.shown) {
+      marks = '<span class="nl-mark you" style="left:' + (N.shown.est / N.range * 100) + '%"></span><span class="nl-mark true" style="left:' + (target / N.range * 100) + '%"><em>' + target + "</em></span>";
+    }
+    v.innerHTML = '<div class="panel">' +
+      '<div class="dots">' + N.nums.map(function (_, j) { return '<i class="' + (j < N.i || (j === N.i && N.shown) ? "ok" : j === N.i ? "cur" : "") + '"></i>'; }).join("") + "</div>" +
+      '<div class="problem" style="font-size:clamp(2.2rem,10vw,3.6rem)">Где число ' + target + "?</div>" +
+      '<div class="nl" id="nl"><div class="nl-line"></div><span class="nl-end" style="left:0">0</span><span class="nl-end" style="left:100%">' + N.range + "</span>" + marks + "</div>" +
+      (N.shown ? '<p style="text-align:center">' + (N.shown.err <= 3 ? "Точно в цель!" : N.shown.err <= 8 ? "Близко!" : "Посмотри, где оно на самом деле.") + ' <span class="muted">Промах ' + N.shown.err.toFixed(1).replace(".", ",") + "%</span></p>" +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="nl-next" type="button">' + (N.i + 1 < N.nums.length ? "Дальше" : "Итоги") + "</button></div>"
+        : '<p class="muted" style="text-align:center">Нажми на линию там, где, по-твоему, стоит число.</p>') +
+      '<div class="row" style="justify-content:center"><button class="btn ghost" id="nl-stop" type="button">Закончить</button></div></div>';
+    var line = $("nl");
+    if (!N.shown) line.addEventListener("pointerdown", function (e) {
+      var r = line.getBoundingClientRect();
+      var f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      var est = Math.round(f * N.range);
+      var err = Math.abs(est - target) / N.range * 100;
+      N.errs.push(err); N.shown = { est: est, err: err };
+      renderNL();
+    });
+    if ($("nl-next")) { $("nl-next").addEventListener("click", function () { N.i++; N.shown = null; if (N.i >= N.nums.length) finishNL(); else renderNL(); }); $("nl-next").focus(); }
+    $("nl-stop").addEventListener("click", finishNL);
+  }
+  function finishNL() {
+    var N = math.nl; math.nl = null;
+    if (!N.errs.length) { renderMath(); return; }
+    var avg = N.errs.reduce(function (s, x) { return s + x; }, 0) / N.errs.length;
+    data.math.nl = data.math.nl || [];
+    data.math.nl.push({ d: dayKey(), range: N.range, err: Math.round(avg * 10) / 10, n: N.errs.length });
+    trim(data.math.nl, 300);
+    save("math");
+    $("view-math").innerHTML = '<div class="panel"><h2>Готово!</h2>' +
+      '<div class="stats">' + stat(avg.toFixed(1).replace(".", ",") + "%", "средний промах на линии 0–" + N.range) + "</div>" +
+      "<p>" + (avg < 5 ? "Меньше 5% — это очень точно." + (N.range === 100 ? " Ещё раз так же — и откроется линия до 1000." : "") : "Цель — промах меньше 5%. С каждым разом будет точнее.") + "</p>" +
+      '<div class="row"><button class="btn gold" id="nl-again" type="button">Ещё 10 чисел</button><button class="btn ghost" id="nl-home" type="button">Назад</button></div></div>';
+    $("nl-again").addEventListener("click", startNL);
+    $("nl-home").addEventListener("click", function () { renderMath(); });
+    renderHeader();
+  }
+
+  /* =====================================================================
+     READING
+     ===================================================================== */
+  var reading = { view: "list", tid: null, t0: 0, sec: 0, timer: null, errs: {}, big: false, spaced: false, sch: null };
+  try { reading.big = localStorage.getItem(LS + "big") === "1"; reading.spaced = localStorage.getItem(LS + "spaced") === "1"; } catch (e) {}
+  var GENERIC_QS = ["О чём этот текст? Скажи главное в двух предложениях.", "Почему так случилось?", "Что, по-твоему, будет дальше?"];
+  function textsAll() { return TEXTS.concat(data.reading.custom || []); }
+  function getText(id) { return textsAll().filter(function (t) { return t.id === id; })[0]; }
+  function tokens(text) { return text.split(/\s+/).filter(Boolean); }
+  function isWord(tok) { return /[А-Яа-яЁёA-Za-z0-9]/.test(tok); }
+  function wordCount(text) { return tokens(text).filter(isWord).length; }
+  function runsFor(id) { return (data.reading.runs || []).filter(function (r) { return r.tid === id; }); }
+  // Goal for a text: no more than 2 errors and 20% faster than the first try.
+  function goalFor(id) {
+    var rs = runsFor(id); if (!rs.length) return null;
+    var target = Math.round(rs[0].wcpm * 1.2);
+    var met = rs.some(function (r) { return r.err <= 2 && r.wcpm >= target; });
+    return { target: target, met: met };
+  }
+
+  function renderRead() {
+    var v = $("view-read");
+    if (reading.view === "schulte") return renderSchulte();
+    if (reading.view === "list") {
+      var sBest = (data.reading.schulte || []).reduce(function (m, s) { return m && m < s.sec ? m : s.sec; }, 0);
+      v.innerHTML = '<div class="panel">' +
+        "<h2>Чтение вслух</h2>" +
+        '<p class="muted">Читаем один короткий текст 2–3 раза подряд. Взрослый засекает время и отмечает слова с ошибкой или пропуском. Сначала точность, потом скорость.</p>' +
+        '<div class="text-list">' + textsAll().map(function (t) {
+          var rs = runsFor(t.id), g = goalFor(t.id), best = rs.length ? Math.max.apply(null, rs.map(function (r) { return r.wcpm; })) : 0;
+          return '<button type="button" class="text-item" data-tid="' + esc(t.id) + '"><span><b>' + esc(t.title) + '</b><br><span class="muted">' + wordCount(t.text) + " слов" + (t.custom ? " · свой текст" : "") + "</span></span><span class=\"muted\">" + (g && g.met ? "✓ цель взята" : best ? "рекорд " + best + " сл/мин" : "ещё не читали") + "</span></button>";
+        }).join("") + "</div>" +
+        "</div>" +
+        '<div class="panel"><h3>Добавить текст из его книги</h3>' +
+        '<p class="muted small">Лучше всего 80–150 слов: абзац из книги, которую он сейчас читает, или страница комикса. Текст должен быть чуть проще, чем школьный.</p>' +
+        '<label class="f" for="nt-title">Название<input type="text" id="nt-title" maxlength="60" placeholder="Например: Денискины рассказы, глава 2"></label>' +
+        '<label class="f" for="nt-text">Текст<textarea id="nt-text" placeholder="Вставьте или наберите текст"></textarea></label>' +
+        '<div class="row"><button class="btn ghost" id="nt-add" type="button">Добавить текст</button><span class="muted small" id="nt-msg"></span></div></div>' +
+        '<div class="panel"><h3>Таблица Шульте</h3>' +
+        '<p class="muted small">Найди числа от 1 до 25 по порядку. Это игра на внимание на 1–3 минуты. Чтение она не улучшает: исследования этого не подтверждают. Для чтения работают тексты выше.</p>' +
+        '<div class="row"><button class="btn ghost" id="sch-start" type="button">Играть</button>' + (sBest ? '<span class="muted small">рекорд ' + sBest + " с</span>" : "") + "</div></div>";
+      v.querySelectorAll(".text-item").forEach(function (b) { b.addEventListener("click", function () { openText(b.getAttribute("data-tid")); }); });
+      $("nt-add").addEventListener("click", function () {
+        var title = $("nt-title").value.trim(), text = $("nt-text").value.trim();
+        if (!text || wordCount(text) < 15) { $("nt-msg").textContent = "Нужен текст хотя бы из 15 слов."; return; }
+        data.reading.custom.push({ id: "u" + Date.now().toString(36), title: title || "Свой текст", text: text, custom: true });
+        save("reading"); renderRead();
+      });
+      $("sch-start").addEventListener("click", startSchulte);
+      return;
+    }
+    var t = getText(reading.tid);
+    if (!t) { reading.view = "list"; return renderRead(); }
+    var rs = runsFor(t.id), g = goalFor(t.id);
+    var todayRuns = rs.filter(function (r) { return r.d === dayKey(); });
+    var toks = tokens(t.text);
+    var readerCls = "reader" + (reading.big ? " big" : "") + (reading.spaced ? " spaced" : "") + (reading.view === "mark" ? " marking" : "");
+    var head = '<div class="row" style="justify-content:space-between"><button class="btn ghost" id="r-back" type="button">← Тексты</button>' +
+      '<div class="seg"><button type="button" id="r-big" aria-pressed="' + reading.big + '">Крупнее</button><button type="button" id="r-spaced" aria-pressed="' + reading.spaced + '">Просторнее</button><button type="button" id="r-listen">Послушать</button></div></div>';
+    var words = toks.map(function (tok, i) { return '<span class="w' + (reading.errs[i] ? " err" : "") + '" data-i="' + i + '">' + esc(tok) + "</span>"; }).join(" ");
+    var goalLine = g ? '<p class="goal' + (g.met ? " met" : "") + '">' + (g.met ? "Цель взята! Можно брать новый текст." : "Цель: не больше 2 ошибок и " + g.target + " слов в минуту.") + "</p>" : '<p class="goal">Первая попытка покажет, с чего начинаем.</p>';
+    var ctrl = "";
+    if (reading.view === "ready") ctrl = goalLine + '<div class="row" style="justify-content:center"><button class="btn gold" id="r-start" type="button">Начать чтение</button></div><p class="muted small" style="text-align:center">Попытка ' + (todayRuns.length + 1) + " сегодня. Взрослый нажимает кнопку, когда ребёнок начинает читать вслух.</p>";
+    if (reading.view === "reading") ctrl = '<div class="timer" id="r-timer">0:00</div><div class="row" style="justify-content:center"><button class="btn gold" id="r-stop" type="button">Дочитал</button></div>';
+    if (reading.view === "mark") ctrl = '<p style="text-align:center"><b>Взрослому:</b> нажмите на слова, где была ошибка, пропуск или угадывание. Если всё верно, просто сохраните.</p><div class="row" style="justify-content:center"><button class="btn gold" id="r-save" type="button">Сохранить попытку</button></div>';
+    var chart = "";
+    if (rs.length) {
+      var shown = rs.slice(-8), mx = Math.max.apply(null, shown.map(function (r) { return r.wcpm; })) || 1, best = Math.max.apply(null, rs.map(function (r) { return r.wcpm; }));
+      chart = '<div class="panel"><h3>Попытки с этим текстом</h3><div class="bars">' + shown.map(function (r, j) {
+        return '<div class="bar"><span class="muted">' + r.d.slice(8) + "." + r.d.slice(5, 7) + " · №" + (rs.length - shown.length + j + 1) + '</span><div class="track"><div class="fill' + (r.wcpm === best ? " best" : "") + '" style="width:' + Math.round(r.wcpm / mx * 100) + '%"></div></div><b>' + r.wcpm + '</b><span class="errn' + (r.err <= 2 ? " ok" : "") + '">' + r.err + " ош.</span></div>";
+      }).join("") + '</div><p class="muted small">Число — сколько слов в минуту прочитано верно, справа — ошибки. Сравниваем только с собой.</p></div>';
+    }
+    var qlist = t.qs || GENERIC_QS;
+    var qs = '<div class="qs"><b>Поговорите после чтения:</b>' + qlist.map(function (q) { return "<span>" + esc(q) + "</span>"; }).join("") + "</div>";
+    v.innerHTML = '<div class="panel">' + head + "<h2>" + esc(t.title) + '</h2><div class="' + readerCls + '" id="r-text">' + words + "</div>" + ctrl + (reading.view === "ready" && todayRuns.length ? qs : "") + "</div>" + chart;
+    $("r-back").addEventListener("click", function () { stopTimer(); stopSpeech(); reading.view = "list"; renderRead(); });
+    $("r-big").addEventListener("click", function () { reading.big = !reading.big; try { localStorage.setItem(LS + "big", reading.big ? "1" : "0"); } catch (e) {} renderRead(); });
+    $("r-spaced").addEventListener("click", function () { reading.spaced = !reading.spaced; try { localStorage.setItem(LS + "spaced", reading.spaced ? "1" : "0"); } catch (e) {} renderRead(); });
+    $("r-listen").addEventListener("click", function () { readAloud(t.text); });
+    if ($("r-start")) $("r-start").addEventListener("click", function () { stopSpeech(); reading.errs = {}; reading.view = "reading"; reading.t0 = performance.now(); renderRead(); tick(); });
+    if ($("r-stop")) $("r-stop").addEventListener("click", function () { stopTimer(); reading.sec = (performance.now() - reading.t0) / 1000; reading.view = "mark"; renderRead(); });
+    if ($("r-save")) $("r-save").addEventListener("click", function () {
+      var n = wordCount(t.text), e = Object.keys(reading.errs).length, sec = Math.max(5, reading.sec);
+      var wcpm = Math.max(0, Math.round((n - e) / (sec / 60)));
+      data.reading.runs.push({ d: dayKey(), tid: t.id, wcpm: wcpm, err: e, sec: Math.round(sec), words: n });
+      trim(data.reading.runs, 600);
+      save("reading");
+      reading.view = "ready"; reading.errs = {};
+      renderRead(); renderHeader();
+    });
+    if (reading.view === "mark") $("r-text").addEventListener("click", function (ev) {
+      var w = ev.target.closest(".w"); if (!w) return;
+      var i = w.getAttribute("data-i"); if (reading.errs[i]) delete reading.errs[i]; else reading.errs[i] = true;
+      w.classList.toggle("err");
+    });
+  }
+  function openText(id) { reading.tid = id; reading.view = "ready"; reading.errs = {}; renderRead(); }
+  function tick() {
+    stopTimer();
+    reading.timer = setInterval(function () {
+      var s = Math.floor((performance.now() - reading.t0) / 1000), el = $("r-timer");
+      if (el) el.textContent = Math.floor(s / 60) + ":" + pad2(s % 60);
+    }, 250);
+  }
+  function stopTimer() { if (reading.timer) { clearInterval(reading.timer); reading.timer = null; } }
+
+  /* ---------- Schulte table (attention game) ---------- */
+  function startSchulte() {
+    var nums = []; for (var i = 1; i <= 25; i++) nums.push(i);
+    reading.sch = { nums: shuffle(nums), next: 1, t0: performance.now(), miss: 0, done: false, sec: 0 };
+    reading.view = "schulte"; renderRead();
+  }
+  function renderSchulte() {
+    var S = reading.sch, v = $("view-read");
+    v.innerHTML = '<div class="panel">' +
+      '<div class="row" style="justify-content:space-between"><button class="btn ghost" id="sch-back" type="button">← Назад</button><span class="muted">' + (S.done ? "Готово за " + S.sec + " с" : "Найди: <b class=\"sch-next\">" + S.next + "</b>") + "</span></div>" +
+      '<div class="schulte" id="sch-grid">' + S.nums.map(function (n) { return '<button type="button" data-n="' + n + '" class="' + (n < S.next ? "found" : "") + '">' + n + "</button>"; }).join("") + "</div>" +
+      (S.done ? '<div class="row" style="justify-content:center"><button class="btn gold" id="sch-again" type="button">Ещё раз</button></div>' : "") +
+      "</div>";
+    $("sch-back").addEventListener("click", function () { reading.view = "list"; reading.sch = null; renderRead(); });
+    if (S.done) { $("sch-again").addEventListener("click", startSchulte); return; }
+    $("sch-grid").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-n]"); if (!b) return;
+      var n = +b.getAttribute("data-n");
+      if (n === S.next) {
+        S.next++;
+        if (S.next > 25) {
+          S.done = true; S.sec = Math.round((performance.now() - S.t0) / 1000);
+          data.reading.schulte = data.reading.schulte || [];
+          data.reading.schulte.push({ d: dayKey(), sec: S.sec });
+          trim(data.reading.schulte, 200);
+          save("reading");
+        }
+        renderSchulte();
+      } else { b.classList.add("miss"); setTimeout(function () { b.classList.remove("miss"); }, 300); }
+    });
+  }
+
+  /* ---------- speech ---------- */
+  var ruVoice = null;
+  function pickVoice() {
+    try {
+      var vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+      ruVoice = vs.filter(function (v) { return /^ru/i.test(v.lang); })[0] || null;
+    } catch (e) { ruVoice = null; }
+  }
+  try { if (window.speechSynthesis) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } } catch (e) {}
+  function canSpeak() { return !!(window.speechSynthesis && ruVoice); }
+  function speak(text, onBoundary, onEnd) {
+    if (!canSpeak()) return false;
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.voice = ruVoice; u.lang = ruVoice.lang; u.rate = 0.9;
+      if (onBoundary) u.onboundary = onBoundary;
+      u.onend = function () { if (onEnd) onEnd(); };
+      speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  }
+  function stopSpeech() { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} clearTimeout(sayTimer); clearSay(); }
+  function clearSay() { document.querySelectorAll(".reader .w.say").forEach(function (w) { w.classList.remove("say"); }); }
+  var sayTimer = null;
+  function readAloud(text) {
+    var spans = Array.prototype.slice.call(document.querySelectorAll("#r-text .w"));
+    var toks = tokens(text), starts = [], pos = 0, gotBoundary = false;
+    toks.forEach(function (tok) { var i = text.indexOf(tok, pos); starts.push(i); pos = i + tok.length; });
+    clearTimeout(sayTimer);
+    var ok = speak(text, function (ev) {
+      if (ev.name && ev.name !== "word") return;
+      gotBoundary = true;
+      var ci = ev.charIndex, idx = 0;
+      for (var j = 0; j < starts.length; j++) if (starts[j] <= ci) idx = j;
+      clearSay(); if (spans[idx]) spans[idx].classList.add("say");
+    }, function () { clearTimeout(sayTimer); clearSay(); });
+    if (!ok) { flashNoVoice("r-listen"); return; }
+    // Some voices report no word boundaries: then move the highlight at an estimated pace.
+    setTimeout(function () {
+      if (gotBoundary) return;
+      var k = 0;
+      (function step() {
+        if (k >= spans.length) { clearSay(); return; }
+        clearSay(); spans[k].classList.add("say");
+        var ms = 180 + toks[k].length * 62;
+        k++; sayTimer = setTimeout(step, ms);
+      })();
+    }, 900);
+  }
+  function flashNoVoice(id) {
+    var b = $(id); if (!b) return;
+    var old = b.textContent; b.textContent = "Нет русского голоса"; b.disabled = true;
+    setTimeout(function () { b.textContent = old; b.disabled = false; }, 2500);
+  }
+
+  /* =====================================================================
+     WORDS
+     ===================================================================== */
+  var words = { cat: "all", paper: true, round: null };
+  try { var wc = localStorage.getItem(LS + "wcat"); if (wc) words.cat = wc; words.paper = localStorage.getItem(LS + "paper") !== "0"; } catch (e) {}
+  var WROUND = 8;
+  function wordPool() { return allWords().filter(function (w) { return words.cat === "all" || w.cat === words.cat; }); }
+  function pickWords() {
+    var today = dayKey(), pool = wordPool(), prog = data.words.prog;
+    var due = [], fresh = [], rest = [];
+    pool.forEach(function (w) { var s = prog[w.id]; if (!s) fresh.push(w); else if ((s.due || today) <= today && (s.b || 1) < 5) due.push(w); else rest.push(w); });
+    due.sort(function (x, y) { return (prog[x.id].b || 1) - (prog[y.id].b || 1); });
+    var chosen = due.slice(0, WROUND);
+    var nNew = Math.min(3, WROUND - chosen.length);
+    chosen = chosen.concat(shuffle(fresh).slice(0, nNew));
+    shuffle(rest);
+    while (chosen.length < WROUND && rest.length) chosen.push(rest.pop());
+    if (chosen.length < WROUND) chosen = chosen.concat(fresh.filter(function (w) { return chosen.indexOf(w) < 0; }).slice(0, WROUND - chosen.length));
+    return shuffle(chosen);
+  }
+  function renderWords() {
+    var v = $("view-words");
+    if (words.round) return renderWordRound();
+    var pool = wordPool(), prog = data.words.prog;
+    var masteredN = pool.filter(function (w) { return prog[w.id] && prog[w.id].b >= 4; }).length;
+    var catBtns = ["all", "dict", "check", "tsya", "own"].map(function (c) {
+      return '<button type="button" data-cat="' + c + '" aria-pressed="' + (words.cat === c) + '">' + (c === "all" ? "Все" : CATS[c]) + "</button>";
+    }).join("");
+    v.innerHTML = '<div class="panel">' +
+      "<h2>Слова-трофеи</h2>" +
+      '<p class="muted">8 слов. Слушаешь, пишешь, потом сам сверяешь по буквам. Трудные слова будут возвращаться, пока не станут твоими.</p>' +
+      '<div><p class="small muted" style="margin-bottom:6px">Тема (лучше одна за раз):</p><div class="seg" id="w-cats">' + catBtns + "</div></div>" +
+      '<div class="seg"><button type="button" id="w-paper" aria-pressed="' + words.paper + '">Пишу на бумаге</button><button type="button" id="w-pen" aria-pressed="' + (!words.paper) + '">Пишу пером на экране</button></div>' +
+      '<div class="row"><button class="btn gold" id="w-start" type="button"' + (pool.length ? "" : " disabled") + ">Начать</button><span class=\"muted small\">в теме " + pool.length + " слов, освоено " + masteredN + "</span></div>" +
+      (words.paper ? "" : '<p class="note">Перо на экране — по желанию и лучше после разговора с логопедом: почерк и правописание тренируют на бумаге. Если перо XP-PEN не чувствует нажим, включите Windows Ink в настройках драйвера.</p>') +
+      (canSpeak() ? "" : '<p class="note">На этом устройстве не нашёлся русский голос, поэтому слова диктует взрослый: текст для него будет под кнопкой «Показать взрослому».</p>') +
+      "</div>" +
+      '<div class="panel"><h3>Слова в этой теме</h3><div class="wordlist">' + pool.map(function (w) { var s = prog[w.id]; return '<span data-b="' + (s ? s.b : 0) + '">' + esc(plain(w.w)) + "</span>"; }).join("") + "</div>" +
+      '<p class="note">Рамка: красная — учим, жёлтая — почти, зелёная — освоено.</p></div>' +
+      '<div class="panel"><h3>Добавить слово из его ошибок</h3>' +
+      '<p class="muted small">Трудное место отметьте большой буквой: кОрова, учиТСЯ. Для -тся/-ться добавьте предложение: на слух эти слова звучат одинаково.</p>' +
+      '<label class="f" for="nw-word">Слово<input type="text" id="nw-word" maxlength="40" placeholder="кОрова"></label>' +
+      '<label class="f" for="nw-sent">Предложение (необязательно)<input type="text" id="nw-sent" maxlength="140" placeholder="Корова пасётся на лугу."></label>' +
+      '<label class="f" for="nw-hint">Подсказка (необязательно)<input type="text" id="nw-hint" maxlength="60" placeholder="проверочное слово или правило"></label>' +
+      '<div class="row"><button class="btn ghost" id="nw-add" type="button">Добавить в «Мои слова»</button><span class="muted small" id="nw-msg"></span></div></div>';
+    v.querySelectorAll("#w-cats button").forEach(function (b) { b.addEventListener("click", function () { words.cat = b.getAttribute("data-cat"); try { localStorage.setItem(LS + "wcat", words.cat); } catch (e) {} renderWords(); }); });
+    $("w-paper").addEventListener("click", function () { words.paper = true; try { localStorage.setItem(LS + "paper", "1"); } catch (e) {} renderWords(); });
+    $("w-pen").addEventListener("click", function () { words.paper = false; try { localStorage.setItem(LS + "paper", "0"); } catch (e) {} renderWords(); });
+    $("w-start").addEventListener("click", startWords);
+    $("nw-add").addEventListener("click", function () {
+      var w = $("nw-word").value.trim().replace(/\s+/g, "");
+      if (!w || !/^[А-Яа-яЁё-]+$/.test(w)) { $("nw-msg").textContent = "Нужно одно слово русскими буквами."; return; }
+      if (allWords().some(function (x) { return plain(x.w) === plain(w); })) { $("nw-msg").textContent = "Такое слово уже есть."; return; }
+      data.words.custom.push({ id: "u" + Date.now().toString(36), w: w, cat: "own", s: $("nw-sent").value.trim(), hint: $("nw-hint").value.trim() });
+      save("words"); words.cat = "own"; try { localStorage.setItem(LS + "wcat", "own"); } catch (e) {}
+      renderWords();
+    });
+  }
+  function startWords() {
+    var items = pickWords(); if (!items.length) return;
+    words.round = { items: items, i: 0, phase: "listen", results: [], retry: false };
+    renderWords();
+    sayCurrent();
+  }
+  function sayText(w) { return w.s ? w.s : plain(w.w); }
+  function sayCurrent() { var R = words.round; if (!R) return; var w = R.items[R.i]; speak(sayText(w)); }
+  function renderWordRound() {
+    var R = words.round, v = $("view-words"), w = R.items[R.i];
+    var dots = '<div class="dots">' + R.items.map(function (_, j) { var r = R.results[j]; return "<i class=\"" + (r === true ? "ok" : r === false ? "no" : j === R.i ? "cur" : "") + "\"></i>"; }).join("") + "</div>";
+    var catLabel = '<p class="muted small" style="text-align:center">' + esc(CATS[w.cat] || "") + "</p>";
+    if (R.phase === "listen") {
+      var shown = w.s ? esc(w.s).replace(new RegExp(escRe(plain(w.w)), "i"), "…") : "";
+      v.innerHTML = '<div class="panel">' + dots + catLabel +
+        '<div class="say-box">' +
+          (canSpeak() ? '<button class="btn gold" id="w-say" type="button">Послушать ещё раз</button>' : '<details><summary class="muted">Показать взрослому</summary><p class="sent">' + esc(sayText(w)) + "</p></details>") +
+          (w.s ? '<p class="sent">' + shown + "</p>" : "") +
+          '<p class="muted">' + (R.retry ? "Посмотрел? Теперь напиши по памяти." : (w.s ? "Напиши пропущенное слово." : "Напиши это слово.")) + "</p>" +
+        "</div>" +
+        (words.paper ? '<p class="note" style="text-align:center">Пиши на листке. Не торопись: проговаривай шёпотом по слогам.</p>' : sheetHTML()) +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="w-check" type="button">Проверить</button></div>' +
+        '<div class="row" style="justify-content:center"><button class="btn ghost" id="w-stop" type="button">Закончить</button></div></div>';
+      if ($("w-say")) $("w-say").addEventListener("click", sayCurrent);
+      $("w-check").addEventListener("click", function () { R.phase = "check"; stopSpeech(); renderWords(); });
+      $("w-stop").addEventListener("click", finishWords);
+      if (!words.paper) initSheet();
+      return;
+    }
+    if (R.phase === "check") {
+      var letters = w.w.split("").map(function (ch) { var hot = ch !== ch.toLowerCase(); return '<span class="' + (hot ? "hot" : "") + '">' + esc(ch.toLowerCase()) + "</span>"; }).join("");
+      v.innerHTML = '<div class="panel">' + dots + catLabel +
+        '<div class="reveal" aria-label="' + esc(plain(w.w)) + '">' + letters + "</div>" +
+        '<div class="check-tip"><b>Сверь по буквам: в слове ' + w.w.length + " " + plural(w.w.length, "буква", "буквы", "букв") + ".</b><span>Веди карандашом под каждой своей буквой. Все ли на месте? Жёлтая — трудное место.</span>" + (w.hint ? '<span class="muted">Подсказка: ' + esc(w.hint) + "</span>" : "") + "</div>" +
+        (words.paper ? "" : sheetHTML(true)) +
+        '<div class="row" style="justify-content:center"><button class="btn good" id="w-ok" type="button">Написал верно</button><button class="btn bad" id="w-no" type="button">Была ошибка</button></div></div>';
+      if (!words.paper) initSheet(true);
+      $("w-ok").addEventListener("click", function () { markWord(true); });
+      $("w-no").addEventListener("click", function () { markWord(false); });
+      return;
+    }
+    if (R.phase === "study") {
+      v.innerHTML = '<div class="panel">' + dots +
+        '<div class="say-box"><p class="muted">Посмотри внимательно. Через пару секунд слово спрячется, и ты напишешь его по памяти.</p>' +
+        '<div class="reveal">' + w.w.split("").map(function (ch) { return '<span class="' + (ch !== ch.toLowerCase() ? "hot" : "") + '">' + esc(ch.toLowerCase()) + "</span>"; }).join("") + "</div></div></div>";
+      setTimeout(function () { if (words.round === R && R.phase === "study") { R.phase = "listen"; R.retry = true; renderWords(); } }, 3500);
+      return;
+    }
+  }
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  function plural(n, one, few, many) { var m10 = n % 10, m100 = n % 100; if (m10 === 1 && m100 !== 11) return one; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few; return many; }
+  function markWord(ok) {
+    var R = words.round, w = R.items[R.i], today = dayKey();
+    var s = data.words.prog[w.id] || { b: 0, n: 0, ok: 0 };
+    if (!R.retry) {
+      s.n = (s.n || 0) + 1;
+      if (ok) { s.ok = (s.ok || 0) + 1; s.b = Math.min(5, (s.b || 0) + 1); } else s.b = 1;
+      s.due = addDays(today, INTERVALS[s.b] || 0);
+      data.words.prog[w.id] = s;
+      R.results[R.i] = ok;
+      save("words");
+    }
+    if (!ok && !R.retry) { R.phase = "study"; renderWords(); return; }
+    R.retry = false;
+    R.i++;
+    if (R.i >= R.items.length) { finishWords(); return; }
+    R.phase = "listen"; renderWords(); sayCurrent();
+  }
+  function finishWords() {
+    var R = words.round; words.round = null; stopSpeech();
+    var res = R.results.filter(function (x) { return x === true || x === false; });
+    var ok = res.filter(function (x) { return x; }).length;
+    if (res.length) { data.words.sessions.push({ d: dayKey(), n: res.length, ok: ok, cat: words.cat }); trim(data.words.sessions, 400); save("words"); }
+    var miss = []; R.items.forEach(function (w, j) { if (R.results[j] === false) miss.push(plain(w.w)); });
+    $("view-words").innerHTML = '<div class="panel"><h2>Готово!</h2>' +
+      '<div class="stats">' + stat(ok + " из " + res.length, "слов без ошибки") + stat(String(trophyCount()), "трофеев всего") + "</div>" +
+      (miss.length ? '<div><p class="muted">Эти слова вернутся завтра:</p><div class="wordlist">' + miss.map(function (m) { return '<span data-b="1">' + esc(m) + "</span>"; }).join("") + "</div></div>" : "<p>Все слова верно. Так держать!</p>") +
+      '<div class="row"><button class="btn gold" id="w-again" type="button">Ещё 8 слов</button><button class="btn ghost" id="w-home" type="button">Хватит на сегодня</button></div></div>';
+    $("w-again").addEventListener("click", startWords);
+    $("w-home").addEventListener("click", function () { renderWords(); });
+    renderHeader();
+  }
+
+  /* ---------- pen sheet (works with XP-PEN, mouse or finger) ---------- */
+  var sheet = { strokes: [] };
+  function sheetHTML(small) {
+    return '<div class="sheet" id="sheet" style="' + (small ? "height:132px" : "") + '"><canvas id="sheet-c" aria-label="Лист для письма пером"></canvas></div>' +
+      (small ? "" : '<div class="row" style="justify-content:flex-end"><button class="btn ghost" id="sheet-clear" type="button">Стереть</button></div>');
+  }
+  function initSheet(keep) {
+    var c = $("sheet-c"); if (!c) return;
+    if (!keep) sheet.strokes = [];
+    var ctx = c.getContext("2d"), dpr = window.devicePixelRatio || 1;
+    function size() {
+      var r = c.getBoundingClientRect();
+      c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); redraw();
+    }
+    function redraw() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#1d3b8f";
+      sheet.strokes.forEach(function (st) { for (var i = 1; i < st.length; i++) { ctx.lineWidth = st[i].w; ctx.beginPath(); ctx.moveTo(st[i - 1].x, st[i - 1].y); ctx.lineTo(st[i].x, st[i].y); ctx.stroke(); } });
+    }
+    size();
+    if (keep) return;
+    var cur = null;
+    function pt(e) { var r = c.getBoundingClientRect(); var p = e.pressure && e.pointerType === "pen" ? e.pressure : 0.5; return { x: e.clientX - r.left, y: e.clientY - r.top, w: 1.6 + p * 3.2 }; }
+    c.addEventListener("pointerdown", function (e) { e.preventDefault(); try { c.setPointerCapture(e.pointerId); } catch (x) {} cur = [pt(e)]; sheet.strokes.push(cur); });
+    c.addEventListener("pointermove", function (e) {
+      if (!cur) return; e.preventDefault();
+      var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      evs.forEach(function (ev) { var p = pt(ev), q = cur[cur.length - 1]; cur.push(p); ctx.lineWidth = p.w; ctx.lineCap = "round"; ctx.strokeStyle = "#1d3b8f"; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (t) { c.addEventListener(t, function () { cur = null; }); });
+    var clr = $("sheet-clear"); if (clr) clr.addEventListener("click", function () { sheet.strokes = []; redraw(); });
+  }
+
+  /* =====================================================================
+     PROGRESS (for the parent)
+     ===================================================================== */
+  function renderProgress() {
+    var v = $("view-prog");
+    var days = [], set = {};
+    (data.math.sessions || []).forEach(function (s) { set[s.d] = 1; });
+    (data.words.sessions || []).forEach(function (s) { set[s.d] = 1; });
+    (data.reading.runs || []).forEach(function (s) { set[s.d] = 1; });
+    var t = dayKey();
+    for (var i = 13; i >= 0; i--) days.push(addDays(t, -i));
+    var active = days.filter(function (d) { return set[d]; }).length;
+
+    var mastered = 0; PAIRS.forEach(function (p) { var s = data.math.facts[factKey("m", p[0], p[1])]; if (s && s.b >= 4) mastered++; });
+    var msess = (data.math.sessions || []).slice(-10);
+    var wprog = data.words.prog || {};
+    var byCat = {}; allWords().forEach(function (w) { var c = w.cat; byCat[c] = byCat[c] || { n: 0, m: 0 }; byCat[c].n++; if (wprog[w.id] && wprog[w.id].b >= 4) byCat[c].m++; });
+    var hardWords = allWords().filter(function (w) { var s = wprog[w.id]; return s && s.n >= 2 && s.b <= 2; }).map(function (w) { return plain(w.w); });
+    var bestBy = {}; (data.reading.runs || []).forEach(function (r) { bestBy[r.tid] = Math.max(bestBy[r.tid] || 0, r.wcpm); });
+    var nlLast = (data.math.nl || []).slice(-1)[0];
+    var meds = msess.map(function (s) { return s.med; }).filter(function (x) { return x > 0; });
+
+    v.innerHTML =
+      '<div class="panel"><h2>Прогресс</h2>' +
+        '<p class="muted">Это экран для взрослого. Здесь видно, что получается и над чем работать.</p>' +
+        '<div><p class="small muted" style="margin-bottom:6px">Дни с тренировками за 2 недели: ' + active + " из 14</p><div class=\"days\">" + days.map(function (d) { return '<i class="' + (set[d] ? "on" : "") + '" title="' + d + '"></i>'; }).join("") + "</div></div>" +
+        '<div class="stats">' + stat(String(trophyCount()), "трофеев") + stat(mastered + " / " + PAIRS.length, "примеров умножения освоено") + stat(String(Object.keys(bestBy).length), "текстов прочитано") + (nlLast ? stat(nlLast.err.toFixed(1).replace(".", ",") + "%", "промах на числовой прямой 0–" + nlLast.range) : "") + "</div>" +
+      "</div>" +
+      '<div class="panel"><h3>Счёт: последние раунды</h3>' +
+        (msess.length ? '<div class="bars">' + msess.map(function (s) {
+          return '<div class="bar"><span class="muted">' + s.d.slice(8) + "." + s.d.slice(5, 7) + '</span><div class="track"><div class="fill" style="width:' + Math.round(s.ok / Math.max(1, s.n) * 100) + '%;background:var(--good)"></div></div><b>' + s.ok + "/" + s.n + "</b></div>";
+        }).join("") + '</div><p class="muted small">Полоса — доля верных ответов. Время ответа ребёнку не показывается, оно только для вас: обычное время в последнем раунде ' + (meds.length ? fmtSec(meds[meds.length - 1]) : "—") + (meds.length > 1 ? ", в первом из показанных " + fmtSec(meds[0]) : "") + ". Уверенное знание — около 3 секунд.</p>" : '<p class="muted">Раундов пока не было. Первый раунд — на вкладке «Счёт».</p>') +
+        mapHTML("m") + legendHTML() +
+      "</div>" +
+      '<div class="panel"><h3>Слова</h3><div class="stats">' + ["dict", "check", "tsya", "own"].filter(function (c) { return byCat[c]; }).map(function (c) { return stat(byCat[c].m + " / " + byCat[c].n, CATS[c].toLowerCase() + " освоено"); }).join("") + "</div>" +
+        (hardWords.length ? '<p class="muted">Трудные слова (ошибался несколько раз):</p><div class="wordlist">' + hardWords.map(function (w) { return '<span data-b="1">' + esc(w) + "</span>"; }).join("") + "</div>" : '<p class="muted">Трудных слов пока нет.</p>') +
+      "</div>" +
+      '<div class="panel"><h3>Чтение: рекорды по текстам</h3>' +
+        (Object.keys(bestBy).length ? '<div class="bars">' + textsAll().filter(function (tx) { return bestBy[tx.id]; }).map(function (tx) {
+          var mx = Math.max.apply(null, Object.keys(bestBy).map(function (k) { return bestBy[k]; }));
+          return '<div class="bar"><span class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(tx.title) + '</span><div class="track"><div class="fill best" style="width:' + Math.round(bestBy[tx.id] / mx * 100) + '%"></div></div><b>' + bestBy[tx.id] + "</b></div>";
+        }).join("") + '</div><p class="muted small">Слов в минуту, прочитанных верно. Норм здесь нет: сравниваем его только с ним самим.</p>' : '<p class="muted">Чтений пока не было.</p>') +
+      "</div>" +
+      '<div class="panel"><h3>Как пользоваться</h3><ul class="tips">' +
+        "<li>1–2 тренировки в день по 5 минут. Это учебное время, а не развлекательное, и оно не входит в матчи Brawl Stars.</li>" +
+        "<li>Не перед сном: последний час без экранов остаётся в силе.</li>" +
+        "<li>Трофеи — это счёт выученного, а не валюта. Не меняйте их на планшет или подарки.</li>" +
+        "<li>В «Словах» выбирайте одну тему за раз — ту, что сейчас по плану. Слова пишите на бумаге, если логопед не советует иначе.</li>" +
+        "<li>Покажите логопеду экран «Прогресс» и спросите, какие слова добавить в «Мои слова».</li>" +
+        "<li>Хвалите за процесс: «Ты сам нашёл ошибку», «Сегодня быстрее, чем вчера».</li>" +
+        "<li>В чтении сначала точность: если ошибок больше двух, не торопите, а возьмите текст попроще.</li>" +
+        "<li>Таблица Шульте — просто игра на внимание. Чтение она не улучшает, поэтому не заменяйте ею тексты.</li>" +
+        "<li>Если за 6–8 недель регулярных занятий сдвига почти нет, обсудите это с учителем и логопедом.</li>" +
+      "</ul><p class=\"note\" id=\"store-note\"></p></div>";
+    var note = $("store-note");
+    if (note) note.textContent = store.mode === "db" ? "Прогресс хранится вместе со страницей: его видно на любом устройстве, где вы её откроете." : store.mode === "readonly" ? "Общий прогресс сохранить не получилось, поэтому он сохраняется только в этом браузере." : "Прогресс сохраняется в этом браузере.";
+  }
+
+  /* ---------- boot ---------- */
+  function renderAll() { renderHeader(); if (!math.round) renderMath(); if (reading.view === "list") renderRead(); if (!words.round) renderWords(); if (current === "prog") renderProgress(); }
+  renderAll();
+  try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
+
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("db").then(function (db) {
+        if (!db) return;
+        store.mode = "db";
+        DOCS.forEach(function (k) {
+          store.refs[k] = db.doc("arena/" + k);
+          store.refs[k].onSnapshot(function (snap) {
+            if (store.timers[k] || store.writing[k]) return;
+            if (snap.exists) {
+              var d = snap.data() || {};
+              var copy = JSON.parse(JSON.stringify(d));
+              data[k] = Object.assign({}, data[k], copy);
+              try { localStorage.setItem(LS + k, JSON.stringify(data[k])); } catch (e) {}
+              if (!busy()) renderAll(); else renderHeader();
+            }
+          }, function () { store.mode = "readonly"; });
+        });
+      }, function () {});
+    }
+  } catch (e) {}
+})();
+</script>

@@ -308,6 +308,10 @@
 - **Веб-страница для телефона** с отметками прогресса: [claude.ai/artifact/LeApqezzcT228szk3Jidf2](https://claude.ai/artifact/LeApqezzcT228szk3Jidf2). Её исходник лежит в [`plan/plan-9-let.html`](plan/plan-9-let.html).
 - [`research/08-russkiy-yazyk-9-let.md`](research/08-russkiy-yazyk-9-let.md) — русский язык в 9 лет: разбор диктантов по типам ошибок, мини-диктанты, морфологические игры, чтение, книги, когда к логопеду.
 - [`research/09-planshet-9-let.md`](research/09-planshet-9-let.md) — планшет в 9 лет: Shorts и Brawl Stars, пошаговая настройка iPad и Android, «последний матч», детский договор.
+- **Тренажёры на компьютере** («Тренировочная арена»): [claude.ai/artifact/NUnVhvzy88WsXPZpf4yvSm](https://claude.ai/artifact/NUnVhvzy88WsXPZpf4yvSm). Внутри таблица умножения с повторением через промежутки, числовая прямая, повторное чтение с замером слов в минуту и ошибок, слова под диктовку с самопроверкой по буквам, таблица Шульте как игра на внимание и экран прогресса для родителя. Исходник лежит в [`plan/trenazhery.html`](plan/trenazhery.html).
+- [`research/10-chtenie-interaktiv.md`](research/10-chtenie-interaktiv.md) — чтение: «таблица Брагиса» (скорее всего, Шульте), скорочтение, что реально работает, компьютерные инструменты.
+- [`research/11-matematika-vychisleniya.md`](research/11-matematika-vychisleniya.md) — счёт: беглое знание таблицы, числовая прямая, приложения, ментальная арифметика.
+- [`research/12-xp-pen-i-kompyuter.md`](research/12-xp-pen-i-kompyuter.md) — XP-PEN и компьютер: стилус против ручки, рисование и комиксы, клавиатура, Scratch.
 
 ---
 
@@ -325,3 +329,7 @@
 | [`research/08-russkiy-yazyk-9-let.md`](research/08-russkiy-yazyk-9-let.md) | Русский язык в 9 лет: ошибки в диктантах, чтение, книги, логопед |
 | [`research/09-planshet-9-let.md`](research/09-planshet-9-let.md) | Планшет в 9 лет: Shorts, Brawl Stars, настройка, договор |
 | [`plan/plan-9-let.html`](plan/plan-9-let.html) | Исходник веб-страницы с планом на 6 недель |
+| [`research/10-chtenie-interaktiv.md`](research/10-chtenie-interaktiv.md) | Чтение: Шульте и скорочтение, повторное чтение, инструменты |
+| [`research/11-matematika-vychisleniya.md`](research/11-matematika-vychisleniya.md) | Счёт: таблица умножения, числовая прямая, приложения |
+| [`research/12-xp-pen-i-kompyuter.md`](research/12-xp-pen-i-kompyuter.md) | XP-PEN и компьютер: письмо, комиксы, клавиатура |
+| [`plan/trenazhery.html`](plan/trenazhery.html) | Исходник тренажёров «Тренировочная арена» |
