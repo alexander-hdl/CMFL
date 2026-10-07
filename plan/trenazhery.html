@@ -142,6 +142,21 @@ label.f { display: grid; gap: 6px; font-weight: 700; }
 .goal.met { color: var(--good); }
 .errn { font-size: 0.8rem; color: var(--bad); font-weight: 800; white-space: nowrap; }
 .errn.ok { color: var(--good); }
+/* Word problems */
+.problem-text { background: var(--paper); color: #1b2333; border-radius: 14px; padding: 16px 18px; font-size: 1.3rem; line-height: 1.6; font-weight: 700; }
+.ask { font-family: var(--f-display); font-size: 1.25rem; text-align: center; }
+.ops { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 460px; width: 100%; margin: 0 auto; }
+.ops button { border: 2px solid var(--line); background: var(--panel-2); border-radius: 14px; padding: 10px 4px; cursor: pointer; display: grid; gap: 2px; justify-items: center; min-height: 76px; box-shadow: 0 3px 0 #0b1a22; }
+.ops button b { font-family: var(--f-display); font-weight: 400; font-size: 2rem; line-height: 1; color: var(--gold); }
+.ops button span { font-size: 0.8rem; color: var(--muted); font-weight: 700; }
+.ops button:active { transform: translateY(2px); box-shadow: 0 1px 0 #0b1a22; }
+.opchip { background: var(--panel-2); border: 2px solid var(--good); color: var(--good); border-radius: 999px; padding: 4px 12px; font-weight: 800; }
+.solution { background: var(--panel-2); border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+.solution span { font-family: var(--f-display); font-size: 1.2rem; }
+details.names summary { cursor: pointer; font-weight: 700; }
+.names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+.author .target { font-family: var(--f-display); font-weight: 400; font-size: 1.6rem; color: var(--gold); }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -400,6 +415,7 @@ label.f { display: grid; gap: 6px; font-weight: 700; }
     var v = $("view-math");
     if (math.round) return renderMathRound();
     if (math.nl) return renderNL();
+    if (math.wp) return renderWp();
     var mastered = 0, f = data.math.facts;
     PAIRS.forEach(function (p) { var s = f[factKey("m", p[0], p[1])]; if (s && s.b >= 4) mastered++; });
     var last = (data.math.sessions || []).slice(-1)[0];
@@ -423,12 +439,13 @@ label.f { display: grid; gap: 6px; font-weight: 700; }
         "<h3>Числовая прямая</h3>" +
         '<p class="muted">Покажи пером или пальцем, где на линии живёт число. Это тренирует чувство числа: сколько это — много или мало.</p>' +
         '<div class="row"><button class="btn ghost" id="nl-start" type="button">10 чисел</button>' + (nls ? '<span class="muted small">в прошлый раз промах в среднем ' + nls.err.toFixed(1).replace(".", ",") + "%</span>" : "") + "</div>" +
-      "</div>";
+      "</div>" + wpPanelHTML();
     v.querySelectorAll(".seg button").forEach(function (btn) {
       btn.addEventListener("click", function () { math.op = btn.getAttribute("data-op"); try { localStorage.setItem(LS + "op", math.op); } catch (e) {} renderMath(); });
     });
     $("math-start").addEventListener("click", startMath);
     $("nl-start").addEventListener("click", startNL);
+    bindWpPanel();
   }
   function segBtn(op, label) { return '<button type="button" data-op="' + op + '" aria-pressed="' + (math.op === op) + '">' + label + "</button>"; }
   function stat(big, small) { return '<div class="stat"><b>' + big + "</b><span>" + small + "</span></div>"; }
@@ -638,6 +655,200 @@ label.f { display: grid; gap: 6px; font-weight: 700; }
       '<div class="row"><button class="btn gold" id="nl-again" type="button">Ещё 10 чисел</button><button class="btn ghost" id="nl-home" type="button">Назад</button></div></div>';
     $("nl-again").addEventListener("click", startNL);
     $("nl-home").addEventListener("click", function () { renderMath(); });
+    renderHeader();
+  }
+
+
+  /* ---------- word problems from the game ("Задачи бравлера"); numbers are made up ---------- */
+  var WP_ROUND = 3;
+  var OPS = { "+": "сложить", "−": "вычесть", "×": "умножить", ":": "разделить" };
+  var OP_HINT = {
+    "+": "Здесь части складываются в целое или число увеличивают на сколько-то.",
+    "−": "Здесь что-то убавилось, или надо узнать, на сколько одно больше другого, или сколько ещё не хватает.",
+    "×": "Здесь одинаковые группы: несколько раз по одному и тому же числу. Или «в несколько раз больше».",
+    ":": "Здесь целое делят поровну, или узнают, во сколько раз одно больше другого."
+  };
+  function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function raz(n) { return n >= 2 && n <= 4 ? "раза" : "раз"; }
+  function wpNames() { var n = data.math.names || {}; return { hero: (n.hero || "").trim(), friend: (n.friend || "").trim() || "Тима", trophies: +n.trophies || 0 }; }
+  function heroPh() { var h = wpNames().hero; return h ? "Твой боец " + h : "Твой боец"; }
+  var pl = function (n, one, few, many) { return n + " " + plural(n, one, few, many); };
+  var WP = [
+    function () { var a = rnd(3, 9), b = rnd(3, 9); return { type: "×", ops: ["×"], ans: a * b, text: heroPh() + " попадает по врагу " + pl(a, "раз", "раза", "раз") + ". Каждое попадание отнимает " + pl(b, "единицу", "единицы", "единиц") + " здоровья. Сколько здоровья отнимут все попадания?", steps: [a + " × " + b + " = " + a * b] }; },
+    function () { var a = rnd(3, 9), b = rnd(4, 9); return { type: "×", ops: ["×"], ans: a * b, text: "За каждую победу дают " + pl(b, "трофей", "трофея", "трофеев") + ". Ты выигрываешь " + pl(a, "матч", "матча", "матчей") + " подряд. Сколько трофеев ты получишь?", steps: [b + " × " + a + " = " + a * b] }; },
+    function () { var k = rnd(2, 5), q = rnd(3, 9); return { type: ":", ops: [":"], ans: q, text: "В команде " + pl(k, "боец", "бойца", "бойцов") + ". Они собирают " + pl(k * q, "кристалл", "кристалла", "кристаллов") + " и делят их поровну. Сколько кристаллов достаётся каждому?", steps: [k * q + " : " + k + " = " + q] }; },
+    function () { var a = rnd(3, 9), q = rnd(2, 9); return { type: ":", ops: [":"], ans: q, text: "Суперспособность наносит " + pl(a * q, "единицу", "единицы", "единиц") + " урона, а обычная атака — " + a + ". Во сколько раз суперспособность сильнее?", steps: [a * q + " : " + a + " = " + q] }; },
+    function () { var a = rnd(4, 9), q = rnd(2, 9); return { type: "×", ops: ["×"], ans: a * q, text: "Обычная атака наносит " + pl(a, "единицу", "единицы", "единиц") + " урона. Суперспособность — в " + q + " " + raz(q) + " больше. Сколько урона наносит суперспособность?", steps: [a + " × " + q + " = " + a * q] }; },
+    function () { var H = rnd(30, 90) * 10, d = rnd(12, H / 10 - 5) * 10 + rnd(0, 9); return { type: "−", ops: ["−"], ans: H - d, text: "У бойца " + pl(H, "единица", "единицы", "единиц") + " здоровья. Враг отнимает " + d + ". Сколько здоровья остаётся?", steps: [H + " − " + d + " = " + (H - d)] }; },
+    function () {
+      var T = wpNames().trophies, G;
+      if (T >= 50 && T <= 990) { G = (Math.floor(T / 100) + 1) * 100; }
+      else { G = rnd(5, 10) * 100; T = G - rnd(25, 280); }
+      return { type: "−", ops: ["−"], ans: G - T, text: "До новой награды нужно " + pl(G, "трофей", "трофея", "трофеев") + ". Сейчас у тебя " + T + ". Сколько трофеев ещё не хватает?", steps: [G + " − " + T + " = " + (G - T)] };
+    },
+    function () { var B = rnd(150, 600), A = B + rnd(35, 280); return { type: "−", ops: ["−"], ans: A - B, text: "Твой друг " + wpNames().friend + " копит трофеи, их уже " + A + ". У тебя " + B + ". На сколько трофеев у друга больше?", steps: [A + " − " + B + " = " + (A - B)] }; },
+    function () { var x = rnd(120, 480), y = rnd(110, 470); return { type: "+", ops: ["+"], ans: x + y, text: "В первом матче ты набираешь " + pl(x, "очко", "очка", "очков") + ", во втором — " + y + ". Сколько очков за два матча?", steps: [x + " + " + y + " = " + (x + y)] }; },
+    function () { var k = rnd(3, 9), q = rnd(3, 9); return { type: ":", ops: [":"], ans: q, text: "Набор из " + k + " одинаковых наград стоит " + pl(k * q, "монету", "монеты", "монет") + ". Сколько стоит одна награда?", steps: [k * q + " : " + k + " = " + q] }; },
+    function () { var m = rnd(2, 3); return { type: "×", ops: ["×"], ans: m * 60, text: "Матч длится " + m + " минуты. В одной минуте 60 секунд. Сколько секунд длится матч?", steps: ["60 × " + m + " = " + m * 60] }; },
+    // two steps
+    function () { var a = rnd(3, 8), b = rnd(4, 9), c = rnd(10, 40); return { type: "2", ops: ["×", "+"], ans: a * b + c, text: "Ты выигрываешь " + pl(a, "матч", "матча", "матчей") + " по " + pl(b, "трофей", "трофея", "трофеев") + " и ещё получаешь " + pl(c, "трофей", "трофея", "трофеев") + " за задание. Сколько трофеев всего?", steps: [a + " × " + b + " = " + a * b, a * b + " + " + c + " = " + (a * b + c)] }; },
+    function () { var a = rnd(3, 8), b = rnd(4, 9), H = a * b + rnd(6, 45); return { type: "2", ops: ["×", "−"], ans: H - a * b, text: "У бойца " + pl(H, "единица", "единицы", "единиц") + " здоровья. Враг попадает " + pl(a, "раз", "раза", "раз") + ", и каждый раз отнимает " + b + ". Сколько здоровья остаётся?", steps: [a + " × " + b + " = " + a * b, H + " − " + a * b + " = " + (H - a * b)] }; },
+    function () { var k = rnd(2, 4), q = rnd(4, 9), tot = k * q, x = rnd(Math.max(2, tot - 20), tot - 3), y = tot - x; return { type: "2", ops: ["+", ":"], ans: q, text: "Одна команда собирает " + pl(x, "кристалл", "кристалла", "кристаллов") + ", другая — " + y + ". Все кристаллы делят поровну на " + k + " бойцов. Сколько кристаллов у каждого?", steps: [x + " + " + y + " = " + tot, tot + " : " + k + " = " + q] }; },
+    function () { var r = rnd(2, 6), m = rnd(2, 4), n = r + m, b = rnd(4, 9); return { type: "2", ops: ["−", "×"], ans: r * b, text: "В лобби " + pl(n, "сундук", "сундука", "сундуков") + ", " + m + " из них уже открыты. В каждом закрытом сундуке по " + pl(b, "монете", "монеты", "монет") + ". Сколько монет в закрытых сундуках?", steps: [n + " − " + m + " = " + r, r + " × " + b + " = " + r * b] }; },
+    function () { var k = rnd(3, 6), q = rnd(4, 9), c = rnd(3, 9); return { type: "2", ops: [":", "+"], ans: q + c, text: pl(k * q, "монету", "монеты", "монет").replace(/^/, "") + " делят поровну на " + k + " друзей, а потом каждому дают ещё " + c + ". Сколько монет становится у каждого?", steps: [k * q + " : " + k + " = " + q, q + " + " + c + " = " + (q + c)] }; },
+    function () { var a = rnd(3, 7), b = rnd(5, 9), start = rnd(20, 70) * 10; return { type: "2", ops: ["×", "−"], ans: start, text: "После " + a + " побед подряд у тебя " + pl(start + a * b, "трофей", "трофея", "трофеев") + ". Каждая победа давала " + pl(b, "трофей", "трофея", "трофеев") + ". Сколько трофеев было до этих побед?", steps: [a + " × " + b + " = " + a * b, (start + a * b) + " − " + a * b + " = " + start] }; }
+  ];
+  var WP_ONE = [], WP_TWO = [];
+  WP.forEach(function (f, i) { var p = f(); (p.ops.length === 2 ? WP_TWO : WP_ONE).push(i); });
+
+  function wpPick() {
+    var lvl = math.wpLevel || "mix", list = [], used = {};
+    while (list.length < WP_ROUND) {
+      var two = lvl === "two" || (lvl === "mix" && Math.random() < 0.34);
+      var pool = two ? WP_TWO : WP_ONE;
+      var i = pool[Math.floor(Math.random() * pool.length)];
+      if (used[i] && Object.keys(used).length < pool.length) continue;
+      used[i] = 1; list.push(WP[i]());
+    }
+    return list;
+  }
+  function wpPanelHTML() {
+    var n = wpNames(), last = (data.math.wp || []).slice(-1)[0];
+    var lvl = math.wpLevel || "mix";
+    return '<div class="panel">' +
+      "<h3>Задачи бравлера</h3>" +
+      '<p class="muted">3 задачи из игры. Сначала выбираешь действие, потом считаешь. Числа придуманные, а не из настоящей игры.</p>' +
+      '<div class="seg" role="group" aria-label="Сложность">' +
+        '<button type="button" data-lv="one" aria-pressed="' + (lvl === "one") + '">В одно действие</button>' +
+        '<button type="button" data-lv="mix" aria-pressed="' + (lvl === "mix") + '">Вперемешку</button>' +
+        '<button type="button" data-lv="two" aria-pressed="' + (lvl === "two") + '">В два действия</button>' +
+      "</div>" +
+      '<div class="row"><button class="btn gold" id="wp-start" type="button">Решать задачи</button>' + (last ? '<span class="muted small">в прошлый раз: действие ' + last.op + " из " + last.n + ", ответ " + last.ans + " из " + last.n + "</span>" : "") + "</div>" +
+      '<details class="names"><summary class="muted">Свои имена и числа</summary>' +
+        '<div class="names-grid">' +
+          '<label class="f" for="wp-hero">Любимый боец<input type="text" id="wp-hero" maxlength="20" value="' + esc(n.hero) + '" placeholder="например, Шелли"></label>' +
+          '<label class="f" for="wp-friend">Друг, с которым играешь<input type="text" id="wp-friend" maxlength="20" value="' + esc((data.math.names || {}).friend || "") + '" placeholder="Тима"></label>' +
+          '<label class="f" for="wp-tr">Трофеи у любимого бойца<input type="text" inputmode="numeric" id="wp-tr" maxlength="3" value="' + (n.trophies || "") + '" placeholder="до 999"></label>' +
+        "</div><p class=\"note\">Имена попадут в задачи. Трофеи до 999 — в задачи «сколько ещё не хватает».</p>" +
+      "</details>" +
+      "</div>" +
+      '<div class="panel author"><h3>Придумай задачу сам</h3>' +
+        '<p>Сочини задачу из игры для папы или мамы, чтобы ответ был <b class="target" id="wp-target">' + rnd(12, 96) + '</b>.</p>' +
+        '<div class="row"><button class="btn ghost" id="wp-newt" type="button">Другое число</button><span class="muted small">Раз в неделю — отличная традиция.</span></div>' +
+      "</div>";
+  }
+  function bindWpPanel() {
+    document.querySelectorAll("[data-lv]").forEach(function (b) { b.addEventListener("click", function () { math.wpLevel = b.getAttribute("data-lv"); try { localStorage.setItem(LS + "wplv", math.wpLevel); } catch (e) {} renderMath(); }); });
+    $("wp-start").addEventListener("click", startWp);
+    $("wp-newt").addEventListener("click", function () { $("wp-target").textContent = rnd(12, 96); });
+    function saveNames() {
+      var tr = parseInt($("wp-tr").value, 10);
+      data.math.names = { hero: $("wp-hero").value.trim().slice(0, 20), friend: $("wp-friend").value.trim().slice(0, 20), trophies: tr > 0 && tr < 1000 ? tr : 0 };
+      save("math");
+    }
+    ["wp-hero", "wp-friend", "wp-tr"].forEach(function (id) { $(id).addEventListener("change", saveNames); });
+  }
+  try { var lv = localStorage.getItem(LS + "wplv"); if (lv === "one" || lv === "two" || lv === "mix") math.wpLevel = lv; } catch (e) {}
+
+  function startWp() {
+    math.wp = { list: wpPick(), i: 0, step: 0, phase: "op", input: "", opOk: [], ansOk: [], firstOp: true, draft: false };
+    renderMath();
+  }
+  function renderWp() {
+    var W = math.wp, p = W.list[W.i], v = $("view-math");
+    var dots = '<div class="dots">' + W.list.map(function (_, j) { var r = W.ansOk[j]; return '<i class="' + (r === true ? "ok" : r === false ? "no" : j === W.i ? "cur" : "") + '"></i>'; }).join("") + "</div>";
+    var chosen = p.ops.slice(0, W.step).map(function (o, j) { return '<span class="opchip">' + (p.ops.length > 1 ? (j + 1) + ") " : "") + o + " " + OPS[o] + "</span>"; }).join("");
+    var body = "";
+    if (W.phase === "op") {
+      body = '<p class="ask">' + (p.ops.length > 1 ? (W.step === 0 ? "Задача в два действия. Какое действие первое?" : "А какое второе?") : "Какое действие нужно?") + "</p>" +
+        (W.hintOp ? '<p class="hint">' + esc(W.hintOp) + "</p>" : "") +
+        '<div class="ops">' + Object.keys(OPS).map(function (o) { return '<button type="button" data-op="' + o + '"><b>' + o + "</b><span>" + OPS[o] + "</span></button>"; }).join("") + "</div>";
+    } else if (W.phase === "ans") {
+      body = '<p class="ask">Посчитай. Какой ответ?</p><div class="answer" id="wp-ans" aria-live="polite">' + esc(W.input) + "</div>" + padHTML().replace('id="m-pad"', 'id="wp-pad"');
+    } else if (W.phase === "done") {
+      var ok = W.ansOk[W.i];
+      body = '<div class="feedback ' + (ok ? "good" : "bad") + '"><div class="big">' + (ok ? "Верно!" : "Почти") + "</div>" +
+        (ok ? "" : "<p>Правильный ответ: <b>" + p.ans + "</b></p>") +
+        '<div class="solution"><b>Решение:</b>' + p.steps.map(function (s, j) { return "<span>" + (p.steps.length > 1 ? (j + 1) + ") " : "") + esc(s) + "</span>"; }).join("") + "</div>" +
+        '<button class="btn gold" id="wp-next" type="button">' + (W.i + 1 < W.list.length ? "Следующая задача" : "Итоги") + "</button></div>";
+    }
+    v.innerHTML = '<div class="panel">' + dots +
+      '<div class="problem-text">' + esc(p.text) + "</div>" +
+      '<div class="row"><button class="btn ghost" id="wp-say" type="button">Прочитать вслух</button><button class="btn ghost" id="wp-draft" type="button" aria-pressed="' + W.draft + '">' + (W.draft ? "Убрать черновик" : "Черновик для схемы") + "</button></div>" +
+      (W.phase === "op" && W.step === 0 && W.firstOp ? '<p class="muted small">Сначала перескажи взрослому своими словами: что известно и что нужно найти.</p>' : "") +
+      (W.draft ? sheetHTML() : "") +
+      (chosen ? '<div class="row">' + chosen + "</div>" : "") +
+      body +
+      '<div class="row" style="justify-content:center"><button class="btn ghost" id="wp-stop" type="button">Закончить</button></div></div>';
+    if (W.draft) initSheet(W.keepDraft);
+    W.keepDraft = false;
+    $("wp-say").addEventListener("click", function () { if (!speak(p.text)) flashNoVoice("wp-say"); });
+    $("wp-draft").addEventListener("click", function () { W.draft = !W.draft; renderWp(); });
+    $("wp-stop").addEventListener("click", finishWp);
+    if (W.phase === "op") v.querySelectorAll(".ops button").forEach(function (b) { b.addEventListener("click", function () { chooseOp(b.getAttribute("data-op")); }); });
+    if (W.phase === "ans") $("wp-pad").addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b) wpKey(b.getAttribute("data-k")); });
+    if (W.phase === "done") { $("wp-next").addEventListener("click", nextWp); $("wp-next").focus(); }
+  }
+  function chooseOp(o) {
+    var W = math.wp, p = W.list[W.i];
+    if (o === p.ops[W.step]) {
+      W.step++; W.hintOp = "";
+      if (W.step >= p.ops.length) { if (W.opOk[W.i] === undefined) W.opOk[W.i] = true; W.phase = "ans"; }
+    } else {
+      W.opOk[W.i] = false;
+      W.hintOp = "Подумай ещё. " + OP_HINT[p.ops[W.step]];
+    }
+    W.firstOp = false; W.keepDraft = true;
+    renderWp();
+  }
+  function wpKey(k) {
+    var W = math.wp; if (!W || W.phase !== "ans") return;
+    if (k === "del") W.input = W.input.slice(0, -1);
+    else if (k === "ok") {
+      if (!W.input) return;
+      var p = W.list[W.i], ok = parseInt(W.input, 10) === p.ans;
+      W.ansOk[W.i] = ok;
+      var st = data.math.wpt || (data.math.wpt = {});
+      var t = st[p.type] || (st[p.type] = { n: 0, op: 0, ans: 0 });
+      t.n++; if (W.opOk[W.i]) t.op++; if (ok) t.ans++;
+      save("math");
+      W.phase = "done"; W.keepDraft = true; renderWp();
+      return;
+    }
+    else if (/^[0-9]$/.test(k) && W.input.length < 4) W.input += k;
+    var el = $("wp-ans"); if (el) el.textContent = W.input;
+  }
+  document.addEventListener("keydown", function (e) {
+    if (current === "math" && math.wp && math.wp.phase === "ans") {
+      if (/^[0-9]$/.test(e.key)) { wpKey(e.key); e.preventDefault(); }
+      else if (e.key === "Backspace") { wpKey("del"); e.preventDefault(); }
+      else if (e.key === "Enter") { wpKey("ok"); e.preventDefault(); }
+    }
+  });
+  function nextWp() {
+    var W = math.wp; stopSpeech();
+    W.i++; W.step = 0; W.phase = "op"; W.input = ""; W.hintOp = ""; W.firstOp = true;
+    if (W.i >= W.list.length) { finishWp(); return; }
+    renderWp();
+  }
+  function finishWp() {
+    var W = math.wp; math.wp = null; stopSpeech();
+    var n = W.ansOk.filter(function (x) { return x === true || x === false; }).length;
+    var op = 0, ans = 0;
+    for (var j = 0; j < n; j++) { if (W.opOk[j]) op++; if (W.ansOk[j]) ans++; }
+    if (n) {
+      data.math.wp = data.math.wp || [];
+      data.math.wp.push({ d: dayKey(), n: n, op: op, ans: ans });
+      trim(data.math.wp, 300);
+      save("math");
+    }
+    if (!n) { renderMath(); return; }
+    $("view-math").innerHTML = '<div class="panel"><h2>Задачи решены</h2>' +
+      '<div class="stats">' + stat(op + " из " + n, "действие выбрано сразу верно") + stat(ans + " из " + n, "ответ верный") + "</div>" +
+      "<p>" + (op < n ? "Если действие выбрать трудно, помогает схема: нарисуй отрезок «было — добавили — стало» или группы кружками." : "Действия выбраны точно — это самое трудное в задачах.") + "</p>" +
+      '<div class="row"><button class="btn gold" id="wp-again" type="button">Ещё 3 задачи</button><button class="btn ghost" id="wp-home" type="button">Назад</button></div></div>';
+    $("wp-again").addEventListener("click", startWp);
+    $("wp-home").addEventListener("click", function () { renderMath(); });
     renderHeader();
   }
 
@@ -1044,6 +1255,7 @@ label.f { display: grid; gap: 6px; font-weight: 700; }
         }).join("") + '</div><p class="muted small">Полоса — доля верных ответов. Время ответа ребёнку не показывается, оно только для вас: обычное время в последнем раунде ' + (meds.length ? fmtSec(meds[meds.length - 1]) : "—") + (meds.length > 1 ? ", в первом из показанных " + fmtSec(meds[0]) : "") + ". Уверенное знание — около 3 секунд.</p>" : '<p class="muted">Раундов пока не было. Первый раунд — на вкладке «Счёт».</p>') +
         mapHTML("m") + legendHTML() +
       "</div>" +
+      wpProgressHTML() +
       '<div class="panel"><h3>Слова</h3><div class="stats">' + ["dict", "check", "tsya", "own"].filter(function (c) { return byCat[c]; }).map(function (c) { return stat(byCat[c].m + " / " + byCat[c].n, CATS[c].toLowerCase() + " освоено"); }).join("") + "</div>" +
         (hardWords.length ? '<p class="muted">Трудные слова (ошибался несколько раз):</p><div class="wordlist">' + hardWords.map(function (w) { return '<span data-b="1">' + esc(w) + "</span>"; }).join("") + "</div>" : '<p class="muted">Трудных слов пока нет.</p>') +
       "</div>" +
@@ -1068,8 +1280,18 @@ label.f { display: grid; gap: 6px; font-weight: 700; }
     if (note) note.textContent = store.mode === "db" ? "Прогресс хранится вместе со страницей: его видно на любом устройстве, где вы её откроете." : store.mode === "readonly" ? "Общий прогресс сохранить не получилось, поэтому он сохраняется только в этом браузере." : "Прогресс сохраняется в этом браузере.";
   }
 
+  function wpProgressHTML() {
+    var t = data.math.wpt || {}, keys = ["+", "−", "×", ":", "2"].filter(function (k) { return t[k] && t[k].n; });
+    if (!keys.length) return '<div class="panel"><h3>Задачи</h3><p class="muted">Задач пока не было. Они на вкладке «Счёт», внизу.</p></div>';
+    var names = { "+": "на сложение", "−": "на вычитание", "×": "на умножение", ":": "на деление", "2": "в два действия" };
+    return '<div class="panel"><h3>Задачи: где сбой</h3><div class="bars">' + keys.map(function (k) {
+      var x = t[k], op = Math.round(x.op / x.n * 100), an = Math.round(x.ans / x.n * 100);
+      return '<div class="bar"><span class="muted">' + names[k] + '</span><div class="track"><div class="fill" style="width:' + op + '%"></div></div><b>' + op + '%</b><span class="errn ok">ответ ' + an + "%</span></div>";
+    }).join("") + '</div><p class="muted small">Полоса — как часто действие выбрано сразу верно, справа — как часто верен ответ. Если действие выбирается плохо, дело в понимании условия: читайте задачу вместе и рисуйте схему. Если плохо со счётом — больше таблицы и примеров.</p></div>';
+  }
+
   /* ---------- boot ---------- */
-  function renderAll() { renderHeader(); if (!math.round) renderMath(); if (reading.view === "list") renderRead(); if (!words.round) renderWords(); if (current === "prog") renderProgress(); }
+  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl) renderMath(); if (reading.view === "list") renderRead(); if (!words.round) renderWords(); if (current === "prog") renderProgress(); }
   renderAll();
   try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
 
