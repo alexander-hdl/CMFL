@@ -336,6 +336,39 @@ details.names summary { cursor: pointer; font-weight: 700; }
 .q-gen { display: grid; gap: 10px; border-top: 2px dashed var(--line); padding-top: 14px; }
 .q-all { display: grid; gap: 12px; margin-top: 10px; font-size: 0.95rem; } .q-all p { margin: 4px 0; }
 
+/* Prompter and scripts */
+.roles-line { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.rl { font-weight: 800; padding: 3px 10px; border-radius: 999px; border: 2px solid; font-size: 0.9rem; }
+.rl.me { color: var(--gold); } .rl.other { color: #c79bff; }
+.script { display: grid; gap: 8px; }
+.ln { background: var(--paper); color: #1b2333; border-radius: 12px; padding: 10px 14px; font-size: 1.15rem; line-height: 1.55; font-weight: 700; border-left: 6px solid transparent; display: grid; gap: 2px; }
+.script.big .ln { font-size: 1.4rem; }
+.ln.me { border-left-color: #e0a92a; } .ln.other { border-left-color: #8d6ad8; background: #efeaf8; }
+.ln .who { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #5b6478; font-weight: 800; }
+.ln.past { opacity: 0.55; }
+.ln.cur { outline: 3px solid var(--gold); outline-offset: 2px; }
+.stage { font-style: italic; color: #6b7280; font-weight: 600; }
+.pl-bar { position: sticky; bottom: 8px; z-index: 5; display: flex; gap: 8px; justify-content: center; background: var(--panel); padding: 8px; border-radius: 16px; border: 2px solid var(--line); }
+.btn.on { border-color: var(--gold); color: var(--gold); }
+.pl-bar .btn { white-space: nowrap; padding: 12px 16px; }
+details.q-gen > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+details.q-gen > summary::-webkit-details-marker { display: none; }
+details.q-gen > summary::before { content: "▸"; color: var(--muted); }
+details.q-gen[open] > summary::before { content: "▾"; }
+.prompter { position: fixed; inset: 0; z-index: 100; background: #05090d; color: #fff; display: grid; grid-template-rows: auto 1fr auto; }
+.pr-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 16px; color: #9db3bc; font-weight: 700; }
+.pr-stage { overflow: hidden; display: grid; align-content: center; gap: 24px; padding: 16px 20px; cursor: pointer; max-width: 900px; width: 100%; margin: 0 auto; }
+.pr-cur p { font-family: var(--f-body); font-weight: 800; font-size: clamp(1.8rem, 7vw, 3.2rem); line-height: 1.35; margin: 0; }
+.pr-cur p.other { color: #d8c6ff; }
+.pr-next p { font-size: clamp(1.1rem, 4vw, 1.7rem); line-height: 1.4; color: #6f8792; margin: 0; font-weight: 700; }
+.pr-who { display: inline-block; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.pr-who.me { color: var(--gold); } .pr-who.other { color: #c79bff; }
+.pr-ready { font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 800; text-align: center; line-height: 1.4; color: #e8eef0; }
+.pr-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+.pr-btn { font: inherit; font-weight: 800; background: #16303d; color: #fff; border: 2px solid #2a4d5d; border-radius: 12px; padding: 10px 16px; min-height: 48px; cursor: pointer; }
+.pr-btn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+.pr-wpm { color: #9db3bc; font-weight: 700; font-variant-numeric: tabular-nums; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -535,7 +568,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     var t = dayKey();
     return {
       math: [data.math.sessions, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].some(function (a) { return (a || []).some(function (s) { return s.d === t; }); }),
-      read: (data.reading.runs || []).concat(data.reading.ql || []).some(function (r) { return r.d === t; }),
+      read: (data.reading.runs || []).concat(data.reading.ql || [], data.reading.takes || []).some(function (r) { return r.d === t; }),
       words: (data.words.sessions || []).some(function (s) { return s.d === t; })
     };
   }
@@ -1808,9 +1841,10 @@ details.names summary { cursor: pointer; font-weight: 700; }
     var v = $("view-read");
     if (reading.view === "schulte") return renderSchulte();
     if (reading.view === "quest") return renderQuest();
+    if (reading.view === "play") return renderPlay();
     if (reading.view === "list") {
       var sBest = (data.reading.schulte || []).reduce(function (m, s) { return m && m < s.sec ? m : s.sec; }, 0);
-      v.innerHTML = questPanelHTML() + '<div class="panel">' +
+      v.innerHTML = questPanelHTML() + theatrePanelHTML() + '<div class="panel">' +
         "<h2>Чтение вслух</h2>" +
         '<p class="muted">Читаем один короткий текст 2–3 раза подряд. Взрослый засекает время и отмечает слова с ошибкой или пропуском. Сначала точность, потом скорость.</p>' +
         '<div class="text-list">' + textsAll().map(function (t) {
@@ -1837,6 +1871,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
       $("sch-start").addEventListener("click", startSchulte);
       bindStoryPanel();
       bindQuestPanel();
+      bindTheatrePanel();
       return;
     }
     var t = getText(reading.tid);
@@ -2331,7 +2366,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
   function questGenHTML() {
     var G = quest.gen;
     if (story.unavailable) return '<p class="muted small">Новые квесты от ИИ сейчас недоступны на этой странице.</p>';
-    var body = '<div class="q-gen"><h3>Новый квест от ИИ</h3><p class="muted small">ИИ сочинит книгу-квест на выбранную тему, с его трудными словами из диктанта. Займёт 1–2 минуты.</p>' +
+    var body = '<details class="q-gen" id="qg-d"' + (G.open || G.busy || G.result ? " open" : "") + '><summary><h3>Новый квест от ИИ</h3></summary><p class="muted small">ИИ сочинит книгу-квест на выбранную тему, с его трудными словами из диктанта. Займёт 1–2 минуты.</p>' +
       '<div class="seg" id="qg-themes">' + STORY_THEMES.map(function (t) { return '<button type="button" data-qth="' + esc(t) + '" aria-pressed="' + (G.theme === t) + '">' + esc(t) + "</button>"; }).join("") + "</div>" +
       '<div class="row">' + (G.busy ? '<button class="btn ghost" type="button" id="qg-stop">Остановить</button><span class="muted" id="qg-prog">Придумываю сюжет… обычно 1–2 минуты.</span>' : '<button class="btn ghost" type="button" id="qg-go">' + (G.result ? "Другой квест" : "Сочинить квест") + "</button>") +
       (G.msg ? '<span class="small" style="color:var(--bad)">' + esc(G.msg) + "</span>" : "") + "</div>";
@@ -2348,10 +2383,11 @@ details.names summary { cursor: pointer; font-weight: 700; }
         }).join("") + "</div></details>" +
         '<div class="row"><button class="btn gold" type="button" id="qg-save">Сохранить в книги</button><button class="btn ghost" type="button" id="qg-drop">Убрать</button></div></div>';
     }
-    return body + "</div>";
+    return body + "</details>";
   }
   function bindQuestGen() {
     var G = quest.gen;
+    if ($("qg-d")) $("qg-d").addEventListener("toggle", function () { G.open = $("qg-d").open; });
     document.querySelectorAll("[data-qth]").forEach(function (b) { b.addEventListener("click", function () { G.theme = b.getAttribute("data-qth"); renderRead(); }); });
     if ($("qg-go")) $("qg-go").addEventListener("click", generateQuest);
     if ($("qg-stop")) $("qg-stop").addEventListener("click", function () { if (G.ctl) G.ctl.abort(); });
@@ -2396,6 +2432,316 @@ details.names summary { cursor: pointer; font-weight: 700; }
     return '<div class="panel"><h3>Книга-квест</h3><div class="stats">' + stat(String(pages), "страниц прочитано") + stat(String(words), "слов всего") + stat(String(wk), "слов за последние 7 дней") + stat(String(gems), "слов на -тся/-ться найдено") + "</div>" +
       (lines.length ? '<p class="muted small">' + lines.join("<br>") + "</p>" : "") +
       '<p class="muted small">Квест — чтение для удовольствия, скорость тут не важна. Спросите, какую концовку он уже нашёл и что выбрал бы иначе. Можно читать по очереди: страницу он, страницу вы.</p></div>';
+  }
+
+  /* ---------- "Суфлёр": reading in roles and to a camera; every take is one more repeated reading ---------- */
+  // Readers theatre: rehearsing a script for an audience builds fluency and gives a reason to reread.
+  var PLAYS = [
+    { id: "pl-coach", title: "Тренер и новичок", kind: "duo", roles: ["Тренер", "Новичок"], lines: [
+      [0, "Так, новичок! Ты когда-нибудь играл в футбол?"],
+      [1, "Конечно! Я смотрел его по телевизору. Целых два раза."],
+      [0, "Это не считается. Смотреть — не играть. Вот мяч. Что с ним надо делать?"],
+      [1, "Взять в руки и бежать к воротам?"],
+      [0, "Нет! Руками нельзя. Руками может играть только вратарь."],
+      [1, "Тогда я буду вратарём. Это проще."],
+      [0, "Проще? Вратарю приходится прыгать, падать и ловить самые трудные мячи."],
+      [1, "Ой. А можно я буду тренером? Тренер только кричит и машет руками."],
+      [0, "Тренер думает за всю команду. А ты пока учишься. Давай начнём с паса."],
+      [1, "С чего?"],
+      [0, "С паса. Пас — это когда ты отдаёшь мяч другу. Бей не носком, а внутренней стороной стопы."],
+      [1, "Вот так? Ой! Мяч улетел на крышу."],
+      [0, "Ничего. Все когда-то начинали. Главное — не сдаваться."],
+      [1, "Тренер, а вы сразу научились?"],
+      [0, "Нет. Я сто раз промахивался. Просто я тренировался каждый день."],
+      [1, "Каждый день? Даже в субботу?"],
+      [0, "Даже в субботу. Пошли за мячом. Только чур, на крышу лезет новичок!"]] },
+    { id: "pl-alien", title: "Инопланетянин в магазине", kind: "duo", roles: ["Землянин", "Инопланетянин"], lines: [
+      [1, "Здравствуй, землянин! Я прилетел с планеты Зум. Что это за большой дом с тележками?"],
+      [0, "Это магазин. Здесь покупают еду и разные вещи."],
+      [1, "Покупают? Это как?"],
+      [0, "Ты берёшь вещь, а взамен отдаёшь деньги. Вот это монета, а это бумажная купюра."],
+      [1, "Какая красивая бумажка! Можно я её съем?"],
+      [0, "Нет! Деньги не едят. На них покупают еду."],
+      [1, "Понятно. Тогда я хочу купить вот эту корову."],
+      [0, "Это не корова, а пакет молока. Корова в магазин не поместится."],
+      [1, "Жаль. А сколько стоит молоко?"],
+      [0, "Восемьдесят рублей. У тебя есть деньги?"],
+      [1, "У меня есть сто рублей и одна космическая пуговица."],
+      [0, "Отлично. Отдашь сто рублей, и тебе дадут двадцать рублей сдачи."],
+      [1, "Мне ещё и дадут денег? Какой добрый магазин!"],
+      [0, "Это не подарок. Сдача — это твои же деньги, которые остались."],
+      [1, "Землянин, ты очень умный. Полетишь со мной на Зум? Будешь у нас главным по магазинам."],
+      [0, "Спасибо, но у меня завтра диктант. Лучше прилетай к нам в гости!"]] },
+    { id: "pl-champ", title: "Интервью с чемпионом", kind: "duo", roles: ["Чемпион", "Журналист"], lines: [
+      [1, "Добрый вечер! Сегодня у нас в студии чемпион арены. Здравствуйте!"],
+      [0, "Здравствуйте! Рад, что меня пригласили."],
+      [1, "Скажите, как вы стали чемпионом?"],
+      [0, "Я долго тренировался. Сначала я проигрывал почти каждый бой."],
+      [1, "И вам не хотелось всё бросить?"],
+      [0, "Хотелось. Но потом я понял: после проигрыша надо разобраться, что пошло не так."],
+      [1, "Какой у вас любимый боец?"],
+      [0, "(Назови своего любимого бойца.) Он быстрый и умеет прятаться в кустах."],
+      [1, "А сколько часов в день вы играете?"],
+      [0, "Немного. Чемпиону нужно высыпаться, гулять и делать уроки. Иначе голова плохо соображает."],
+      [1, "Неожиданно! А что вы делаете, когда не играете?"],
+      [0, "Катаюсь на велосипеде, читаю комиксы и рисую."],
+      [1, "Последний вопрос. Что вы посоветуете новичкам?"],
+      [0, "Не злиться, когда проигрываешь. Учиться у тех, кто сильнее. И вовремя выключать игру."],
+      [1, "Спасибо! С нами был чемпион арены. До новых встреч!"]] },
+    { id: "pl-news", title: "Новости арены", kind: "solo", roles: ["Ведущий"], lines: [
+      [0, "Добрый вечер! В эфире «Новости арены»."],
+      [0, "Главная новость дня: на арене снова светло."],
+      [0, "Вчера неизвестный герой вернул три кристалла света."],
+      [0, "Кристаллы нашлись в лесу, в пустыне и на ледяной башне."],
+      [0, "Вредный Глюк больше не прячется. Говорят, теперь он играет со всеми."],
+      [0, "Погода на завтра: в пустыне жарко, на башне холодно, в лесу шуршит."],
+      [0, "С вами были «Новости арены». Не переключайтесь!"]] },
+    { id: "pl-octo", title: "Факт дня: осьминог", kind: "solo", roles: ["Ведущий"], lines: [
+      [0, "Привет! Это рубрика «Факт дня»."],
+      [0, "Знаете ли вы, что у осьминога три сердца?"],
+      [0, "Одно сердце гонит кровь по всему телу. Два других помогают дышать."],
+      [0, "А ещё кровь у осьминога голубая!"],
+      [0, "Осьминог умеет менять цвет и прятаться на дне."],
+      [0, "Он даже может открыть банку, если внутри лежит еда."],
+      [0, "Вот такой умный зверь. Если вы удивились, поставьте лайк!"]] },
+    { id: "pl-sandwich", title: "Обзор на бутерброд", kind: "solo", roles: ["Ведущий"], lines: [
+      [0, "Всем привет! Сегодня у нас обзор на бутерброд."],
+      [0, "Берём кусок хлеба. Хлеб свежий и хрустит."],
+      [0, "Сверху масло. Мажется хорошо, оценка пять."],
+      [0, "Теперь сыр. Сыр жёлтый и с дырками. Кладём сверху."],
+      [0, "Последний шаг — огурец. Огурец зелёный и очень сочный."],
+      [0, "Пробуем… Ммм! Итоговая оценка — десять из десяти."],
+      [0, "Рецепт простой, справится даже робот. Всем пока!"]] }
+  ];
+  var play = { id: null, i: 0, swap: false, phase: "read", pr: false, prStart: false, auto: false, wpm: 70, timer: null,
+    gen: { busy: false, ctl: null, result: null, msg: "", theme: STORY_THEMES[0], kind: "duo" } };
+  try { var savedWpm = +localStorage.getItem(LS + "wpm"); if (savedWpm >= 40 && savedWpm <= 140) play.wpm = savedWpm; } catch (e) {}
+
+  function playsAll() { return PLAYS.concat((data.reading.plays || []).filter(playValid)); }
+  function getPlay(id) { return playsAll().filter(function (p) { return p.id === id; })[0]; }
+  function playValid(p) { return p && typeof p.id === "string" && Array.isArray(p.lines) && p.lines.length >= 3 && Array.isArray(p.roles) && p.lines.every(function (l) { return Array.isArray(l) && (l[0] === 0 || l[0] === 1) && typeof l[1] === "string"; }); }
+  function takesFor(id) { return (data.reading.takes || []).filter(function (t) { return t.sid === id; }); }
+  function kidRole(p) { return p.kind === "duo" && play.swap ? 1 : 0; }
+  function speechOnly(t) { return t.replace(/\([^)]*\)/g, " "); }
+  function lineHTML(t, stems) {
+    return t.split(/(\([^)]*\))/).map(function (part) {
+      if (/^\(.*\)$/.test(part)) return '<em class="stage">' + esc(part) + "</em>";
+      if (!stems.length) return esc(part);
+      return part.split(/(\s+)/).map(function (tok) { var low = tok.toLowerCase().replace(/ё/g, "е"); return /\S/.test(tok) && stems.some(function (s) { return low.indexOf(s) >= 0; }) ? '<span class="tw">' + esc(tok) + "</span>" : esc(tok); }).join("");
+    }).join("");
+  }
+
+  function theatrePanelHTML() {
+    return '<div class="panel">' +
+      "<h2>Суфлёр</h2>" +
+      '<p class="muted">Сценки на двоих и выпуски для своего видео. Читай по ролям со взрослым или с экрана суфлёра, пока тебя снимают на телефон. Каждый дубль — ещё одно чтение, и с каждым разом звучит лучше.</p>' +
+      '<div class="text-list">' + playsAll().map(function (p) {
+        var tk = takesFor(p.id).length;
+        return '<div class="quest-row"><button type="button" class="quest-item" data-pid="' + esc(p.id) + '"><span><b>' + esc(p.title) + '</b><br><span class="muted">' + (p.kind === "duo" ? "на двоих: " + esc(p.roles[0]) + " и " + esc(p.roles[1]) : "выпуск для видео") + (p.ai ? " · от ИИ" : "") + "</span></span>" +
+          '<span class="muted">' + (tk ? tk + " " + plural(tk, "дубль", "дубля", "дублей") : "ещё не читали") + "</span></button>" +
+          (p.ai ? '<button type="button" class="btn ghost q-del" data-pdel="' + esc(p.id) + '" aria-label="Удалить «' + esc(p.title) + '»">✕</button>' : "") + "</div>";
+      }).join("") + "</div>" + playGenHTML() + "</div>";
+  }
+  function bindTheatrePanel() {
+    document.querySelectorAll("[data-pid]").forEach(function (b) { b.addEventListener("click", function () { openPlay(b.getAttribute("data-pid")); }); });
+    document.querySelectorAll("[data-pdel]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-sure") !== "1") { b.setAttribute("data-sure", "1"); b.textContent = "Удалить?"; return; }
+        var id = b.getAttribute("data-pdel");
+        data.reading.plays = (data.reading.plays || []).filter(function (p) { return p.id !== id; });
+        save("reading"); renderRead();
+      });
+    });
+    bindPlayGen();
+  }
+  function openPlay(id) { if (!getPlay(id)) return; if (play.id !== id) play.swap = false; play.id = id; play.i = 0; play.phase = "read"; play.pr = false; reading.view = "play"; renderRead(); try { window.scrollTo(0, 0); } catch (e) {} }
+
+  function renderPlay() {
+    var v = $("view-read"), p = getPlay(play.id);
+    if (!p) { reading.view = "list"; return renderRead(); }
+    var me = kidRole(p), stems = p.words && reading.hl ? p.words.map(stemOf) : [];
+    var todayN = takesFor(p.id).filter(function (t) { return t.d === dayKey(); }).length;
+    var head = '<div class="row" style="justify-content:space-between"><button class="btn ghost" id="pl-back" type="button">← Тексты</button>' +
+      '<div class="seg"><button type="button" id="pl-big" aria-pressed="' + reading.big + '">Крупнее</button>' + (p.kind === "duo" ? '<button type="button" id="pl-swap" aria-pressed="' + play.swap + '">Поменяться ролями</button>' : "") + "</div></div>";
+    var who = p.kind === "duo" ? '<p class="roles-line"><span class="rl me">Ты — ' + esc(p.roles[me]) + '</span> <span class="rl other">Взрослый — ' + esc(p.roles[1 - me]) + "</span></p>" : '<p class="muted small" style="margin:0">Взрослый снимает на телефон, ты читаешь с экрана суфлёра. Или просто читай вслух для семьи.</p>';
+    var lines = '<div class="script' + (reading.big ? " big" : "") + '" id="pl-script">' + p.lines.map(function (l, i) {
+      var cls = "ln " + (l[0] === me ? "me" : "other") + (play.phase === "read" && i === play.i ? " cur" : "") + (play.phase === "read" && i < play.i ? " past" : "");
+      return '<div class="' + cls + '" id="ln-' + i + '">' + (p.kind === "duo" ? '<span class="who">' + esc(p.roles[l[0]]) + "</span>" : "") + '<span class="tx">' + lineHTML(l[1], stems) + "</span></div>";
+    }).join("") + "</div>";
+    var foot;
+    if (play.phase === "done") {
+      foot = '<div class="feedback good"><div class="big">Стоп, снято!</div><p>Дубль ' + todayN + " сегодня. " + (todayN < 3 ? "Третий дубль обычно звучит лучше всех." : "Отличная репетиция!") + "</p>" +
+        '<p class="ask">Как получилось?</p><div class="row" style="justify-content:center">' + ["С запинками", "Нормально", "Как артист!"].map(function (t, k) { return '<button type="button" class="btn ghost" data-rate="' + k + '">' + t + "</button>"; }).join("") + "</div>" +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="pl-again" type="button">Ещё дубль</button>' + (p.kind === "duo" ? '<button class="btn ghost" id="pl-again-swap" type="button">Поменяться ролями</button>' : "") + "</div></div>";
+    } else {
+      foot = '<div class="pl-bar"><button class="btn ghost" id="pl-prev" type="button" aria-label="Назад"' + (play.i ? "" : " disabled") + ">◀</button>" +
+        '<button class="btn gold" id="pl-next" type="button">' + (play.i >= p.lines.length - 1 ? "Готово" : "Дальше ▶") + "</button>" +
+        '<button class="btn ghost" id="pl-prompter" type="button">Суфлёр</button></div>';
+    }
+    v.innerHTML = '<div class="panel">' + head + "<h2>" + esc(p.title) + "</h2>" + who + lines + foot + "</div>";
+    $("pl-back").addEventListener("click", function () { stopPrompter(); reading.view = "list"; renderRead(); });
+    $("pl-big").addEventListener("click", function () { reading.big = !reading.big; try { localStorage.setItem(LS + "big", reading.big ? "1" : "0"); } catch (e) {} renderPlay(); });
+    if ($("pl-swap")) $("pl-swap").addEventListener("click", function () { play.swap = !play.swap; play.i = 0; play.phase = "read"; renderPlay(); });
+    if ($("pl-next")) $("pl-next").addEventListener("click", function () { playStep(1); });
+    if ($("pl-prev")) $("pl-prev").addEventListener("click", function () { playStep(-1); });
+    if ($("pl-prompter")) $("pl-prompter").addEventListener("click", openPrompter);
+    v.querySelectorAll("[data-rate]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var ts = data.reading.takes || [], last = ts[ts.length - 1];
+        if (last && last.sid === p.id) { last.r = +b.getAttribute("data-rate"); save("reading"); }
+        v.querySelectorAll("[data-rate]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); x.classList.toggle("on", x === b); });
+      });
+    });
+    if ($("pl-again")) $("pl-again").addEventListener("click", function () { play.i = 0; play.phase = "read"; renderPlay(); try { $("pl-script").scrollIntoView({ block: "start" }); } catch (e) {} });
+    if ($("pl-again-swap")) $("pl-again-swap").addEventListener("click", function () { play.swap = !play.swap; play.i = 0; play.phase = "read"; renderPlay(); });
+    if (play.phase === "read") { var cur = $("ln-" + play.i); if (cur && play.i > 0) try { cur.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {} }
+  }
+  function playStep(d) {
+    var p = getPlay(play.id); if (!p) return;
+    if (d > 0 && play.i >= p.lines.length - 1) { finishTake(p, "roles"); return; }
+    play.i = Math.max(0, Math.min(p.lines.length - 1, play.i + d));
+    if (play.pr) renderPrompter(); else renderPlay();
+  }
+  function finishTake(p, mode) {
+    var me = kidRole(p), w = p.lines.filter(function (l) { return l[0] === me; }).reduce(function (s, l) { return s + wordCount(speechOnly(l[1])); }, 0);
+    var ts = data.reading.takes || (data.reading.takes = []);
+    ts.push({ d: dayKey(), sid: p.id, w: w, mode: mode, r: null }); trim(ts, 500); save("reading");
+    stopPrompter(); play.phase = "done"; renderPlay(); renderHeader();
+  }
+
+  /* full-screen prompter: big text, the next line below; tap to advance or let it run */
+  function openPrompter() { play.pr = true; play.prStart = false; play.auto = false; renderPrompter(); }
+  function stopPrompter() { clearTimeout(play.timer); play.timer = null; play.pr = false; var el = $("prompter"); if (el) el.remove(); }
+  function renderPrompter() {
+    var p = getPlay(play.id); if (!p) return;
+    var el = $("prompter");
+    if (!el) { el = document.createElement("div"); el.id = "prompter"; el.className = "prompter"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Суфлёр"); document.body.appendChild(el); }
+    var me = kidRole(p), l = p.lines[play.i], nx = p.lines[play.i + 1];
+    function tag(line) { return p.kind === "duo" ? '<span class="pr-who ' + (line[0] === me ? "me" : "other") + '">' + esc(p.roles[line[0]]) + (line[0] === me ? " (ты)" : "") + "</span>" : ""; }
+    var stage = !play.prStart ? '<div class="pr-ready">Взрослый включает запись.<br>Нажми на экран, когда будешь готов.</div>' :
+      '<div class="pr-cur">' + tag(l) + '<p class="' + (l[0] === me ? "me" : "other") + '">' + lineHTML(l[1], []) + "</p></div>" +
+      (nx ? '<div class="pr-next">' + tag(nx) + "<p>" + lineHTML(nx[1], []) + "</p></div>" : '<div class="pr-next"><p>Последняя строка. Нажми, когда дочитаешь.</p></div>');
+    el.innerHTML = '<div class="pr-top"><span>' + (play.prStart ? "Строка " + (play.i + 1) + " из " + p.lines.length : esc(p.title)) + '</span><button type="button" class="pr-btn" id="pr-x">✕ Закрыть</button></div>' +
+      '<div class="pr-stage" id="pr-stage">' + stage + "</div>" +
+      '<div class="pr-bar"><button type="button" class="pr-btn" id="pr-prev" aria-label="Назад">◀</button>' +
+      '<button type="button" class="pr-btn" id="pr-auto" aria-pressed="' + play.auto + '">' + (play.auto ? "Пауза" : "Бегущая строка") + "</button>" +
+      (play.auto ? '<button type="button" class="pr-btn" id="pr-slow" aria-label="Медленнее">−</button><span class="pr-wpm">' + play.wpm + ' сл/мин</span><button type="button" class="pr-btn" id="pr-fast" aria-label="Быстрее">+</button>' : "") +
+      '<button type="button" class="pr-btn" id="pr-next" aria-label="Дальше">▶</button></div>';
+    $("pr-x").addEventListener("click", function () { stopPrompter(); renderPlay(); });
+    $("pr-stage").addEventListener("click", function () { if (!play.prStart) { play.prStart = true; play.i = 0; renderPrompter(); return; } if (!play.auto) prNext(); });
+    $("pr-prev").addEventListener("click", function () { if (play.prStart) { play.i = Math.max(0, play.i - 1); renderPrompter(); } });
+    $("pr-next").addEventListener("click", function () { if (!play.prStart) { play.prStart = true; play.i = 0; renderPrompter(); } else prNext(); });
+    $("pr-auto").addEventListener("click", function () { play.auto = !play.auto; if (play.auto && !play.prStart) { play.prStart = true; play.i = 0; } renderPrompter(); });
+    if ($("pr-slow")) $("pr-slow").addEventListener("click", function () { setWpm(play.wpm - 10); });
+    if ($("pr-fast")) $("pr-fast").addEventListener("click", function () { setWpm(play.wpm + 10); });
+    clearTimeout(play.timer); play.timer = null;
+    if (play.auto && play.prStart) {
+      var secs = Math.max(1.6, wordCount(speechOnly(l[1])) / play.wpm * 60 + 0.7);
+      play.timer = setTimeout(prNext, secs * 1000);
+    }
+  }
+  function setWpm(w) { play.wpm = Math.max(40, Math.min(140, w)); try { localStorage.setItem(LS + "wpm", String(play.wpm)); } catch (e) {} renderPrompter(); }
+  function prNext() {
+    var p = getPlay(play.id); if (!p) return;
+    if (play.i >= p.lines.length - 1) { finishTake(p, play.auto ? "auto" : "prompter"); return; }
+    play.i++; renderPrompter();
+  }
+  document.addEventListener("keydown", function (e) {
+    if (current !== "read" || reading.view !== "play") return;
+    if (play.pr) {
+      if (e.key === "Escape") { stopPrompter(); renderPlay(); e.preventDefault(); }
+      else if (e.key === " " || e.key === "ArrowRight" || e.key === "Enter") { if (!play.prStart) { play.prStart = true; play.i = 0; renderPrompter(); } else if (!play.auto) prNext(); e.preventDefault(); }
+      else if (e.key === "ArrowLeft") { play.i = Math.max(0, play.i - 1); renderPrompter(); e.preventDefault(); }
+    } else if (play.phase === "read" && (e.key === "ArrowRight" || e.key === " ") && !/INPUT|TEXTAREA|BUTTON/.test((e.target || {}).tagName || "")) { playStep(1); e.preventDefault(); }
+  });
+
+  /* AI-written scripts on his theme, with his trouble words; the adult reads them first */
+  function playPrompt(kind, theme, hero, ws) {
+    var base = "Ты пишешь тексты для «театра чтения»: ребёнок читает их вслух, репетирует и показывает семье. Читатель — мальчик 9 лет, 3 класс российской школы. Читать он не любит, поэтому текст должен быть смешным и живым, а язык простым.\n\n" +
+      "Тема: " + theme + ".\n" + (hero ? "Можно упомянуть персонажа по имени " + hero + ".\n" : "") +
+      (ws.length ? "Обязательно используй каждое из этих слов хотя бы один раз (можно в другой форме): " + ws.join(", ") + ".\n" : "") +
+      "\nТребования:\n- Простые частые слова уровня 3 класса, короткие предложения до 12 слов.\n- Безупречная орфография и пунктуация, буква ё там, где нужна.\n- Без названий настоящих игр, брендов, фильмов и знаменитостей. Без страшного и без грубых слов.\n";
+    if (kind === "duo") return base + "- Сценка на две роли: первую роль читает мальчик, вторую — взрослый (мама или папа). Пусть у мальчика будет роль поумнее или посмешнее.\n- 12–18 реплик, у мальчика чуть больше половины. Каждая реплика 3–20 слов.\n- В конце смешная развязка.\n\n" +
+      'Ответь только JSON: {"title": "Название", "roles": ["роль мальчика", "роль взрослого"], "lines": [{"who": 0, "text": "реплика мальчика"}, {"who": 1, "text": "реплика взрослого"}]}';
+    return base + "- Это выпуск для короткого видео: ведущий говорит прямо в камеру, как блогер или диктор новостей.\n- 7–10 строк, каждая строка — одно-два коротких предложения, всего 60–110 слов.\n- Начало с приветствием, в середине интересные факты или смешные события, в конце прощание.\n- Если это факты о мире, они должны быть правдой.\n\n" +
+      'Ответь только JSON: {"title": "Название", "lines": ["строка 1", "строка 2"]}';
+  }
+  function playFromAI(r, kind, words) {
+    if (!r || typeof r !== "object" || !Array.isArray(r.lines)) return null;
+    var lines = r.lines.slice(0, 30).map(function (l) {
+      if (kind === "duo") return l && (l.who === 0 || l.who === 1 || l.who === "0" || l.who === "1") ? [+l.who, String(l.text || "").replace(/\s+/g, " ").trim().slice(0, 300)] : null;
+      return [0, String(typeof l === "string" ? l : (l && l.text) || "").replace(/\s+/g, " ").trim().slice(0, 300)];
+    });
+    if (lines.some(function (l) { return !l || wordCount(l[1]) < 1; }) || lines.length < 5) return null;
+    var roles = kind === "duo" ? (Array.isArray(r.roles) ? r.roles : []).slice(0, 2).map(function (x) { return String(x || "").trim().slice(0, 24); }) : ["Ведущий"];
+    if (kind === "duo" && (roles.length < 2 || !roles[0] || !roles[1] || !lines.some(function (l) { return l[0] === 0; }) || !lines.some(function (l) { return l[0] === 1; }))) return null;
+    return { id: "pa" + Date.now().toString(36), title: String(r.title || "Сценка").trim().slice(0, 60) || "Сценка", kind: kind, roles: roles, lines: lines, ai: true, words: words.slice() };
+  }
+  function playGenHTML() {
+    var G = play.gen;
+    if (story.unavailable) return '<p class="muted small">Новые сценки от ИИ сейчас недоступны на этой странице.</p>';
+    var body = '<details class="q-gen" id="pg-d"' + (G.open || G.busy || G.result ? " open" : "") + '><summary><h3>Новая сценка от ИИ</h3></summary><p class="muted small">ИИ напишет сценку на двоих или выпуск для видео на выбранную тему, с его трудными словами из диктанта.</p>' +
+      '<div class="seg" role="group" aria-label="Что написать"><button type="button" data-pk="duo" aria-pressed="' + (G.kind === "duo") + '">Сценка на двоих</button><button type="button" data-pk="solo" aria-pressed="' + (G.kind === "solo") + '">Выпуск для видео</button></div>' +
+      '<div class="seg">' + STORY_THEMES.map(function (t) { return '<button type="button" data-pth="' + esc(t) + '" aria-pressed="' + (G.theme === t) + '">' + esc(t) + "</button>"; }).join("") + "</div>" +
+      '<div class="row">' + (G.busy ? '<button class="btn ghost" type="button" id="pg-stop">Остановить</button><span class="muted">Пишу сценарий… обычно до минуты.</span>' : '<button class="btn ghost" type="button" id="pg-go">' + (G.result ? "Другой вариант" : "Написать") + "</button>") +
+      (G.msg ? '<span class="small" style="color:var(--bad)">' + esc(G.msg) + "</span>" : "") + "</div>";
+    if (G.result) {
+      var r = G.result, all = r.lines.map(function (l) { return l[1]; }).join(" ");
+      body += '<div class="st-preview"><p class="ex">Для взрослого: проверьте текст перед чтением</p><h3>' + esc(r.title) + "</h3>" +
+        '<div class="row">' + r.words.map(function (w) { var ok = hasWord(all, w); return '<span class="cov ' + (ok ? "ok" : "no") + '">' + (ok ? "✓ " : "✗ ") + esc(w) + "</span>"; }).join("") + '<span class="muted small">' + wordCount(all) + " слов</span></div>" +
+        '<div class="script">' + r.lines.map(function (l) { return '<div class="ln ' + (l[0] === 0 ? "me" : "other") + '">' + (r.kind === "duo" ? '<span class="who">' + esc(r.roles[l[0]]) + "</span>" : "") + '<span class="tx">' + esc(l[1]) + "</span></div>"; }).join("") + "</div>" +
+        '<div class="row"><button class="btn gold" type="button" id="pg-save">Сохранить</button><button class="btn ghost" type="button" id="pg-drop">Убрать</button></div></div>';
+    }
+    return body + "</details>";
+  }
+  function bindPlayGen() {
+    var G = play.gen;
+    if ($("pg-d")) $("pg-d").addEventListener("toggle", function () { G.open = $("pg-d").open; });
+    document.querySelectorAll("[data-pk]").forEach(function (b) { b.addEventListener("click", function () { G.kind = b.getAttribute("data-pk"); renderRead(); }); });
+    document.querySelectorAll("[data-pth]").forEach(function (b) { b.addEventListener("click", function () { G.theme = b.getAttribute("data-pth"); renderRead(); }); });
+    if ($("pg-go")) $("pg-go").addEventListener("click", generatePlay);
+    if ($("pg-stop")) $("pg-stop").addEventListener("click", function () { if (G.ctl) G.ctl.abort(); });
+    if ($("pg-save")) $("pg-save").addEventListener("click", function () {
+      var list = data.reading.plays || (data.reading.plays = []);
+      list.push(G.result); while (list.length > 10) list.shift();
+      save("reading"); G.result = null; G.msg = ""; renderRead();
+    });
+    if ($("pg-drop")) $("pg-drop").addEventListener("click", function () { G.result = null; renderRead(); });
+  }
+  function generatePlay() {
+    var G = play.gen;
+    if (G.busy) return;
+    if (!sampleFn) { story.unavailable = true; renderRead(); return; }
+    var hero = ((data.math.names || {}).hero || "").trim(), ws = troubleWords().slice(0, 4), kind = G.kind;
+    G.busy = true; G.msg = ""; G.ctl = new AbortController(); renderRead();
+    sampleFn.json(playPrompt(kind, G.theme, hero, ws), { signal: G.ctl.signal, cache: false }).then(function (r) {
+      G.busy = false;
+      var pl = playFromAI(r, kind, ws);
+      if (!pl) { G.msg = "Сценарий получился с ошибкой. Попробуйте ещё раз."; renderRead(); return; }
+      G.result = pl; renderRead();
+    }, function (e) {
+      G.busy = false;
+      var code = e && e.code;
+      if (code === "cancelled") G.msg = "";
+      else if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" || code === "capability_disabled" || code === "capability_removed") story.unavailable = true;
+      else if (code === "rate_limited") G.msg = "Слишком много запросов. Попробуйте через пару минут.";
+      else if (code === "refused") G.msg = "ИИ не стал писать на эту тему. Выберите другую.";
+      else if (code === "session_expired") G.msg = "Нужно заново войти в аккаунт Claude.";
+      else if (code === "invalid_json") G.msg = "Ответ ИИ оборвался или сломался. Попробуйте ещё раз.";
+      else G.msg = "Не получилось. Попробуйте ещё раз.";
+      renderRead();
+    });
+  }
+  function theatreProgressHTML() {
+    var ts = data.reading.takes || []; if (!ts.length) return "";
+    var since = addDays(dayKey(), -6), wk = ts.filter(function (t) { return t.d >= since; }), words = ts.reduce(function (s, t) { return s + (t.w || 0); }, 0);
+    var rated = ts.filter(function (t) { return t.r !== null && t.r !== undefined; }).slice(-10), star = rated.filter(function (t) { return t.r === 2; }).length;
+    var by = {}; ts.forEach(function (t) { by[t.sid] = (by[t.sid] || 0) + 1; });
+    var lines = playsAll().filter(function (p) { return by[p.id]; }).map(function (p) { return "«" + esc(p.title) + "»: " + by[p.id] + " " + plural(by[p.id], "дубль", "дубля", "дублей"); });
+    return '<div class="panel"><h3>Суфлёр</h3><div class="stats">' + stat(String(ts.length), "дублей всего") + stat(String(wk.length), "дублей за 7 дней") + stat(String(words), "слов прочитано вслух") +
+      (rated.length ? stat(star + " из " + rated.length, "дублей «как артист» (последние оценки)") : "") + "</div>" +
+      (lines.length ? '<p class="muted small">' + lines.join("<br>") + "</p>" : "") +
+      '<p class="muted small">Лучше 3 дубля одной сценки, чем по одному разу три разных: так и работает повторное чтение. Хвалите за выразительность и за то, что дочитал до конца, а не за скорость. Готовое видео можно показать бабушке, но выкладывать его в сеть не нужно.</p></div>';
   }
 
   /* ---------- speech ---------- */
@@ -3143,7 +3489,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     (data.math.sessions || []).forEach(function (s) { set[s.d] = 1; });
     (data.words.sessions || []).forEach(function (s) { set[s.d] = 1; });
     (data.reading.runs || []).forEach(function (s) { set[s.d] = 1; });
-    [data.reading.ql, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].forEach(function (a) { (a || []).forEach(function (s) { set[s.d] = 1; }); });
+    [data.reading.ql, data.reading.takes, data.math.df && data.math.df.sessions, data.math.cm && data.math.cm.sessions, data.math.race && data.math.race.games].forEach(function (a) { (a || []).forEach(function (s) { set[s.d] = 1; }); });
     var t = dayKey();
     for (var i = 13; i >= 0; i--) days.push(addDays(t, -i));
     var active = days.filter(function (d) { return set[d]; }).length;
@@ -3178,7 +3524,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
           var mx = Math.max.apply(null, Object.keys(bestBy).map(function (k) { return bestBy[k]; }));
           return '<div class="bar"><span class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(tx.title) + '</span><div class="track"><div class="fill best" style="width:' + Math.round(bestBy[tx.id] / mx * 100) + '%"></div></div><b>' + bestBy[tx.id] + "</b></div>";
         }).join("") + '</div><p class="muted small">Слов в минуту, прочитанных верно. Норм здесь нет: сравниваем его только с ним самим.</p>' : '<p class="muted">Чтений пока не было.</p>') +
-      "</div>" + questProgressHTML() +
+      "</div>" + questProgressHTML() + theatreProgressHTML() +
       '<div class="panel"><h3>Как пользоваться</h3><ul class="tips">' +
         "<li>1–2 тренировки в день по 5 минут. Это учебное время, а не развлекательное, и оно не входит в матчи Brawl Stars.</li>" +
         "<li>Не перед сном: последний час без экранов остаётся в силе.</li>" +
