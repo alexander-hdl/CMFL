@@ -224,6 +224,28 @@ details.names summary { cursor: pointer; font-weight: 700; }
 .cov.no { color: var(--bad); border-color: var(--bad); }
 .st-preview textarea { min-height: 160px; }
 
+/* Derived facts */
+.bosses { display: flex; flex-wrap: wrap; gap: 6px; }
+.boss { font-family: var(--f-display); font-size: 1rem; padding: 6px 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--panel-2); font-variant-numeric: tabular-nums; }
+.boss.l1 { border-color: var(--b2); }
+.boss.l2 { border-color: var(--b3); }
+.boss.won { border-color: var(--b5); background: var(--b5); color: #062512; }
+.arr-wrap { display: grid; justify-items: center; gap: 6px; }
+.dots-arr { height: auto; }
+.dots-arr .dp0 { fill: var(--ink); opacity: 0.85; }
+.dots-arr .dp1 { fill: var(--gold); }
+.dots-arr .dp2 { fill: var(--blue); }
+.dots-arr .cut { stroke: var(--bad); stroke-width: 3; stroke-dasharray: 6 4; }
+.arr-lab { font-family: var(--f-display); text-align: center; display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.arr-lab .k1, .arr-lab .k2 { display: inline-block; width: 14px; height: 14px; border-radius: 50%; }
+.arr-lab .k1 { background: var(--gold); } .arr-lab .k2 { background: var(--blue); margin-left: 10px; }
+.area { display: flex; width: min(100%, 420px); height: 90px; border-radius: 10px; overflow: hidden; border: 2px solid var(--line); }
+.area > div { display: grid; place-items: center; min-width: 0; }
+.area b { font-family: var(--f-display); font-weight: 400; font-size: 1.05rem; color: #13202a; white-space: nowrap; }
+.ar0 { background: var(--panel-2); } .ar0 b { color: var(--ink); }
+.ar1 { background: var(--gold); } .ar2 { background: var(--blue); border-left: 3px dashed var(--bad); }
+.steps-done { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -487,6 +509,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     if (math.round) return renderMathRound();
     if (math.nl) return renderNL();
     if (math.wp) return renderWp();
+    if (math.df) return renderDf();
     var mastered = 0, f = data.math.facts;
     PAIRS.forEach(function (p) { var s = f[factKey("m", p[0], p[1])]; if (s && s.b >= 4) mastered++; });
     var last = (data.math.sessions || []).slice(-1)[0];
@@ -505,7 +528,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
         mapHTML("m") +
         legendHTML() +
         '<p class="note">Пример становится зелёным, когда ты верно и уверенно ответил на него в три разных дня.</p>' +
-      "</div>" +
+      "</div>" + dfPanelHTML() +
       '<div class="panel">' +
         "<h3>Числовая прямая</h3>" +
         '<p class="muted">Покажи пером или пальцем, где на линии живёт число. Это тренирует чувство числа: сколько это — много или мало.</p>' +
@@ -517,6 +540,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     $("math-start").addEventListener("click", startMath);
     $("nl-start").addEventListener("click", startNL);
     bindWpPanel();
+    bindDfPanel();
   }
   function segBtn(op, label) { return '<button type="button" data-op="' + op + '" aria-pressed="' + (math.op === op) + '">' + label + "</button>"; }
   function stat(big, small) { return '<div class="stat"><b>' + big + "</b><span>" + small + "</span></div>"; }
@@ -729,6 +753,251 @@ details.names summary { cursor: pointer; font-weight: 700; }
     renderHeader();
   }
 
+
+
+  /* ---------- "Опорные факты": cut a hard fact into easy ones ---------- */
+  var BOSSES = [[3, 3], [3, 4], [3, 6], [3, 7], [3, 8], [4, 4], [4, 6], [4, 7], [4, 8], [6, 6], [6, 7], [6, 8], [7, 7], [7, 8], [8, 8]];
+  var DF_ROUND = 5;
+  function dfData() {
+    var m = data.math;
+    if (!m.df || typeof m.df !== "object") m.df = {};
+    if (!m.df.facts || typeof m.df.facts !== "object") m.df.facts = {};
+    if (!Array.isArray(m.df.sessions)) m.df.sessions = [];
+    return m.df;
+  }
+  function bossKey(a, b) { return Math.min(a, b) + "x" + Math.max(a, b); }
+  function bossState(a, b) { return dfData().facts[bossKey(a, b)] || { lvl: 0, ok: 0 }; }
+  // Ways to cut an r × c array into two easier facts.
+  function dfPaths(r, c) {
+    var out = [], seen = {};
+    function add(axis, at) {
+      var p = axis === "r" ? { f1: [at, c], f2: [r - at, c] } : { f1: [r, at], f2: [r, c - at] };
+      if (p.f1[0] < 1 || p.f1[1] < 1 || p.f2[0] < 1 || p.f2[1] < 1) return;
+      var lab = p.f1[0] + " × " + p.f1[1] + " + " + p.f2[0] + " × " + p.f2[1];
+      if (seen[lab]) return; seen[lab] = 1;
+      p.axis = axis; p.at = at; p.label = lab; out.push(p);
+    }
+    if (r >= 6) add("r", 5);
+    if (c >= 6) add("c", 5);
+    if (c === r + 1) add("c", r);
+    if (r === c + 1) add("r", c);
+    if (r === c && r <= 4) add("r", r - 1);
+    if (r % 2 === 0 && r >= 4) add("r", r / 2);
+    if (c % 2 === 0 && c >= 4 && out.length < 3) add("c", c / 2);
+    if (r === 3) add("r", 2);
+    if (c === 3 && out.length < 3) add("c", 2);
+    return out.slice(0, 3);
+  }
+  function rnd2(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function dfPickBosses() {
+    var today = dayKey(), f = data.math.facts || {};
+    var list = BOSSES.map(function (p) {
+      var s = bossState(p[0], p[1]), main = f[factKey("m", p[0], p[1])];
+      var w = (s.ok >= 2 ? 0 : 3 - s.lvl) + (main && main.b <= 2 ? 2 : 0) + (s.day === today ? -2 : 0) + Math.random() * 1.5;
+      return { p: p, w: w };
+    }).sort(function (x, y) { return y.w - x.w; });
+    return list.slice(0, DF_ROUND).map(function (x) {
+      var a = x.p[0], b = x.p[1]; if (Math.random() < 0.5) { var t = a; a = b; b = t; }
+      return { kind: "boss", r: a, c: b, ans: a * b };
+    });
+  }
+  function dfPickTwo() {
+    var items = [];
+    while (items.length < DF_ROUND) {
+      if (items.length % 2 === 0) {
+        var b = rnd2(2, 4), a = rnd2(11, Math.min(39, Math.floor(100 / b))); if (a % 10 === 0) continue;
+        items.push({ kind: "mul2", a: a, b: b, ans: a * b, t: Math.floor(a / 10) * 10, o: a % 10 });
+      } else {
+        var d = rnd2(2, 6), q = rnd2(11, Math.floor(99 / d)); if (q % 10 === 0) continue;
+        var n = d * q, big = 10 * d * Math.floor(q / 10), rest = n - big;
+        if (rest <= 0) continue;
+        var cands = [[Math.floor(n / 10) * 10, n % 10], [Math.floor(n / 10) * 10 - 10, n % 10 + 10], [Math.floor(n / 10) * 10 - 20, n % 10 + 20]];
+        var bad = cands.filter(function (s) { return s[0] > 0 && s[1] > 0 && (s[0] % d !== 0 || s[1] % d !== 0); })[0];
+        if (!bad) continue;
+        items.push({ kind: "div2", n: n, d: d, ans: q, good: [big, rest], bad: bad });
+      }
+    }
+    return items;
+  }
+  function dfPanelHTML() {
+    var df = dfData(), beaten = BOSSES.filter(function (p) { return bossState(p[0], p[1]).ok >= 2; }).length;
+    return '<div class="panel">' +
+      '<div class="row" style="justify-content:space-between"><h3>Опорные факты</h3><span class="muted small">побеждено ' + beaten + " из 15 боссов</span></div>" +
+      '<p class="muted">Трудный пример можно разрезать на два лёгких: 7 × 8 = 5 × 8 + 2 × 8. Без часов: важен путь, а не скорость.</p>' +
+      '<div class="bosses">' + BOSSES.map(function (p) {
+        var s = bossState(p[0], p[1]), cls = s.ok >= 2 ? "won" : "l" + s.lvl;
+        return '<span class="boss ' + cls + '" title="' + (s.ok >= 2 ? "побеждён" : "уровень подсказок " + (3 - s.lvl)) + '">' + p[0] + "×" + p[1] + (s.ok >= 2 ? " ★" : "") + "</span>";
+      }).join("") + "</div>" +
+      '<div class="row"><button class="btn gold" id="df-start" type="button">5 боссов</button><button class="btn ghost" id="df-two" type="button">Двузначные: 23 × 4 и 96 : 4</button></div>' +
+    "</div>";
+  }
+  function bindDfPanel() {
+    $("df-start").addEventListener("click", function () { startDf("boss"); });
+    $("df-two").addEventListener("click", function () { startDf("two"); });
+  }
+  function startDf(mode) {
+    var items = mode === "two" ? dfPickTwo() : dfPickBosses();
+    math.df = { mode: mode, items: items, i: 0, noHint: 0 };
+    prepDfItem(); renderMath();
+  }
+  function prepDfItem() {
+    var D = math.df, it = D.items[D.i];
+    D.input = ""; D.hint = ""; D.errors = 0; D.usedHint = false; D.path = null; D.stepIdx = 0; D.splitOk = false;
+    if (it.kind === "boss") {
+      var s = bossState(it.r, it.c);
+      D.lvl = s.lvl; D.phase = s.lvl >= 2 ? "direct" : "path";
+    } else D.phase = it.kind === "div2" ? "split" : "steps";
+  }
+  function dfSteps(it, path) {
+    if (it.kind === "boss") {
+      var p1 = path.f1[0] * path.f1[1], p2 = path.f2[0] * path.f2[1];
+      return [{ q: path.f1[0] + " × " + path.f1[1], a: p1 }, { q: path.f2[0] + " × " + path.f2[1], a: p2 }, { q: p1 + " + " + p2, a: p1 + p2 }];
+    }
+    if (it.kind === "mul2") return [{ q: it.t + " × " + it.b, a: it.t * it.b }, { q: it.o + " × " + it.b, a: it.o * it.b }, { q: (it.t * it.b) + " + " + (it.o * it.b), a: it.ans }];
+    var g = it.good;
+    return [{ q: g[0] + " : " + it.d, a: g[0] / it.d }, { q: g[1] + " : " + it.d, a: g[1] / it.d }, { q: (g[0] / it.d) + " + " + (g[1] / it.d), a: it.ans }];
+  }
+  function arraySVG(r, c, path, labels) {
+    var s = 22, pad = 12, w = c * s + pad * 2, h = r * s + pad * 2, out = '<svg class="dots-arr" viewBox="0 0 ' + w + " " + h + '" style="width:min(100%,' + Math.round(w * 1.25) + 'px)" role="img" aria-label="' + r + " " + plural(r, "ряд", "ряда", "рядов") + " по " + c + ' точек">';
+    for (var i = 0; i < r; i++) for (var j = 0; j < c; j++) {
+      var part = !path ? 0 : (path.axis === "r" ? (i < path.at ? 1 : 2) : (j < path.at ? 1 : 2));
+      out += '<circle cx="' + (pad + j * s + s / 2) + '" cy="' + (pad + i * s + s / 2) + '" r="7" class="dp' + part + '"/>';
+    }
+    if (path) {
+      if (path.axis === "r") out += '<line x1="4" x2="' + (w - 4) + '" y1="' + (pad + path.at * s) + '" y2="' + (pad + path.at * s) + '" class="cut"/>';
+      else out += '<line y1="4" y2="' + (h - 4) + '" x1="' + (pad + path.at * s) + '" x2="' + (pad + path.at * s) + '" class="cut"/>';
+    }
+    out += "</svg>";
+    if (path && labels) out += '<p class="arr-lab"><span class="k1"></span>' + path.f1[0] + " × " + path.f1[1] + ' <span class="k2"></span>' + path.f2[0] + " × " + path.f2[1] + "</p>";
+    return out;
+  }
+  function areaHTML(it) {
+    var tw = it.t / it.a * 100;
+    return '<div class="area" aria-label="Прямоугольник ' + it.a + " на " + it.b + '"><div class="ar1" style="width:' + tw + '%"><b>' + it.t + " × " + it.b + '</b></div><div class="ar2" style="width:' + (100 - tw) + '%"><b>' + it.o + " × " + it.b + "</b></div></div>" +
+      '<p class="arr-lab">' + it.a + " = " + it.t + " + " + it.o + "</p>";
+  }
+  function barHTML(it, split) {
+    if (!split) return '<div class="area"><div class="ar0" style="width:100%"><b>' + it.n + "</b></div></div>";
+    var w1 = split[0] / it.n * 100;
+    return '<div class="area"><div class="ar1" style="width:' + w1 + '%"><b>' + split[0] + '</b></div><div class="ar2" style="width:' + (100 - w1) + '%"><b>' + split[1] + "</b></div></div>";
+  }
+  function renderDf() {
+    var D = math.df, it = D.items[D.i], v = $("view-math");
+    var title = it.kind === "boss" ? it.r + " × " + it.c : it.kind === "mul2" ? it.a + " × " + it.b : it.n + " : " + it.d;
+    var dots = '<div class="dots">' + D.items.map(function (_, j) { return '<i class="' + (j < D.i ? "ok" : j === D.i ? "cur" : "") + '"></i>'; }).join("") + "</div>";
+    var body = "";
+    if (D.phase === "direct") {
+      body = '<p class="ask">Этого босса ты уже знаешь. Сколько будет?</p>' + (D.hint ? '<p class="hint">' + esc(D.hint) + "</p>" : "") +
+        '<div class="answer" id="df-ans">' + esc(D.input) + "</div>" + padHTML().replace('id="m-pad"', 'id="df-pad"') +
+        '<div class="row" style="justify-content:center"><button class="btn ghost" id="df-help" type="button">Подсказка: разрезать</button></div>';
+    } else if (D.phase === "path") {
+      var paths = dfPaths(it.r, it.c);
+      body = '<div class="arr-wrap">' + arraySVG(it.r, it.c, null, false) + "</div>" +
+        '<p class="ask">Как разрезать на лёгкие части?</p><p class="muted small" style="text-align:center">' + it.r + " " + plural(it.r, "ряд", "ряда", "рядов") + " по " + it.c + ". Выбери любой путь: все правильные.</p>" +
+        '<div class="row" style="justify-content:center">' + paths.map(function (p, k) { return '<button class="btn ghost" type="button" data-path="' + k + '">' + esc(p.label) + "</button>"; }).join("") + "</div>";
+    } else if (D.phase === "split") {
+      var opts = shuffle([it.good, it.bad]);
+      body = '<div class="arr-wrap">' + barHTML(it, null) + "</div>" +
+        '<p class="ask">Как удобнее разбить ' + it.n + "?</p><p class=\"muted small\" style=\"text-align:center\">Обе части должны делиться на " + it.d + " без остатка.</p>" + (D.hint ? '<p class="hint">' + esc(D.hint) + "</p>" : "") +
+        '<div class="row" style="justify-content:center">' + opts.map(function (o) { return '<button class="btn ghost" type="button" data-split="' + o[0] + "," + o[1] + '">' + o[0] + " + " + o[1] + "</button>"; }).join("") + "</div>";
+    } else if (D.phase === "steps") {
+      var steps = dfSteps(it, D.path), st = steps[D.stepIdx];
+      var vis = it.kind === "boss" ? arraySVG(it.r, it.c, D.path, D.lvl === 0) : it.kind === "mul2" ? areaHTML(it) : barHTML(it, it.good);
+      body = '<div class="arr-wrap">' + vis + "</div>" +
+        '<div class="steps-done">' + steps.slice(0, D.stepIdx).map(function (x, k) { return '<span class="opchip">' + (k + 1) + ") " + esc(x.q) + " = " + x.a + "</span>"; }).join("") + "</div>" +
+        '<p class="ask">' + (D.stepIdx + 1) + ") " + esc(st.q) + " = ?</p>" + (D.hint ? '<p class="hint">' + esc(D.hint) + "</p>" : "") +
+        '<div class="answer" id="df-ans">' + esc(D.input) + "</div>" + padHTML().replace('id="m-pad"', 'id="df-pad"');
+    } else if (D.phase === "done") {
+      var how = it.kind === "boss" ? (D.path ? D.path.label : "по памяти") : it.kind === "mul2" ? it.t + " × " + it.b + " + " + it.o + " × " + it.b : it.good[0] + " : " + it.d + " + " + it.good[1] + " : " + it.d;
+      body = '<div class="feedback good"><div class="big">' + (D.errors ? "Получилось!" : "Чисто!") + "</div>" +
+        '<div class="problem" style="font-size:2.4rem">' + esc(title) + " = " + it.ans + "</div>" +
+        '<p class="muted">Путь: ' + esc(how) + "</p>" +
+        '<button class="btn gold" id="df-next" type="button">' + (D.i + 1 < D.items.length ? "Следующий" : "Итоги") + "</button></div>";
+    }
+    v.innerHTML = '<div class="panel">' + dots + '<div class="problem" style="font-size:clamp(2.2rem,10vw,3.6rem)">' + esc(title) + (D.phase === "done" ? "" : " = ?") + "</div>" + body +
+      '<div class="row" style="justify-content:center"><button class="btn ghost" id="df-stop" type="button">Закончить</button></div></div>';
+    $("df-stop").addEventListener("click", finishDf);
+    var pad = $("df-pad"); if (pad) pad.addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b) dfKey(b.getAttribute("data-k")); });
+    if ($("df-help")) $("df-help").addEventListener("click", function () { D.usedHint = true; D.phase = "path"; D.hint = ""; renderDf(); });
+    v.querySelectorAll("[data-path]").forEach(function (b) { b.addEventListener("click", function () { D.path = dfPaths(it.r, it.c)[+b.getAttribute("data-path")]; D.phase = "steps"; D.stepIdx = 0; D.input = ""; renderDf(); }); });
+    v.querySelectorAll("[data-split]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var sp = b.getAttribute("data-split").split(",").map(Number);
+        if (sp[0] === it.good[0]) { D.phase = "steps"; D.hint = ""; renderDf(); }
+        else { D.errors++; var badPart = sp[0] % it.d ? sp[0] : sp[1]; D.hint = badPart + " на " + it.d + " без остатка не делится. Выбери другое разбиение."; renderDf(); }
+      });
+    });
+    if ($("df-next")) { $("df-next").addEventListener("click", nextDf); $("df-next").focus(); }
+  }
+  function dfKey(k) {
+    var D = math.df; if (!D || (D.phase !== "steps" && D.phase !== "direct")) return;
+    if (k === "del") D.input = D.input.slice(0, -1);
+    else if (k === "ok") {
+      if (!D.input) return;
+      var it = D.items[D.i], val = parseInt(D.input, 10);
+      if (D.phase === "direct") {
+        if (val === it.ans) { D.phase = "done"; }
+        else { D.errors++; D.usedHint = true; D.phase = "path"; D.hint = ""; }
+        D.input = ""; renderDf(); return;
+      }
+      var st = dfSteps(it, D.path)[D.stepIdx];
+      if (val === st.a) {
+        D.stepIdx++; D.input = ""; D.hint = "";
+        if (D.stepIdx >= 3) D.phase = "done";
+      } else {
+        D.errors++; D.input = "";
+        D.hint = D.stepIdx === 2 ? "Сложи две части: " + st.q + "." : it.kind === "boss" ? "Посмотри на точки этого цвета и посчитай ряды: " + st.q + "." : "Подумай: " + st.q + ". Можно убрать ноль, посчитать и вернуть его.";
+      }
+      renderDf(); return;
+    }
+    else if (/^[0-9]$/.test(k) && D.input.length < 3) D.input += k;
+    var el = $("df-ans"); if (el) el.textContent = D.input;
+  }
+  document.addEventListener("keydown", function (e) {
+    if (current === "math" && math.df && (math.df.phase === "steps" || math.df.phase === "direct")) {
+      if (/^[0-9]$/.test(e.key)) { dfKey(e.key); e.preventDefault(); }
+      else if (e.key === "Backspace") { dfKey("del"); e.preventDefault(); }
+      else if (e.key === "Enter") { dfKey("ok"); e.preventDefault(); }
+    }
+  });
+  function nextDf() {
+    var D = math.df, it = D.items[D.i], today = dayKey(), clean = !D.errors && !D.usedHint;
+    if (clean) D.noHint++;
+    if (it.kind === "boss") {
+      var df = dfData(), k = bossKey(it.r, it.c), s = df.facts[k] || { lvl: 0, ok: 0 };
+      if (clean) {
+        if (s.lvl >= 2 && D.phase === "done" && !D.path) { if (s.okDay !== today) { s.ok = (s.ok || 0) + 1; s.okDay = today; } }
+        else if (s.upDay !== today) { s.lvl = Math.min(2, (s.lvl || 0) + 1); s.upDay = today; }
+      } else if (D.errors) s.lvl = Math.max(0, (s.lvl || 0) - 1);
+      s.day = today; df.facts[k] = s;
+    }
+    save("math");
+    D.i++;
+    if (D.i >= D.items.length) { finishDf(); return; }
+    prepDfItem(); renderDf();
+  }
+  function finishDf() {
+    var D = math.df; math.df = null; if (!D) { renderMath(); return; }
+    var n = D.i;
+    if (n) { var df = dfData(); df.sessions.push({ d: dayKey(), mode: D.mode, n: n, clean: D.noHint }); trim(df.sessions, 300); save("math"); }
+    if (!n) { renderMath(); return; }
+    var beaten = BOSSES.filter(function (p) { return bossState(p[0], p[1]).ok >= 2; }).length;
+    $("view-math").innerHTML = '<div class="panel"><h2>' + (D.mode === "two" ? "Двузначные решены" : "Боссы пройдены") + "</h2>" +
+      '<div class="stats">' + stat(D.noHint + " из " + n, "без подсказок и ошибок") + (D.mode === "boss" ? stat(beaten + " из 15", "боссов побеждено") : "") + "</div>" +
+      '<p class="muted">Подсказки будут исчезать постепенно: сначала массив без подписей, потом только пример. Босс побеждён, когда ты дважды, в разные дни, решишь его по памяти.</p>' +
+      '<div class="row"><button class="btn gold" id="df-again" type="button">Ещё раз</button><button class="btn ghost" id="df-home" type="button">Назад</button></div></div>';
+    $("df-again").addEventListener("click", function () { startDf(D.mode); });
+    $("df-home").addEventListener("click", function () { renderMath(); });
+    renderHeader();
+  }
+
+  function dfProgressHTML() {
+    var df = dfData(); if (!df.sessions.length) return "";
+    var beaten = BOSSES.filter(function (p) { return bossState(p[0], p[1]).ok >= 2; }).length;
+    var last = df.sessions.slice(-6), n = last.reduce(function (x, y) { return x + y.n; }, 0), c = last.reduce(function (x, y) { return x + y.clean; }, 0);
+    return '<div class="panel"><h3>Опорные факты</h3><div class="stats">' + stat(beaten + " из 15", "боссов таблицы побеждено") + stat(n ? Math.round(c / n * 100) + "%" : "—", "примеров без подсказок и ошибок (последние раунды)") + "</div>" +
+      '<p class="muted small">Здесь главное — умеет ли он сам разрезать трудный пример на лёгкие. Хвалите за выбранный путь, а не за скорость.</p></div>';
+  }
 
   /* ---------- word problems from the game ("Задачи бравлера"); numbers are made up ---------- */
   var WP_ROUND = 3;
@@ -1986,7 +2255,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
         }).join("") + '</div><p class="muted small">Полоса — доля верных ответов. Время ответа ребёнку не показывается, оно только для вас: обычное время в последнем раунде ' + (meds.length ? fmtSec(meds[meds.length - 1]) : "—") + (meds.length > 1 ? ", в первом из показанных " + fmtSec(meds[0]) : "") + ". Уверенное знание — около 3 секунд.</p>" : '<p class="muted">Раундов пока не было. Первый раунд — на вкладке «Счёт».</p>') +
         mapHTML("m") + legendHTML() +
       "</div>" +
-      gamesProgressHTML() + wpProgressHTML() + huntProgressHTML() +
+      gamesProgressHTML() + dfProgressHTML() + wpProgressHTML() + huntProgressHTML() +
       '<div class="panel"><h3>Слова</h3><div class="stats">' + ["dict", "check", "tsya", "own"].filter(function (c) { return byCat[c]; }).map(function (c) { return stat(byCat[c].m + " / " + byCat[c].n, CATS[c].toLowerCase() + " освоено"); }).join("") + "</div>" +
         (hardWords.length ? '<p class="muted">Трудные слова (ошибался несколько раз):</p><div class="wordlist">' + hardWords.map(function (w) { return '<span data-b="1">' + esc(w) + "</span>"; }).join("") + "</div>" : '<p class="muted">Трудных слов пока нет.</p>') +
       "</div>" +
@@ -2022,7 +2291,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
   }
 
   /* ---------- boot ---------- */
-  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); if (current === "games" && !games.spinning) renderGames(); }
+  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl && !math.df) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); if (current === "games" && !games.spinning) renderGames(); }
   renderAll();
   try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "games", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
   try { var hs = (location.hash || "").slice(1); if (["math", "read", "words", "games", "prog"].indexOf(hs) >= 0) showTab(hs); } catch (e) {}
