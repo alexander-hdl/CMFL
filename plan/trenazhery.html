@@ -157,6 +157,35 @@ details.names summary { cursor: pointer; font-weight: 700; }
 .names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
 .author .target { font-family: var(--f-display); font-weight: 400; font-size: 1.6rem; color: var(--gold); }
 
+/* Hunt and word family */
+.modebar { margin-bottom: 4px; }
+.sentence { background: var(--paper); color: #1b2333; border-radius: 14px; padding: 16px; font-size: 1.4rem; line-height: 2.1; font-weight: 700; }
+.sentence .tok { font: inherit; color: inherit; background: transparent; border: 2px solid transparent; border-radius: 8px; padding: 0 3px; cursor: pointer; line-height: 1.4; }
+.sentence .tok:hover { border-color: #c9d3e6; }
+.sentence .tok.sel { background: #ffe9a8; border-color: #e0a92a; }
+.sentence .tok.found { background: #c9f2d8; border-color: #2e9e5b; }
+.sentence .tok.missed { border: 2px dashed #e07a1f; background: #ffe7cf; }
+.sentence .tok.fp { background: #e7e9ee; color: #737b8c; text-decoration: line-through; }
+.sentence .tok.cur { outline: 3px solid #2457d6; outline-offset: 1px; }
+.sentence .tok[disabled] { cursor: default; }
+.sentence .punct { margin-left: -5px; }
+.sentence .hot, .big-word .hot { background: var(--gold); color: var(--gold-ink); border-radius: 5px; padding: 0 2px; }
+.sentence .gapw.cur { outline: 3px solid #2457d6; border-radius: 6px; padding: 0 2px; }
+.sentence .gap, .big-word .gap { display: inline-block; min-width: 1.1em; border-bottom: 3px solid #e0a92a; text-align: center; color: #e0a92a; }
+.big-word { font-family: var(--f-display); font-size: clamp(2rem, 9vw, 3rem); text-align: center; letter-spacing: 0.04em; }
+.hunt-card { display: grid; gap: 10px; background: var(--panel-2); border-radius: 14px; padding: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chipwrap { display: inline-flex; gap: 2px; align-items: center; }
+.chipw { border: 2px solid var(--line); background: var(--paper); color: #1b2333; border-radius: 12px; padding: 8px 14px; font-weight: 800; font-size: 1.15rem; cursor: pointer; }
+.chipw.static { cursor: default; }
+.chipw.imp { background: var(--panel-2); color: var(--muted); text-decoration: line-through; }
+.spk { border: 0; background: transparent; cursor: pointer; font-size: 1.1rem; padding: 4px; }
+.acc { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 3px; text-decoration-color: #e0a92a; }
+.btn.chk { font-size: 1.25rem; }
+.big-end { font-family: var(--f-display); font-size: 1.6rem; min-width: 110px; }
+.lg { display: inline-block; padding: 1px 8px; border-radius: 6px; margin-right: 6px; color: #1b2333; }
+.lg.found { background: #c9f2d8; } .lg.missed { background: #ffe7cf; border: 1px dashed #e07a1f; } .lg.fp { background: #e7e9ee; text-decoration: line-through; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -302,7 +331,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     { id: "d4", w: "вОрона", cat: "dict" }, { id: "d5", w: "сОрока", cat: "dict" }, { id: "d6", w: "кАпуста", cat: "dict" },
     { id: "d7", w: "кАрАндаш", cat: "dict" }, { id: "d8", w: "хОрОшо", cat: "dict" }, { id: "d9", w: "рАбота", cat: "dict" },
     { id: "d10", w: "тЕтрадь", cat: "dict" }, { id: "d11", w: "пЕнал", cat: "dict" }, { id: "d12", w: "бЕрёза", cat: "dict" },
-    { id: "d13", w: "мОроз", cat: "dict" }, { id: "d14", w: "рЕбята", cat: "dict" }, { id: "d15", w: "гОрод", cat: "dict" },
+    { id: "d13", w: "мОроз", cat: "dict" }, { id: "d14", w: "рЕбята", cat: "dict" }, { id: "d15", w: "горОд", cat: "dict" },
     // проверяемые
     { id: "c1", w: "вОда", cat: "check", hint: "во́ды" }, { id: "c2", w: "лИса", cat: "check", hint: "ли́сы" },
     { id: "c3", w: "трАва", cat: "check", hint: "тра́вы" }, { id: "c4", w: "зИма", cat: "check", hint: "зи́мы" },
@@ -1049,7 +1078,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
   /* =====================================================================
      WORDS
      ===================================================================== */
-  var words = { cat: "all", paper: true, round: null };
+  var words = { cat: "all", paper: true, round: null, mode: "dict", hunt: null, fam: null, huntTheme: "a" };
   try { var wc = localStorage.getItem(LS + "wcat"); if (wc) words.cat = wc; words.paper = localStorage.getItem(LS + "paper") !== "0"; } catch (e) {}
   var WROUND = 8;
   function wordPool() { return allWords().filter(function (w) { return words.cat === "all" || w.cat === words.cat; }); }
@@ -1067,14 +1096,19 @@ details.names summary { cursor: pointer; font-weight: 700; }
     return shuffle(chosen);
   }
   function renderWords() {
-    var v = $("view-words");
     if (words.round) return renderWordRound();
+    if (words.mode === "hunt") return renderHunt();
+    if (words.mode === "fam") return renderFam();
+    return renderDictHome();
+  }
+  function renderDictHome() {
+    var v = $("view-words");
     var pool = wordPool(), prog = data.words.prog;
     var masteredN = pool.filter(function (w) { return prog[w.id] && prog[w.id].b >= 4; }).length;
     var catBtns = ["all", "dict", "check", "tsya", "own"].map(function (c) {
       return '<button type="button" data-cat="' + c + '" aria-pressed="' + (words.cat === c) + '">' + (c === "all" ? "Все" : CATS[c]) + "</button>";
     }).join("");
-    v.innerHTML = '<div class="panel">' +
+    v.innerHTML = '<div class="panel">' + modeBar() +
       "<h2>Слова-трофеи</h2>" +
       '<p class="muted">8 слов. Слушаешь, пишешь, потом сам сверяешь по буквам. Трудные слова будут возвращаться, пока не станут твоими.</p>' +
       '<div><p class="small muted" style="margin-bottom:6px">Тема (лучше одна за раз):</p><div class="seg" id="w-cats">' + catBtns + "</div></div>" +
@@ -1096,6 +1130,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
     $("w-paper").addEventListener("click", function () { words.paper = true; try { localStorage.setItem(LS + "paper", "1"); } catch (e) {} renderWords(); });
     $("w-pen").addEventListener("click", function () { words.paper = false; try { localStorage.setItem(LS + "paper", "0"); } catch (e) {} renderWords(); });
     $("w-start").addEventListener("click", startWords);
+    bindModeBar();
     $("nw-add").addEventListener("click", function () {
       var w = $("nw-word").value.trim().replace(/\s+/g, "");
       if (!w || !/^[А-Яа-яЁё-]+$/.test(w)) { $("nw-msg").textContent = "Нужно одно слово русскими буквами."; return; }
@@ -1188,6 +1223,362 @@ details.names summary { cursor: pointer; font-weight: 700; }
     renderHeader();
   }
 
+
+  /* =====================================================================
+     WORDS: "Охота на орфограммы" and "Семейка слов"
+     In theme A every unstressed root vowel in a sentence is marked:
+     {word:type:letterIndexes:checkWord:wrongCheck}; type c = checkable, d = dictionary word.
+     In theme B every verb on -ся is marked: {word:t} = -тся, {word:tt} = -ться.
+     ===================================================================== */
+  var HUNT_A = [
+    "{Корова:d:1} пьёт воду.",
+    "{Лиса:c:1:ли́сы:лисёнок} {бежит:c:1:бег:бегу́} в лес.",
+    "{Зимой:c:1:зи́мы:зимо́вка} в {саду:c:1:сад:садово́д} тихо.",
+    "Мальчик взял {тетрадь:d:1}.",
+    "{Звезда:c:2:звёзды:звездочёт} светит над {горой:c:1:го́ры:гори́стый}.",
+    "{Трава:c:2:тра́вы:травяно́й} стала мокрой.",
+    "{Собака:d:1} спит у дома.",
+    "{Ворона:d:1} села на {берёзу:d:1}.",
+    "{Река:c:1:ре́ки:речно́й} {блестит:c:2:блеск:блестя́щий} в {лесу:c:1:лес:лесно́й}.",
+    "Мы нашли {грибы:c:2:гриб:грибно́й} в {траве:c:2:тра́вы:травяно́й}.",
+    "{Хорошо:d:1,3} {играть:c:0:и́гры:игру́шка} с {ребятами:d:1}.",
+    "{Город:d:3} проснулся рано.",
+    "{Молоко:d:1,3} {стоит:c:2:сто́йка:стоя́ть} на {столе:c:2:стол:столо́вая}.",
+    "Мама {купила:c:1:ку́пит:покупа́ть} {капусту:d:1}.",
+    "{Сорока:d:1} {трещит:c:2:треск:трещо́тка} на заборе.",
+    "{Карандаш:d:1,3} упал под стол.",
+    "Мой {пенал:d:1} синий."
+  ];
+  var HUNT_B = [
+    "Боец {прячется:t} в кустах.",
+    "Ему надо {спрятаться:tt} за камнем.",
+    "Мяч {катится:t} по полю.",
+    "Пора {собираться:tt} в школу.",
+    "Кот не {боится:t} собаки.",
+    "С друзьями не надо {ссориться:tt}.",
+    "Тимур {готовится:t} к матчу.",
+    "Он хочет {научиться:tt} плавать.",
+    "Солнце {садится:t} за лесом.",
+    "Нужно {умываться:tt} каждое утро.",
+    "Команда {собирается:t} в лобби.",
+    "Я люблю {кататься:tt} на велосипеде.",
+    "Брат {учится:t} плавать и хочет {научиться:tt} нырять."
+  ];
+  var FAMS = [
+    { gap: "в_да", ans: "о", alt: "а", root: "вод", m: [["во́ды", 1], ["водяно́й", 0], ["подво́дный", 1], ["водопа́д", 0]], imp: "води́тель" },
+    { gap: "л_сник", ans: "е", alt: "и", root: "лес", m: [["лес", 1], ["лесно́й", 0], ["переле́сок", 1]], imp: "ле́сенка" },
+    { gap: "г_ра", ans: "о", alt: "а", root: "гор", m: [["го́ры", 1], ["го́рка", 1], ["гори́стый", 0], ["приго́рок", 1]], imp: "горе́ть" },
+    { gap: "тр_ва", ans: "а", alt: "о", root: "трав", m: [["тра́вы", 1], ["тра́вка", 1], ["травяно́й", 0]], imp: "тра́ктор" },
+    { gap: "з_ма", ans: "и", alt: "е", root: "зим", m: [["зи́мы", 1], ["зи́мний", 1], ["зимо́вка", 0]], imp: "земля́" },
+    { gap: "гр_бной", ans: "и", alt: "е", root: "гриб", m: [["гриб", 1], ["грибо́к", 0], ["грибни́к", 0]], imp: "гре́бень" },
+    { gap: "зв_зда", ans: "е", alt: "и", root: "звезд / звёзд", m: [["звёзды", 1], ["звёздочка", 1], ["звездопа́д", 0]], imp: "зверь", note: "Если в проверочном слове ё, пишем е: звёзды → звезда." },
+    { gap: "р_ка", ans: "е", alt: "и", root: "рек / реч", m: [["ре́ки", 1], ["ре́чка", 1], ["речно́й", 0]], imp: "ре́зать" },
+    { gap: "с_ды", ans: "а", alt: "о", root: "сад", m: [["сад", 1], ["са́дик", 1], ["садо́вник", 0]], imp: "сади́ться" },
+    { gap: "л_са", ans: "и", alt: "е", root: "лис", m: [["ли́сы", 1], ["ли́сий", 1], ["лисёнок", 0], ["лиси́ца", 0]], imp: "ли́стья" },
+    { gap: "ст_лы", ans: "о", alt: "а", root: "стол", m: [["стол", 1], ["сто́лик", 1], ["столо́вая", 0]], imp: "столе́тие" },
+    { gap: "сн_га", ans: "е", alt: "и", root: "снег / снеж", m: [["снег", 1], ["сне́жный", 1], ["снегови́к", 0]], imp: "сни́ться" }
+  ];
+  var ACC = "́";
+  function noAcc(s) { return s.split(ACC).join(""); }
+  function accHTML(s) { return esc(s).replace(new RegExp("(.)" + ACC, "g"), '<span class="acc">$1</span>'); }
+
+  function parseSent(s) {
+    var out = [], re = /\{([^}]+)\}|([^{}]+)/g, m;
+    while ((m = re.exec(s))) {
+      if (m[1]) {
+        var p = m[1].split(":");
+        out.push({ w: p[0], word: true, mark: { k: p[1], i: (p[2] || "").split(",").filter(Boolean).map(Number), chk: p[3] || "", wrong: p[4] || "" } });
+      } else {
+        (m[2].match(/[А-Яа-яЁё-]+|[^А-Яа-яЁё-]+/g) || []).forEach(function (x) { out.push({ w: x, word: /[А-Яа-яЁё]/.test(x), mark: null }); });
+      }
+    }
+    return out;
+  }
+  function modeBar() {
+    var mode = words.mode || "dict";
+    return '<div class="seg modebar" role="group" aria-label="Тренажёр слов">' +
+      '<button type="button" data-wm="dict" aria-pressed="' + (mode === "dict") + '">Диктант</button>' +
+      '<button type="button" data-wm="hunt" aria-pressed="' + (mode === "hunt") + '">Охота на орфограммы</button>' +
+      '<button type="button" data-wm="fam" aria-pressed="' + (mode === "fam") + '">Семейка слов</button></div>';
+  }
+  function bindModeBar() {
+    document.querySelectorAll("[data-wm]").forEach(function (b) {
+      b.addEventListener("click", function () { words.mode = b.getAttribute("data-wm"); words.hunt = null; words.fam = null; try { localStorage.setItem(LS + "wmode", words.mode); } catch (e) {} renderWords(); });
+    });
+  }
+  try { var wm = localStorage.getItem(LS + "wmode"); if (wm === "hunt" || wm === "fam" || wm === "dict") words.mode = wm; } catch (e) {}
+  function pickIdx(n, k) { var a = []; for (var i = 0; i < n; i++) a.push(i); return shuffle(a).slice(0, k); }
+  function hiWord(w, idx) { return w.split("").map(function (ch, j) { return idx.indexOf(j) >= 0 ? '<span class="hot">' + esc(ch) + "</span>" : esc(ch); }).join(""); }
+
+  /* ---------- hunt ---------- */
+  function renderHunt() {
+    var v = $("view-words"), H = words.hunt;
+    if (!H) {
+      var last = (data.words.hunt || []).slice(-1)[0];
+      v.innerHTML = '<div class="panel">' + modeBar() +
+        "<h2>Охота на орфограммы</h2>" +
+        '<p class="muted">Найди в предложении опасные места, а потом реши, как их проверить. Так глаза учатся замечать, где можно ошибиться, ещё до того, как ты напишешь слово.</p>' +
+        '<div class="seg" role="group" aria-label="Тема">' +
+          '<button type="button" data-ht="a" aria-pressed="' + (words.huntTheme !== "b") + '">Безударные в корне</button>' +
+          '<button type="button" data-ht="b" aria-pressed="' + (words.huntTheme === "b") + '">-тся / -ться</button>' +
+        "</div>" +
+        '<div class="row"><button class="btn gold" id="h-start" type="button">Начать охоту</button>' + (last ? '<span class="muted small">в прошлый раз найдено ' + last.found + " из " + last.total + "</span>" : "") + "</div>" +
+        "</div>";
+      bindModeBar();
+      v.querySelectorAll("[data-ht]").forEach(function (b) { b.addEventListener("click", function () { words.huntTheme = b.getAttribute("data-ht"); try { localStorage.setItem(LS + "htheme", words.huntTheme); } catch (e) {} renderHunt(); }); });
+      $("h-start").addEventListener("click", function () {
+        var theme = words.huntTheme === "b" ? "b" : "a", src = theme === "b" ? HUNT_B : HUNT_A;
+        words.hunt = { theme: theme, list: pickIdx(src.length, 4).map(function (i) { return src[i]; }), i: 0, phase: theme === "b" ? "gap" : "find", sel: {}, q: [], qi: 0, stats: { total: 0, found: 0, fp: 0, n: 0, ok: 0 } };
+        startSentence();
+        renderHunt();
+      });
+      return;
+    }
+    var toks = H.toks, dots = '<div class="dots">' + H.list.map(function (_, j) { return '<i class="' + (j < H.i ? "ok" : j === H.i ? "cur" : "") + '"></i>'; }).join("") + "</div>";
+    if (H.theme === "a") return renderHuntA(v, H, toks, dots);
+    return renderHuntB(v, H, toks, dots);
+  }
+  try { var ht = localStorage.getItem(LS + "htheme"); if (ht === "a" || ht === "b") words.huntTheme = ht; } catch (e) {}
+  function startSentence() {
+    var H = words.hunt;
+    H.toks = parseSent(H.list[H.i]); H.sel = {}; H.qi = 0; H.hint = ""; H.step = "type";
+    H.q = []; H.toks.forEach(function (t, j) { if (t.mark) H.q.push(j); });
+    H.phase = H.theme === "b" ? "gap" : "find";
+  }
+  function renderHuntA(v, H, toks, dots) {
+    var sent = toks.map(function (t, j) {
+      if (!t.word) return /^[.,!?:;»)]/.test(t.w) ? '<span class="punct">' + esc(t.w) + "</span>" : esc(t.w);
+      var cls = "tok";
+      if (H.phase === "find") cls += H.sel[j] ? " sel" : "";
+      else {
+        if (t.mark && H.sel[j]) cls += " found"; else if (t.mark) cls += " missed"; else if (H.sel[j]) cls += " fp";
+        if (H.phase === "explain" && H.q[H.qi] === j) cls += " cur";
+      }
+      return '<button type="button" class="' + cls + '" data-j="' + j + '"' + (H.phase !== "find" ? " disabled" : "") + ">" + esc(t.w) + "</button>";
+    }).join("");
+    var body = "";
+    if (H.phase === "find") {
+      body = '<p class="ask">Где безударная гласная в корне? Нажми на такие слова.</p>' +
+        '<div class="row" style="justify-content:center"><button class="btn gold" id="h-check" type="button">Проверить</button></div>';
+    } else if (H.phase === "explain") {
+      var t = toks[H.q[H.qi]], mk = t.mark;
+      body = '<div class="hunt-card"><div class="big-word">' + hiWord(t.w.toLowerCase(), mk.i) + "</div>";
+      if (H.step === "type") {
+        body += '<p class="ask">Как проверить эту букву?</p>' + (H.hint ? '<p class="hint">' + esc(H.hint) + "</p>" : "") +
+          '<div class="row" style="justify-content:center"><button class="btn ghost" type="button" data-ty="c">Подобрать проверочное</button><button class="btn ghost" type="button" data-ty="d">Словарное — запоминаем</button></div>';
+      } else if (H.step === "chk") {
+        var opts = shuffle([mk.chk, mk.wrong]);
+        body += '<p class="ask">Какое слово проверочное?</p><p class="muted small" style="text-align:center">В проверочном слове эта гласная стоит под ударением. Ударная буква подчёркнута.</p>' + (H.hint ? '<p class="hint">' + esc(H.hint) + "</p>" : "") +
+          '<div class="row" style="justify-content:center">' + opts.map(function (o) { return '<button class="btn ghost chk" type="button" data-ck="' + esc(o) + '">' + accHTML(o) + "</button>"; }).join("") + "</div>";
+      } else if (H.step === "dict") {
+        var added = allWords().some(function (x) { return plain(x.w) === t.w.toLowerCase(); });
+        body += (H.hint ? '<p class="hint">' + esc(H.hint) + "</p>" : "") + '<p class="ask">Это слово-пароль</p><p style="text-align:center">Проверить его нельзя, его запоминают. Трудное место выделено жёлтым.</p>' +
+          '<div class="row" style="justify-content:center">' + (added ? '<span class="muted small">Это слово уже есть в диктанте.</span>' : '<button class="btn ghost" type="button" id="h-add">Добавить в диктант</button>') + '<button class="btn gold" type="button" id="h-next">Дальше</button></div>';
+      } else if (H.step === "okchk") {
+        body += '<p class="ask" style="color:var(--good)">Верно!</p><p style="text-align:center">' + accHTML(mk.chk) + " → пишем <b>" + esc(t.w.toLowerCase().charAt(mk.i[0])) + "</b></p>" +
+          '<div class="row" style="justify-content:center"><button class="btn gold" type="button" id="h-next">Дальше</button></div>';
+      }
+      body += "</div>";
+    } else if (H.phase === "result") {
+      body = '<p class="ask">' + esc(H.resultText) + "</p>" + '<p class="legend small"><span class="lg found">нашёл</span><span class="lg missed">пропустил</span><span class="lg fp">здесь нет безударной в корне</span></p>' +
+        '<div class="row" style="justify-content:center"><button class="btn gold" type="button" id="h-go">' + (H.q.length ? "Разберём, как проверить" : "Дальше") + "</button></div>";
+    }
+    v.innerHTML = '<div class="panel">' + dots + '<div class="sentence">' + sent + "</div>" + body +
+      '<div class="row" style="justify-content:center"><button class="btn ghost" id="h-stop" type="button">Закончить</button></div></div>';
+    $("h-stop").addEventListener("click", finishHunt);
+    if (H.phase === "find") {
+      v.querySelectorAll(".tok").forEach(function (b) { b.addEventListener("click", function () { var j = b.getAttribute("data-j"); if (H.sel[j]) delete H.sel[j]; else H.sel[j] = true; b.classList.toggle("sel"); }); });
+      $("h-check").addEventListener("click", function () {
+        var total = H.q.length, found = H.q.filter(function (j) { return H.sel[j]; }).length, fp = Object.keys(H.sel).filter(function (j) { return !toks[j].mark; }).length;
+        H.stats.total += total; H.stats.found += found; H.stats.fp += fp;
+        H.resultText = found === total && !fp ? "Все опасные места найдены!" : "Найдено " + found + " из " + total + (fp ? ". Лишних отметок: " + fp : "") + ".";
+        H.phase = "result"; renderHunt();
+      });
+    }
+    if (H.phase === "result") $("h-go").addEventListener("click", function () { if (H.q.length) { H.phase = "explain"; H.step = "type"; H.qi = 0; H.hint = ""; renderHunt(); } else nextSentence(); });
+    if (H.phase === "explain") {
+      var tk = toks[H.q[H.qi]], m2 = tk.mark;
+      v.querySelectorAll("[data-ty]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var ty = b.getAttribute("data-ty"); H.stats.n++;
+          if (ty === m2.k) H.stats.ok++;
+          if (m2.k === "c") { H.hint = ty === "c" ? "" : "Это слово можно проверить! Измени его так, чтобы гласная стала ударной."; H.step = "chk"; }
+          else { H.step = "dict"; H.hint = ""; if (ty === "c") H.hint = "Проверочного слова тут нет, как ни меняй. Такие слова запоминают."; }
+          renderHunt();
+        });
+      });
+      v.querySelectorAll("[data-ck]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (b.getAttribute("data-ck") === m2.chk) { H.step = "okchk"; H.hint = ""; renderHunt(); }
+          else { H.hint = "В слове «" + noAcc(m2.wrong) + "» эта гласная тоже без ударения, значит, оно не проверяет. Выбери другое."; renderHunt(); }
+        });
+      });
+      if ($("h-add")) $("h-add").addEventListener("click", function () {
+        var w = tk.w.toLowerCase().split("").map(function (ch, j) { return m2.i.indexOf(j) >= 0 ? ch.toUpperCase() : ch; }).join("");
+        data.words.custom.push({ id: "u" + Date.now().toString(36), w: w, cat: "own", s: "", hint: "словарное слово" });
+        save("words"); $("h-add").outerHTML = '<span class="muted small">Добавлено в «Мои слова».</span>';
+      });
+      if ($("h-next")) $("h-next").addEventListener("click", function () { H.qi++; H.step = "type"; H.hint = ""; if (H.qi >= H.q.length) nextSentence(); else renderHunt(); });
+    }
+  }
+  function renderHuntB(v, H, toks, dots) {
+    var cur = H.q[H.qi], t = toks[cur];
+    var sent = toks.map(function (tk, j) {
+      if (!tk.mark) return esc(tk.w);
+      var end = tk.mark.k === "tt" ? "ться" : "тся", stem = tk.w.slice(0, tk.w.length - end.length);
+      var done = H.q.indexOf(j) < H.qi || (j === cur && H.step === "done");
+      return '<span class="gapw' + (j === cur ? " cur" : "") + '">' + esc(stem) + (done ? '<span class="hot">' + esc(end.slice(0, -2)) + "</span>ся" : '<span class="gap">…</span>ся') + "</span>";
+    }).join("");
+    var body = "";
+    if (H.step === "type") {
+      body = '<p class="ask">Задай вопрос к выделенному слову</p>' + (H.hint ? '<p class="hint">' + esc(H.hint) + "</p>" : "") +
+        '<div class="row" style="justify-content:center"><button class="btn ghost" type="button" data-q="t">Что делает? <span class="muted small">(что сделает?)</span></button><button class="btn ghost" type="button" data-q="tt">Что делать? <span class="muted small">(что сделать?)</span></button></div>';
+    } else if (H.step === "end") {
+      body = '<p class="ask">Какое окончание?</p><p class="muted small" style="text-align:center">Есть мягкий знак в вопросе — есть и в слове.</p>' + (H.hint ? '<p class="hint">' + esc(H.hint) + "</p>" : "") +
+        '<div class="row" style="justify-content:center"><button class="btn ghost big-end" type="button" data-e="t">-тся</button><button class="btn ghost big-end" type="button" data-e="tt">-ться</button></div>';
+    } else if (H.step === "done") {
+      body = '<p class="ask" style="color:var(--good)">Верно: ' + esc(t.w) + "</p>" +
+        '<div class="row" style="justify-content:center"><button class="btn gold" type="button" id="h-next">Дальше</button></div>';
+    }
+    v.innerHTML = '<div class="panel">' + dots + '<div class="sentence">' + sent + "</div>" + body +
+      '<div class="row" style="justify-content:center"><button class="btn ghost" id="h-stop" type="button">Закончить</button></div></div>';
+    $("h-stop").addEventListener("click", finishHunt);
+    v.querySelectorAll("[data-q]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var q = b.getAttribute("data-q");
+        if (!H.firstTry) { H.firstTry = true; H.stats.n++; if (q === t.mark.k) H.stats.ok++; }
+        if (q === t.mark.k) { H.step = "end"; H.hint = ""; }
+        else H.hint = t.mark.k === "t" ? "Подставь вопрос в предложение: «Мяч что делает? — катится». Вопрос без ь." : "Подставь вопрос в предложение: «Надо что делать? — собираться». Вопрос с ь.";
+        renderHunt();
+      });
+    });
+    v.querySelectorAll("[data-e]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var e = b.getAttribute("data-e");
+        if (!H.endTried) { H.endTried = true; H.stats.total++; if (e === t.mark.k) H.stats.found++; }
+        if (e === t.mark.k) { H.step = "done"; H.hint = ""; }
+        else H.hint = "Посмотри на вопрос: " + (t.mark.k === "t" ? "в «что делает?» мягкого знака нет." : "в «что делать?» мягкий знак есть.");
+        renderHunt();
+      });
+    });
+    if ($("h-next")) $("h-next").addEventListener("click", function () { H.qi++; H.step = "type"; H.hint = ""; H.firstTry = false; H.endTried = false; if (H.qi >= H.q.length) nextSentence(); else renderHunt(); });
+  }
+  function nextSentence() {
+    var H = words.hunt; H.i++;
+    if (H.i >= H.list.length) { finishHunt(); return; }
+    startSentence(); renderHunt();
+  }
+  function finishHunt() {
+    var H = words.hunt; words.hunt = null; if (!H) { renderWords(); return; }
+    var s = H.stats;
+    if (s.total || s.n) {
+      data.words.hunt = data.words.hunt || [];
+      data.words.hunt.push({ d: dayKey(), theme: H.theme, total: s.total, found: s.found, fp: s.fp, n: s.n, ok: s.ok });
+      trim(data.words.hunt, 300); save("words");
+    }
+    $("view-words").innerHTML = '<div class="panel">' + modeBar() + "<h2>Охота окончена</h2>" +
+      '<div class="stats">' +
+        (H.theme === "a" ? stat(s.found + " из " + s.total, "опасных мест найдено") + stat(s.ok + " из " + s.n, "способ проверки выбран сразу") : stat(s.ok + " из " + s.n, "вопрос задан сразу верно") + stat(s.found + " из " + s.total, "окончаний сразу верно")) +
+      "</div>" +
+      '<div class="row"><button class="btn gold" id="h-again" type="button">Ещё охота</button></div></div>';
+    bindModeBar();
+    $("h-again").addEventListener("click", function () { renderWords(); var b = $("h-start"); if (b) b.click(); });
+    renderHeader();
+  }
+
+  /* ---------- word family ---------- */
+  function renderFam() {
+    var v = $("view-words"), F = words.fam;
+    if (!F) {
+      var last = (data.words.fam || []).slice(-1)[0];
+      v.innerHTML = '<div class="panel">' + modeBar() +
+        "<h2>Семейка слов</h2>" +
+        '<p class="muted">У родственных слов общий корень, и пишется он одинаково. Найди лишнее слово, которое только притворяется родственником, выбери проверочное и вставь букву.</p>' +
+        '<div class="row"><button class="btn gold" id="f-start" type="button">4 семейки</button>' + (last ? '<span class="muted small">в прошлый раз букв верно: ' + last.letter + " из " + last.n + "</span>" : "") + "</div></div>";
+      bindModeBar();
+      $("f-start").addEventListener("click", function () { words.fam = { list: pickIdx(FAMS.length, 4), i: 0, phase: "imp", hint: "", stats: { n: 0, imp: 0, chk: 0, letter: 0 }, miss: {} }; prepFam(); renderFam(); });
+      return;
+    }
+    var f = FAMS[F.list[F.i]];
+    var dots = '<div class="dots">' + F.list.map(function (_, j) { return '<i class="' + (j < F.i ? "ok" : j === F.i ? "cur" : "") + '"></i>'; }).join("") + "</div>";
+    var target = F.phase === "done" ? f.gap.replace("_", '<span class="hot">' + f.ans + "</span>") : esc(f.gap).replace("_", '<span class="gap">_</span>');
+    var body = "";
+    if (F.phase === "imp") {
+      body = '<p class="ask">Найди лишнее слово: оно только похоже</p>' + (F.hint ? '<p class="hint">' + esc(F.hint) + "</p>" : "") +
+        '<div class="chips">' + F.cloud.map(function (w) { return '<button type="button" class="chipw" data-fw="' + esc(w) + '">' + esc(noAcc(w)) + "</button>"; }).join("") + "</div>";
+    } else if (F.phase === "chk") {
+      body = '<p class="ask">Какое слово проверочное?</p><p class="muted small" style="text-align:center">В нём гласная корня под ударением. Произнеси слова вслух или нажми на динамик.</p>' + (F.hint ? '<p class="hint">' + F.hint + "</p>" : "") +
+        '<div class="chips">' + f.m.map(function (mm) { return '<span class="chipwrap"><button type="button" class="chipw" data-fc="' + esc(mm[0]) + '">' + (F.showAcc[mm[0]] ? accHTML(mm[0]) : esc(noAcc(mm[0]))) + '</button><button type="button" class="spk" data-say="' + esc(noAcc(mm[0])) + '" aria-label="Послушать">🔊</button></span>'; }).join("") + "</div>";
+    } else if (F.phase === "letter") {
+      body = '<p class="ask">Какую букву вставим?</p>' + (F.hint ? '<p class="hint">' + esc(F.hint) + "</p>" : "") +
+        '<div class="row" style="justify-content:center">' + shuffle([f.ans, f.alt]).map(function (l) { return '<button class="btn ghost big-end" type="button" data-fl="' + l + '">' + l + "</button>"; }).join("") + "</div>";
+    } else if (F.phase === "done") {
+      body = '<div class="hunt-card"><p class="ask" style="color:var(--good)">Верно!</p><p style="text-align:center">Корень: <b>-' + esc(f.root) + '-</b></p>' +
+        '<div class="chips">' + f.m.map(function (mm) { return '<span class="chipw static">' + accHTML(mm[0]) + "</span>"; }).join("") + '<span class="chipw static imp">' + esc(noAcc(f.imp)) + " — лишнее</span></div>" +
+        (f.note ? '<p class="note" style="text-align:center">' + esc(f.note) + "</p>" : "") +
+        '<div class="row" style="justify-content:center"><button class="btn gold" type="button" id="f-next">' + (F.i + 1 < F.list.length ? "Следующая семейка" : "Итоги") + "</button></div></div>";
+    }
+    v.innerHTML = '<div class="panel">' + dots + '<div class="big-word">' + target + "</div>" + body +
+      '<div class="row" style="justify-content:center"><button class="btn ghost" id="f-stop" type="button">Закончить</button></div></div>';
+    $("f-stop").addEventListener("click", finishFam);
+    v.querySelectorAll("[data-fw]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var w = b.getAttribute("data-fw");
+        if (w === f.imp) { if (!F.miss.imp) F.stats.imp++; F.phase = "chk"; F.hint = ""; }
+        else { F.miss.imp = true; F.hint = "«" + noAcc(w) + "» — родственник: в нём тот же корень и похожий смысл. Ищи слово, которое только похоже по буквам."; }
+        renderFam();
+      });
+    });
+    v.querySelectorAll("[data-fc]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var w = b.getAttribute("data-fc"), mm = f.m.filter(function (x) { return x[0] === w; })[0];
+        if (mm && mm[1]) { if (!F.miss.chk) F.stats.chk++; F.phase = "letter"; F.hint = ""; F.checkWord = w; }
+        else { F.miss.chk = true; F.showAcc[w] = true; F.hint = "В слове " + accHTML(w) + " ударение падает на другую гласную, а нужная буква без ударения. Выбери другое."; }
+        renderFam();
+      });
+    });
+    v.querySelectorAll("[data-say]").forEach(function (b) { b.addEventListener("click", function () { if (!speak(b.getAttribute("data-say"))) b.textContent = "—"; }); });
+    v.querySelectorAll("[data-fl]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-fl") === f.ans) { if (!F.miss.letter) F.stats.letter++; F.phase = "done"; F.hint = ""; F.stats.n++; }
+        else { F.miss.letter = true; F.hint = "Посмотри на проверочное слово «" + noAcc(F.checkWord || "") + "»: какая там гласная под ударением?"; }
+        renderFam();
+      });
+    });
+    if ($("f-next")) $("f-next").addEventListener("click", function () { F.i++; if (F.i >= F.list.length) { finishFam(); return; } prepFam(); renderFam(); });
+  }
+  function prepFam() {
+    var F = words.fam, f = FAMS[F.list[F.i]];
+    F.phase = "imp"; F.hint = ""; F.miss = {}; F.showAcc = {}; F.checkWord = "";
+    F.cloud = shuffle(f.m.map(function (x) { return x[0]; }).concat([f.imp]));
+  }
+  function finishFam() {
+    var F = words.fam; words.fam = null; if (!F) { renderWords(); return; }
+    var s = F.stats;
+    if (s.n) {
+      data.words.fam = data.words.fam || [];
+      data.words.fam.push({ d: dayKey(), n: s.n, imp: s.imp, chk: s.chk, letter: s.letter });
+      trim(data.words.fam, 300); save("words");
+    }
+    $("view-words").innerHTML = '<div class="panel">' + modeBar() + "<h2>Семейки собраны</h2>" +
+      '<div class="stats">' + stat(s.imp + " из " + s.n, "лишнее найдено сразу") + stat(s.chk + " из " + s.n, "проверочное выбрано сразу") + stat(s.letter + " из " + s.n, "буква вставлена сразу") + "</div>" +
+      '<div class="row"><button class="btn gold" id="f-again" type="button">Ещё 4 семейки</button></div></div>';
+    bindModeBar();
+    $("f-again").addEventListener("click", function () { renderWords(); var b = $("f-start"); if (b) b.click(); });
+    renderHeader();
+  }
+  function huntProgressHTML() {
+    var h = data.words.hunt || [], f = data.words.fam || [];
+    if (!h.length && !f.length) return "";
+    function sum(arr, k) { return arr.reduce(function (s, x) { return s + (x[k] || 0); }, 0); }
+    var ha = h.filter(function (x) { return x.theme === "a"; }), hb = h.filter(function (x) { return x.theme === "b"; });
+    var out = '<div class="panel"><h3>Орфограммы и семейки</h3><div class="stats">';
+    if (ha.length) out += stat(Math.round(sum(ha, "found") / Math.max(1, sum(ha, "total")) * 100) + "%", "безударных в корне найдено при охоте") + stat(Math.round(sum(ha, "ok") / Math.max(1, sum(ha, "n")) * 100) + "%", "способ проверки выбран сразу");
+    if (hb.length) out += stat(Math.round(sum(hb, "ok") / Math.max(1, sum(hb, "n")) * 100) + "%", "-тся/-ться: вопрос сразу верно");
+    if (f.length) out += stat(Math.round(sum(f, "letter") / Math.max(1, sum(f, "n")) * 100) + "%", "семейки: буква сразу верно");
+    return out + '</div><p class="muted small">Если опасные места находятся плохо, это зоркость: больше охоты. Если плохо с выбором проверки — больше семеек.</p></div>';
+  }
+
   /* ---------- pen sheet (works with XP-PEN, mouse or finger) ---------- */
   var sheet = { strokes: [] };
   function sheetHTML(small) {
@@ -1256,7 +1647,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
         }).join("") + '</div><p class="muted small">Полоса — доля верных ответов. Время ответа ребёнку не показывается, оно только для вас: обычное время в последнем раунде ' + (meds.length ? fmtSec(meds[meds.length - 1]) : "—") + (meds.length > 1 ? ", в первом из показанных " + fmtSec(meds[0]) : "") + ". Уверенное знание — около 3 секунд.</p>" : '<p class="muted">Раундов пока не было. Первый раунд — на вкладке «Счёт».</p>') +
         mapHTML("m") + legendHTML() +
       "</div>" +
-      wpProgressHTML() +
+      wpProgressHTML() + huntProgressHTML() +
       '<div class="panel"><h3>Слова</h3><div class="stats">' + ["dict", "check", "tsya", "own"].filter(function (c) { return byCat[c]; }).map(function (c) { return stat(byCat[c].m + " / " + byCat[c].n, CATS[c].toLowerCase() + " освоено"); }).join("") + "</div>" +
         (hardWords.length ? '<p class="muted">Трудные слова (ошибался несколько раз):</p><div class="wordlist">' + hardWords.map(function (w) { return '<span data-b="1">' + esc(w) + "</span>"; }).join("") + "</div>" : '<p class="muted">Трудных слов пока нет.</p>') +
       "</div>" +
@@ -1292,7 +1683,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
   }
 
   /* ---------- boot ---------- */
-  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl) renderMath(); if (reading.view === "list") renderRead(); if (!words.round) renderWords(); if (current === "prog") renderProgress(); }
+  function renderAll() { renderHeader(); if (!math.round && !math.wp && !math.nl) renderMath(); if (reading.view === "list") renderRead(); if (!words.round && !words.hunt && !words.fam) renderWords(); if (current === "prog") renderProgress(); }
   renderAll();
   try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
 

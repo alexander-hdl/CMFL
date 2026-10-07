@@ -18,6 +18,7 @@
   --red-bg: #fbeceb;
   --green: #1d7746;
   --green-bg: #e5f3eb;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
   --margin-line: rgba(196, 47, 40, 0.45);
   --shadow: 0 1px 2px rgba(28, 39, 65, 0.06), 0 4px 14px rgba(28, 39, 65, 0.05);
 
@@ -47,6 +48,8 @@
     --red-bg: #3a2023;
     --green: #63d39b;
     --green-bg: #163327;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
     --margin-line: rgba(255, 128, 119, 0.4);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     color-scheme: dark;
@@ -257,6 +260,58 @@ q { quotes: "«" "»"; }
 .vs > div:nth-last-child(-n+2) { border-bottom: 0; }
 .vs .vh { font-weight: 600; background: var(--paper); }
 
+
+/* Dictation diary */
+.dy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.dy-f { display: grid; gap: 6px; font-weight: 500; font-size: var(--s-sm); }
+.dy-f input { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 42px; width: 100%; min-width: 0; }
+.dy-counters { display: grid; gap: 6px; }
+.dy-counter { display: grid; grid-template-columns: 14px 1fr 44px 40px 44px; gap: 8px; align-items: center; }
+.dy-key { width: 14px; height: 14px; border-radius: 4px; }
+.dy-name { font-size: var(--s-sm); }
+.dy-step { font: inherit; font-size: 1.3rem; font-weight: 600; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+.dy-val { text-align: center; font-variant-numeric: tabular-nums; font-size: 1.2rem; }
+.row-btn { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.dy-msg { font-size: var(--s-sm); font-weight: 600; }
+.dy-msg.ok { color: var(--green); } .dy-msg.err { color: var(--red); }
+.dy-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.dy-tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: grid; gap: 2px; }
+.dy-tl { font-size: var(--s-xs); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.dy-tv b { font-family: var(--f-display); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.dy-tv { font-size: var(--s-sm); color: var(--ink-soft); }
+.dy-ts { font-size: var(--s-xs); font-weight: 600; }
+.dy-down { color: var(--green); } .dy-up { color: var(--red); } .dy-flat { color: var(--muted); }
+.dy-span { grid-column: 1 / -1; }
+.small-note { font-size: var(--s-xs); }
+.dy-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--s-xs); color: var(--ink-soft); }
+.dy-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.dy-chart { position: relative; }
+.dy-chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.dy-gl { stroke: var(--line); stroke-width: 1; }
+.dy-gl.base { stroke: var(--muted); }
+.dy-ax { fill: var(--muted); font-size: 12px; font-family: var(--f-body); font-variant-numeric: tabular-nums; }
+.dy-val-l { fill: var(--ink-soft); font-size: 12px; font-weight: 600; font-family: var(--f-body); }
+.dy-bar { cursor: pointer; outline: none; }
+.dy-bar.on path, .dy-bar.on rect:not(.dy-hit) { stroke: var(--ink); stroke-width: 1.5; }
+.dy-bar:focus-visible .dy-hit { stroke: var(--blue); stroke-width: 2; }
+.dy-tip { position: absolute; z-index: 3; min-width: 190px; max-width: 260px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; box-shadow: var(--shadow); font-size: var(--s-xs); display: grid; gap: 3px; pointer-events: none; }
+.dy-tip-h { color: var(--muted); font-weight: 600; }
+.dy-tip-r { display: flex; gap: 6px; align-items: center; }
+.dy-tip-r i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; }
+.dy-tip-r b { font-variant-numeric: tabular-nums; font-size: var(--s-sm); color: var(--ink); }
+.dy-tip-r span { color: var(--ink-soft); }
+.dy-tip-n { color: var(--muted); font-style: italic; }
+.dy-tablewrap { overflow-x: auto; max-width: 100%; }
+section > *, .card > * { min-width: 0; }
+.dy-table { width: 100%; border-collapse: collapse; font-size: var(--s-xs); font-variant-numeric: tabular-nums; }
+.dy-table th, .dy-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.dy-table th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.dy-where, .dy-note { display: block; color: var(--muted); }
+.dy-note { font-style: italic; max-width: 22ch; }
+.dy-del, .dy-yes, .dy-no { font: inherit; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 8px; padding: 2px 8px; cursor: pointer; min-height: 30px; }
+.dy-confirm { white-space: nowrap; }
+.dy-summary { white-space: pre-wrap; background: var(--paper); border: 1px dashed var(--line); border-radius: 10px; padding: 10px; font-size: var(--s-xs); font-family: var(--f-body); }
+
 footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: var(--s-xs); color: var(--muted); display: grid; gap: 8px; }
 
 @media (min-width: 640px) {
@@ -286,6 +341,7 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
     <a href="#weeks">Недели</a>
     <a href="#day">День</a>
     <a href="#dictation">Диктанты</a>
+    <a href="#diary">Дневник</a>
     <a href="#tablet">Планшет</a>
     <a href="#reading">Чтение</a>
     <a href="#phrases">Фразы</a>
@@ -490,6 +546,44 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
       <li><span>Обсуждаете только один тип ошибок. Остальное пропустите.</span></li>
       <li><span>Хвалите за найденное: «Сам поймал две — это и есть зоркость».</span></li>
     </ol>
+  </div>
+</section>
+
+<section id="diary" aria-labelledby="diary-h">
+  <div class="section-head">
+    <h2 id="diary-h">Дневник диктантов</h2>
+    <p>После каждого диктанта одна минута: сколько было слов и сколько ошибок каждого типа. Через несколько недель график покажет вам, логопеду и учителю, что меняется.</p>
+  </div>
+
+  <div class="card" id="dy-form">
+    <div class="dy-grid">
+      <label class="dy-f" for="dy-date">Дата<input type="date" id="dy-date"></label>
+      <label class="dy-f" for="dy-words">Слов в диктанте<input type="number" id="dy-words" min="5" max="400" inputmode="numeric" value="50"></label>
+      <div class="dy-f"><span>Где писал</span>
+        <div class="filters" role="group" aria-label="Где писал">
+          <button type="button" data-where="school" aria-pressed="true">В школе</button>
+          <button type="button" data-where="home" aria-pressed="false">Дома</button>
+        </div>
+      </div>
+    </div>
+    <div class="dy-counters" id="dy-counters"></div>
+    <label class="dy-f" for="dy-note">Заметка (необязательно)<input type="text" id="dy-note" maxlength="140" placeholder="например: устал, торопился, новая тема"></label>
+    <div class="row-btn"><button class="btn" type="button" id="dy-save">Сохранить запись</button><span class="dy-msg" id="dy-msg" aria-live="polite"></span></div>
+  </div>
+
+  <div class="dy-tiles" id="dy-tiles"></div>
+
+  <div class="card">
+    <h3>Ошибок на 100 слов</h3>
+    <div class="dy-legend" id="dy-legend"></div>
+    <div class="dy-chart" id="dy-chart"><p class="muted">График появится после первой записи.</p></div>
+    <p class="muted small-note">Каждый столбик — один диктант, высота — ошибки на 100 слов, цвета — типы ошибок. Наведите или нажмите на столбик, чтобы увидеть числа. Все значения есть и в таблице ниже.</p>
+  </div>
+
+  <div class="card">
+    <div class="row-btn" style="justify-content:space-between"><h3>Все записи</h3><button class="btn" type="button" id="dy-copy">Скопировать сводку для логопеда</button></div>
+    <div id="dy-table"><p class="muted">Записей пока нет.</p></div>
+    <p class="muted small-note" id="dy-store"></p>
   </div>
 </section>
 
@@ -1067,3 +1161,239 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
   } catch (e) {}
 })();
 </script>
+<script>
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function today() { var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function ru(d) { var p = String(d).split("-"); return p.length === 3 ? p[2] + "." + p[1] : d; }
+  var TYPES = [
+    { k: "omit", n: "Пропуски букв", c: "var(--s1)" },
+    { k: "unst", n: "Безударные гласные", c: "var(--s2)" },
+    { k: "dict", n: "Словарные слова", c: "var(--s3)" },
+    { k: "tsya", n: "-тся / -ться", c: "var(--s4)" },
+    { k: "other", n: "Другие ошибки", c: "var(--s5)" }
+  ];
+  var LSK = "cmfl-diary-v1";
+  var entries = [], col = null, mode = "local", where = "school";
+  var counts = {}; TYPES.forEach(function (t) { counts[t.k] = 0; });
+
+  try { var loc = JSON.parse(localStorage.getItem(LSK) || "[]"); if (Array.isArray(loc)) entries = loc; } catch (e) {}
+  function saveLocal() { try { localStorage.setItem(LSK, JSON.stringify(entries)); } catch (e) {} }
+  function total(e) { return TYPES.reduce(function (s, t) { return s + (+((e.c || {})[t.k]) || 0); }, 0); }
+  function per100(n, words) { return words > 0 ? n / words * 100 : 0; }
+  function fmt(x) { return (Math.round(x * 10) / 10).toString().replace(".", ","); }
+  function sorted() { return entries.slice().sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : (a.ts || 0) - (b.ts || 0); }); }
+
+  /* form */
+  $("dy-date").value = today();
+  function renderCounters() {
+    $("dy-counters").innerHTML = TYPES.map(function (t) {
+      return '<div class="dy-counter"><span class="dy-key" style="background:' + t.c + '"></span><span class="dy-name">' + esc(t.n) + '</span>' +
+        '<button type="button" class="dy-step" data-k="' + t.k + '" data-d="-1" aria-label="Меньше: ' + esc(t.n) + '">−</button>' +
+        '<b class="dy-val" id="dy-v-' + t.k + '">' + counts[t.k] + '</b>' +
+        '<button type="button" class="dy-step" data-k="' + t.k + '" data-d="1" aria-label="Больше: ' + esc(t.n) + '">+</button></div>';
+    }).join("");
+  }
+  renderCounters();
+  $("dy-counters").addEventListener("click", function (e) {
+    var b = e.target.closest(".dy-step"); if (!b) return;
+    var k = b.getAttribute("data-k"); counts[k] = Math.max(0, Math.min(99, counts[k] + +b.getAttribute("data-d")));
+    $("dy-v-" + k).textContent = counts[k];
+  });
+  document.querySelectorAll("[data-where]").forEach(function (b) {
+    b.addEventListener("click", function () { where = b.getAttribute("data-where"); document.querySelectorAll("[data-where]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); });
+  });
+  function msg(t, ok) { var m = $("dy-msg"); m.textContent = t; m.className = "dy-msg " + (ok ? "ok" : "err"); }
+  $("dy-save").addEventListener("click", function () {
+    var words = parseInt($("dy-words").value, 10), d = $("dy-date").value || today();
+    if (!(words >= 5 && words <= 400)) { msg("Укажите число слов от 5 до 400.", false); return; }
+    var c = {}; TYPES.forEach(function (t) { c[t.k] = counts[t.k]; });
+    var entry = { d: d, words: words, c: c, where: where, note: $("dy-note").value.trim().slice(0, 140), ts: Date.now() };
+    if (mode === "db" && col) {
+      $("dy-save").disabled = true;
+      col.add(entry).then(function () { $("dy-save").disabled = false; resetForm(); msg("Запись сохранена.", true); }, function (e) {
+        $("dy-save").disabled = false;
+        if (e && (e.code === "invalid_argument" || e.code === "not_granted")) { mode = "local"; addLocal(entry); msg("Сохранено только в этом браузере.", true); }
+        else msg("Не получилось сохранить. Попробуйте ещё раз.", false);
+      });
+    } else { addLocal(entry); msg("Запись сохранена.", true); }
+  });
+  function addLocal(entry) { entry.id = "l" + entry.ts.toString(36); entries.push(entry); saveLocal(); resetForm(); render(); }
+  function resetForm() { TYPES.forEach(function (t) { counts[t.k] = 0; }); renderCounters(); $("dy-note").value = ""; }
+
+  /* tiles: start vs now */
+  function avgPer100(list, key) {
+    var n = 0, w = 0; list.forEach(function (e) { n += key ? (+e.c[key] || 0) : total(e); w += e.words; });
+    return w ? n / w * 100 : 0;
+  }
+  function windows() {
+    var s = sorted(); if (s.length < 2) return null;
+    var k = s.length >= 6 ? 3 : 1;
+    return { first: s.slice(0, k), last: s.slice(-k), k: k };
+  }
+  function renderTiles() {
+    var w = windows(), el = $("dy-tiles");
+    if (!w) { el.innerHTML = ""; return; }
+    function tile(label, key) {
+      var a = avgPer100(w.first, key), b = avgPer100(w.last, key);
+      var trend = b < a - 0.05 ? "down" : b > a + 0.05 ? "up" : "flat";
+      return '<div class="dy-tile"><span class="dy-tl">' + esc(label) + '</span><span class="dy-tv"><b>' + fmt(b) + "</b> на 100 слов</span>" +
+        '<span class="dy-ts dy-' + trend + '">' + (trend === "down" ? "↓ меньше" : trend === "up" ? "↑ больше" : "= так же") + ", было " + fmt(a) + "</span></div>";
+    }
+    el.innerHTML = tile("Все ошибки", null) + tile("Пропуски букв", "omit") + tile("Безударные", "unst") + tile("Словарные", "dict") +
+      '<p class="muted small-note dy-span">Сравниваются ' + (w.k === 1 ? "первый и последний диктанты" : "первые 3 и последние 3 диктанта") + ".</p>";
+  }
+
+  /* chart: stacked bars, one per dictation, errors per 100 words */
+  function renderLegend() {
+    $("dy-legend").innerHTML = TYPES.map(function (t) { return '<span><i style="background:' + t.c + '"></i>' + esc(t.n) + "</span>"; }).join("");
+  }
+  renderLegend();
+  function niceMax(v) { var steps = [5, 10, 15, 20, 30, 40, 50, 60, 80, 100]; for (var i = 0; i < steps.length; i++) if (v <= steps[i]) return steps[i]; return Math.ceil(v / 50) * 50; }
+  function renderChart() {
+    var s = sorted().slice(-12), box = $("dy-chart");
+    if (!s.length) { box.innerHTML = '<p class="muted">График появится после первой записи.</p>'; return; }
+    var W = 640, H = 260, L = 34, R = 8, T = 18, B = 30, pw = W - L - R, ph = H - T - B;
+    var tot = s.map(function (e) { return per100(total(e), e.words); });
+    var max = niceMax(Math.max(1, Math.max.apply(null, tot)));
+    var slot = pw / s.length, bw = Math.min(46, slot * 0.62);
+    function y(v) { return T + ph - v / max * ph; }
+    var g = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Ошибок на 100 слов по диктантам">';
+    for (var i = 0; i <= 4; i++) {
+      var v = max / 4 * i, yy = y(v);
+      g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" class="dy-gl' + (i === 0 ? " base" : "") + '"/>' +
+        '<text x="' + (L - 6) + '" y="' + (yy + 4) + '" class="dy-ax" text-anchor="end">' + fmt(v) + "</text>";
+    }
+    s.forEach(function (e, j) {
+      var cx = L + slot * j + slot / 2, x = cx - bw / 2, acc = 0, parts = "";
+      var segs = TYPES.map(function (t) { return { t: t, v: per100(+e.c[t.k] || 0, e.words) }; }).filter(function (q) { return q.v > 0; });
+      segs.forEach(function (q, qi) {
+        var y0 = y(acc), y1 = y(acc + q.v), hgt = Math.max(0, y0 - y1 - (qi < segs.length - 1 ? 2 : 0));
+        var top = qi === segs.length - 1;
+        if (top && hgt > 4) {
+          var r = 4, yt = y1;
+          parts += '<path fill="' + q.t.c + '" d="M' + x + "," + (yt + hgt) + " L" + x + "," + (yt + r) + " Q" + x + "," + yt + " " + (x + r) + "," + yt + " L" + (x + bw - r) + "," + yt + " Q" + (x + bw) + "," + yt + " " + (x + bw) + "," + (yt + r) + " L" + (x + bw) + "," + (yt + hgt) + ' Z"/>';
+        } else parts += '<rect x="' + x + '" y="' + y1 + '" width="' + bw + '" height="' + hgt + '" fill="' + q.t.c + '"/>';
+        acc += q.v;
+      });
+      if (!segs.length) parts += '<rect x="' + x + '" y="' + (y(0) - 2) + '" width="' + bw + '" height="2" fill="var(--muted)"/>';
+      g += '<g class="dy-bar" tabindex="0" data-i="' + j + '"><rect class="dy-hit" x="' + (cx - slot / 2) + '" y="' + T + '" width="' + slot + '" height="' + (ph + B) + '" fill="transparent"/>' + parts +
+        '<text x="' + cx + '" y="' + (y(tot[j]) - 5) + '" class="dy-val-l" text-anchor="middle">' + fmt(tot[j]) + "</text>" +
+        '<text x="' + cx + '" y="' + (H - 10) + '" class="dy-ax" text-anchor="middle">' + esc(ru(e.d)) + "</text></g>";
+    });
+    g += "</svg>";
+    box.innerHTML = g + '<div class="dy-tip" id="dy-tip" hidden></div>';
+    var tip = $("dy-tip");
+    function show(el) {
+      var e = s[+el.getAttribute("data-i")];
+      tip.innerHTML = "";
+      var h = document.createElement("div"); h.className = "dy-tip-h"; h.textContent = ru(e.d) + " · " + e.words + " слов · " + (e.where === "home" ? "дома" : "в школе"); tip.appendChild(h);
+      var t0 = document.createElement("div"); t0.className = "dy-tip-r"; t0.innerHTML = "<b>" + fmt(per100(total(e), e.words)) + "</b> <span>всего на 100 слов (" + total(e) + ")</span>"; tip.appendChild(t0);
+      TYPES.forEach(function (t) {
+        var n = +e.c[t.k] || 0; if (!n) return;
+        var r = document.createElement("div"); r.className = "dy-tip-r";
+        r.innerHTML = '<i style="background:' + t.c + '"></i><b>' + fmt(per100(n, e.words)) + "</b> ";
+        var sp = document.createElement("span"); sp.textContent = t.n.toLowerCase() + " (" + n + ")"; r.appendChild(sp);
+        tip.appendChild(r);
+      });
+      if (e.note) { var nn = document.createElement("div"); nn.className = "dy-tip-n"; nn.textContent = e.note; tip.appendChild(nn); }
+      tip.hidden = false;
+      var br = box.getBoundingClientRect(), er = el.getBoundingClientRect();
+      var left = er.left - br.left + er.width / 2 - tip.offsetWidth / 2;
+      tip.style.left = Math.max(0, Math.min(br.width - tip.offsetWidth, left)) + "px";
+      tip.style.top = "0px";
+      box.querySelectorAll(".dy-bar").forEach(function (b) { b.classList.toggle("on", b === el); });
+    }
+    function hide() { tip.hidden = true; box.querySelectorAll(".dy-bar").forEach(function (b) { b.classList.remove("on"); }); }
+    box.querySelectorAll(".dy-bar").forEach(function (el) {
+      el.addEventListener("pointerenter", function () { show(el); });
+      el.addEventListener("click", function () { show(el); });
+      el.addEventListener("focus", function () { show(el); });
+      el.addEventListener("blur", hide);
+    });
+    box.addEventListener("pointerleave", hide);
+  }
+
+  /* table view + delete */
+  function renderTable() {
+    var s = sorted().reverse(), el = $("dy-table");
+    if (!s.length) { el.innerHTML = '<p class="muted">Записей пока нет.</p>'; return; }
+    el.innerHTML = '<div class="dy-tablewrap"><table class="dy-table"><thead><tr><th>Дата</th><th>Слов</th>' + TYPES.map(function (t) { return "<th>" + esc(t.n.replace(" гласные", "").replace(" слова", "").replace(" ошибки", "")) + "</th>"; }).join("") + "<th>На 100</th><th></th></tr></thead><tbody>" +
+      s.map(function (e) {
+        return "<tr><td>" + esc(ru(e.d)) + '<span class="dy-where">' + (e.where === "home" ? "дома" : "школа") + "</span>" + (e.note ? '<span class="dy-note">' + esc(e.note) + "</span>" : "") + "</td><td>" + e.words + "</td>" +
+          TYPES.map(function (t) { return "<td>" + (+e.c[t.k] || 0) + "</td>"; }).join("") +
+          "<td><b>" + fmt(per100(total(e), e.words)) + '</b></td><td><button type="button" class="dy-del" data-id="' + esc(e.id) + '" aria-label="Удалить запись">×</button></td></tr>';
+      }).join("") + "</tbody></table></div>";
+  }
+  $("dy-table").addEventListener("click", function (ev) {
+    var b = ev.target.closest(".dy-del"); if (!b) return;
+    var id = b.getAttribute("data-id"), cell = b.parentNode;
+    cell.innerHTML = '<span class="dy-confirm">Удалить? <button type="button" class="dy-yes">Да</button> <button type="button" class="dy-no">Нет</button></span>';
+    cell.querySelector(".dy-no").addEventListener("click", renderTable);
+    cell.querySelector(".dy-yes").addEventListener("click", function () {
+      if (mode === "db" && col && id.charAt(0) !== "l") col.doc(id).delete().catch(function () { renderTable(); });
+      else { entries = entries.filter(function (e) { return e.id !== id; }); saveLocal(); render(); }
+    });
+  });
+
+  /* summary for the speech therapist */
+  function summary() {
+    var s = sorted(); if (!s.length) return "";
+    var lines = ["Дневник диктантов: " + s.length + " " + (s.length % 10 === 1 && s.length % 100 !== 11 ? "запись" : s.length % 10 >= 2 && s.length % 10 <= 4 && (s.length % 100 < 12 || s.length % 100 > 14) ? "записи" : "записей") + ", с " + ru(s[0].d) + " по " + ru(s[s.length - 1].d) + "."];
+    var w = windows();
+    if (w) {
+      lines.push("Ошибок на 100 слов (" + (w.k === 1 ? "первый и последний диктант" : "первые 3 и последние 3 диктанта") + "):");
+      [["Все ошибки", null]].concat(TYPES.map(function (t) { return [t.n, t.k]; })).forEach(function (p) {
+        lines.push("— " + p[0] + ": было " + fmt(avgPer100(w.first, p[1])) + ", стало " + fmt(avgPer100(w.last, p[1])));
+      });
+    } else {
+      var e = s[0]; lines.push("Пока одна запись: " + total(e) + " ошибок на " + e.words + " слов, из них пропусков букв " + (+e.c.omit || 0) + ".");
+    }
+    return lines.join("\n");
+  }
+  $("dy-copy").addEventListener("click", function () {
+    var text = summary(), btn = $("dy-copy");
+    if (!text) { btn.textContent = "Сначала добавьте запись"; setTimeout(function () { btn.textContent = "Скопировать сводку для логопеда"; }, 1800); return; }
+    try {
+      navigator.clipboard.writeText(text).then(function () { btn.textContent = "Скопировано"; setTimeout(function () { btn.textContent = "Скопировать сводку для логопеда"; }, 1800); }, fallback);
+    } catch (e) { fallback(); }
+    function fallback() {
+      var pre = document.createElement("pre"); pre.className = "dy-summary"; pre.textContent = text;
+      var old = document.querySelector(".dy-summary"); if (old) old.remove();
+      $("dy-table").parentNode.insertBefore(pre, $("dy-table"));
+      try { var r = document.createRange(); r.selectNodeContents(pre); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); } catch (x) {}
+      btn.textContent = "Текст выделен — скопируйте";
+    }
+  });
+
+  function render() {
+    renderTiles(); renderChart(); renderTable();
+    $("dy-store").textContent = mode === "db" ? "Записи хранятся вместе со страницей и видны на любом устройстве, где вы её откроете." : "Записи сохраняются в этом браузере.";
+  }
+  render();
+  var rt = null; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
+
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("db").then(function (db) {
+        if (!db) return;
+        col = db.collection("dictations"); mode = "db";
+        col.onSnapshot(function (snap) {
+          var fromDb = snap.docs.map(function (d) {
+            var x = d.data() || {}, c = {};
+            TYPES.forEach(function (t) { c[t.k] = Math.max(0, +((x.c || {})[t.k]) || 0); });
+            return { id: d.id, d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d)) ? String(x.d) : today(), words: Math.max(1, +x.words || 50), c: c, where: x.where === "home" ? "home" : "school", note: String(x.note || "").slice(0, 140), ts: +x.ts || 0 };
+          });
+          var localOnly = entries.filter(function (e) { return String(e.id).charAt(0) === "l"; });
+          entries = fromDb.concat(localOnly);
+          render();
+        }, function () { mode = "local"; render(); });
+      }, function () {});
+    }
+  } catch (e) {}
+})();
+</script>
+
