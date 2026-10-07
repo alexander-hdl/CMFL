@@ -301,6 +301,16 @@
 
 ---
 
+## План для сына (9 лет): планшет и русский язык
+
+Персональный план на 6 недель по двум главным проблемам: YouTube Shorts и Brawl Stars, ошибки в диктантах и нелюбовь к чтению.
+
+- **Веб-страница для телефона** с отметками прогресса: [claude.ai/artifact/LeApqezzcT228szk3Jidf2](https://claude.ai/artifact/LeApqezzcT228szk3Jidf2). Её исходник лежит в [`plan/plan-9-let.html`](plan/plan-9-let.html).
+- [`research/08-russkiy-yazyk-9-let.md`](research/08-russkiy-yazyk-9-let.md) — русский язык в 9 лет: разбор диктантов по типам ошибок, мини-диктанты, морфологические игры, чтение, книги, когда к логопеду.
+- [`research/09-planshet-9-let.md`](research/09-planshet-9-let.md) — планшет в 9 лет: Shorts и Brawl Stars, пошаговая настройка iPad и Android, «последний матч», детский договор.
+
+---
+
 ## Состав папки
 
 | Файл | Тема |
@@ -312,3 +322,6 @@
 | [`research/05-hobbi.md`](research/05-hobbi.md) | Хобби: что реально развивают 18 видов занятий, алгоритм выбора, «сезоны» |
 | [`research/06-semya-mozg-i-blagopoluchie.md`](research/06-semya-mozg-i-blagopoluchie.md) | Семья и мозг: стиль воспитания, эмоции, сон, подростковый мозг, красные флаги |
 | [`research/07-kak-uchitsya-i-ii.md`](research/07-kak-uchitsya-i-ii.md) | Как учиться эффективно и как использовать ИИ: техники, правила, готовые запросы |
+| [`research/08-russkiy-yazyk-9-let.md`](research/08-russkiy-yazyk-9-let.md) | Русский язык в 9 лет: ошибки в диктантах, чтение, книги, логопед |
+| [`research/09-planshet-9-let.md`](research/09-planshet-9-let.md) | Планшет в 9 лет: Shorts, Brawl Stars, настройка, договор |
+| [`plan/plan-9-let.html`](plan/plan-9-let.html) | Исходник веб-страницы с планом на 6 недель |

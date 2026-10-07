@@ -1,0 +1,973 @@
+<title>Планшет и диктанты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow column like a school notebook page; grid-paper hero with the red margin line; sticky chip nav. */
+:root {
+  --paper: #f6f7f3;
+  --surface: #ffffff;
+  --ink: #1c2741;
+  --ink-soft: #46526d;
+  --muted: #6a7389;
+  --line: #d8dee8;
+  --grid: rgba(60, 100, 160, 0.11);
+  --blue: #2350b0;
+  --blue-bg: #e8eefa;
+  --red: #c42f28;
+  --red-bg: #fbeceb;
+  --green: #1d7746;
+  --green-bg: #e5f3eb;
+  --margin-line: rgba(196, 47, 40, 0.45);
+  --shadow: 0 1px 2px rgba(28, 39, 65, 0.06), 0 4px 14px rgba(28, 39, 65, 0.05);
+
+  --f-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --f-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+
+  --s-xs: 0.8125rem;
+  --s-sm: 0.9375rem;
+  --s-md: 1.0625rem;
+  --s-lg: 1.3rem;
+  --s-xl: 1.75rem;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11151d;
+    --surface: #182030;
+    --ink: #e5eaf4;
+    --ink-soft: #b5bfd3;
+    --muted: #8a94aa;
+    --line: #2a3346;
+    --grid: rgba(140, 170, 225, 0.08);
+    --blue: #86a9ff;
+    --blue-bg: #1f2a44;
+    --red: #ff8077;
+    --red-bg: #3a2023;
+    --green: #63d39b;
+    --green-bg: #163327;
+    --margin-line: rgba(255, 128, 119, 0.4);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11151d;
+  --surface: #182030;
+  --ink: #e5eaf4;
+  --ink-soft: #b5bfd3;
+  --muted: #8a94aa;
+  --line: #2a3346;
+  --grid: rgba(140, 170, 225, 0.08);
+  --blue: #86a9ff;
+  --blue-bg: #1f2a44;
+  --red: #ff8077;
+  --red-bg: #3a2023;
+  --green: #63d39b;
+  --green-bg: #163327;
+  --margin-line: rgba(255, 128, 119, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation: none !important; } }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--s-md);
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 0 56px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h2 { font-size: var(--s-lg); letter-spacing: -0.01em; }
+h3 { font-size: var(--s-md); font-family: var(--f-body); font-weight: 600; }
+p { margin: 0; }
+a { color: var(--blue); }
+ul, ol { margin: 0; padding-left: 1.2em; }
+li + li { margin-top: 0.35em; }
+.muted { color: var(--muted); }
+.hand { font-family: var(--f-hand); font-weight: 700; }
+.label { font-size: var(--s-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+
+/* Hero: grid paper with the notebook's red margin */
+.hero {
+  margin-inline: -16px;
+  padding: 28px 16px 24px 16px;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, transparent 0, transparent 30px, var(--margin-line) 30px, var(--margin-line) 31.5px, transparent 31.5px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 100% 100%, 20px 20px, 20px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.hero-inner { padding-left: 28px; display: grid; gap: 14px; }
+.hero h1 { font-size: var(--s-xl); letter-spacing: -0.02em; }
+.hero .lead { color: var(--ink-soft); max-width: 60ch; }
+.hero .note { font-family: var(--f-hand); font-size: 1.45rem; color: var(--green); line-height: 1.1; transform: rotate(-1.5deg); transform-origin: left; }
+
+.rules { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: r; }
+.rules li { margin: 0; display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.rules li::before { counter-increment: r; content: counter(r); font-family: var(--f-hand); font-size: 1.6rem; line-height: 1; color: var(--red); text-align: center; }
+
+/* Start + progress */
+.status { display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+.status-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; }
+.status label { font-weight: 500; }
+.status input[type="date"] { font: inherit; font-size: var(--s-sm); color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-height: 40px; }
+.now { font-weight: 600; }
+.meter { height: 8px; background: var(--blue-bg); border-radius: 99px; overflow: hidden; }
+.meter > span { display: block; height: 100%; width: 0; background: var(--green); border-radius: 99px; transition: width 0.3s ease; }
+.save-note { font-size: var(--s-xs); color: var(--muted); }
+
+/* Nav */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; margin-inline: -16px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.nav-scroll { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; scrollbar-width: none; }
+.nav-scroll::-webkit-scrollbar { display: none; }
+.nav a { flex: none; text-decoration: none; color: var(--ink); font-size: var(--s-sm); font-weight: 500; padding: 7px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); }
+.nav a:active { background: var(--blue-bg); }
+
+section { padding-top: 32px; display: grid; gap: 14px; }
+.section-head { display: grid; gap: 6px; }
+.section-head p { color: var(--ink-soft); }
+
+/* Weeks */
+.weeks { display: grid; gap: 10px; }
+details.week { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+details.week > summary { list-style: none; cursor: pointer; padding: 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+details.week > summary::-webkit-details-marker { display: none; }
+.wk-num { font-family: var(--f-hand); font-size: 2rem; line-height: 1; color: var(--blue); width: 30px; text-align: center; }
+.wk-title { display: grid; gap: 2px; min-width: 0; }
+.wk-title strong { font-weight: 600; }
+.wk-title .muted { font-size: var(--s-xs); }
+.wk-side { display: grid; justify-items: end; gap: 4px; }
+.pill { font-size: var(--s-xs); font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.pill.now-pill { background: var(--blue); color: var(--surface); }
+.pill.done-pill { background: var(--green-bg); color: var(--green); }
+.count { font-size: var(--s-xs); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wk-body { padding: 0 14px 16px; display: grid; gap: 14px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.group { display: grid; gap: 4px; }
+.group .label { margin-bottom: 2px; }
+.task { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; padding: 8px 4px; border-radius: 10px; cursor: pointer; }
+.task:hover { background: var(--blue-bg); }
+.task input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; margin: 1px 0 0; border: 2px solid var(--muted); border-radius: 6px; display: grid; place-content: center; background: var(--surface); cursor: pointer; }
+.task input::after { content: ""; width: 11px; height: 6px; border-left: 2.5px solid var(--surface); border-bottom: 2.5px solid var(--surface); transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.task input:checked { background: var(--green); border-color: var(--green); }
+.task input:checked::after { opacity: 1; }
+.task span { min-width: 0; }
+.task input:checked + span { color: var(--muted); }
+.task small { display: block; color: var(--muted); font-size: var(--s-xs); margin-top: 2px; }
+.check-goal { font-size: var(--s-sm); color: var(--ink-soft); background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+.check-goal b { color: var(--green); font-weight: 600; }
+
+/* Generic cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.card p + p { margin-top: 2px; }
+.two { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+/* Day timeline */
+.day { list-style: none; padding: 0; margin: 0; display: grid; }
+.day li { margin: 0; display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.day li:last-child { border-bottom: 0; }
+.day time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--s-sm); padding-top: 1px; }
+.day .hl { font-weight: 600; }
+.day .ru { color: var(--blue); }
+.tag { display: inline-block; font-size: var(--s-xs); font-weight: 600; padding: 1px 7px; border-radius: 6px; background: var(--blue-bg); color: var(--blue); margin-right: 4px; }
+.tag.red { background: var(--red-bg); color: var(--red); }
+.tag.green { background: var(--green-bg); color: var(--green); }
+
+/* Steps */
+ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; display: grid; gap: 10px; }
+ol.steps > li { margin: 0; counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; }
+ol.steps > li::before { content: counter(s); font-family: var(--f-hand); font-size: 1.5rem; line-height: 1; color: var(--blue); text-align: center; }
+
+/* Error types */
+.errs { display: grid; gap: 8px; }
+.err { display: grid; gap: 4px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.err:last-child { border-bottom: 0; }
+.err-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
+.err-head strong { font-weight: 600; }
+.sample { font-family: var(--f-hand); font-size: 1.35rem; line-height: 1.2; color: var(--ink-soft); }
+.sample s { color: var(--red); text-decoration-thickness: 2px; }
+.err p { font-size: var(--s-sm); color: var(--ink-soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: var(--s-sm); }
+.mk { display: inline-flex; align-items: center; gap: 6px; }
+.mk i { display: inline-block; width: 18px; height: 14px; }
+.mk .c-red { border: 2px solid var(--red); border-radius: 50%; }
+.mk .c-blue { border-bottom: 3px solid var(--blue); height: 10px; }
+.mk .c-green { border: 2px solid var(--green); border-radius: 2px; }
+
+/* Budget table */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: var(--s-sm); }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-weight: 600; color: var(--muted); font-size: var(--s-xs); text-transform: uppercase; letter-spacing: 0.06em; }
+td:first-child { font-weight: 500; }
+.zero { font-family: var(--f-display); color: var(--red); font-weight: 600; }
+
+/* Phrases */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filters button { font: inherit; font-size: var(--s-sm); font-weight: 500; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; min-height: 38px; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.phrases { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.phrase { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 8px; }
+.phrase .no, .phrase .yes { display: grid; grid-template-columns: 74px 1fr; gap: 8px; align-items: baseline; }
+.phrase .pen { font-family: var(--f-hand); font-size: 1.3rem; line-height: 1; }
+.phrase .no .pen { color: var(--red); }
+.phrase .no q { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 1.5px; }
+.phrase .yes .pen { color: var(--green); }
+.phrase .yes q { font-weight: 500; }
+q { quotes: "«" "»"; }
+
+/* Agreement */
+.agreement { font-size: var(--s-sm); background: var(--paper); border: 1px dashed var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; white-space: pre-line; }
+.btn { font: inherit; font-size: var(--s-sm); font-weight: 600; padding: 9px 16px; min-height: 42px; border-radius: 10px; border: 1px solid var(--blue); color: var(--blue); background: var(--surface); cursor: pointer; justify-self: start; }
+.btn:active { background: var(--blue-bg); }
+
+/* Books */
+.books { display: grid; gap: 14px; }
+.books h3 { margin-bottom: 4px; }
+.books ul { list-style: none; padding: 0; display: grid; gap: 6px; }
+.books li { margin: 0; }
+.books li b { font-weight: 600; }
+
+/* Flags */
+.flags { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.flags li { margin: 0; display: grid; grid-template-columns: 20px 1fr; gap: 8px; }
+.flags li::before { content: ""; width: 10px; height: 10px; margin-top: 8px; border-radius: 50%; background: var(--red); }
+.vs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); font-size: var(--s-sm); }
+.vs > div { padding: 10px 12px; border-bottom: 1px solid var(--line); min-width: 0; }
+.vs > div:nth-child(odd) { border-right: 1px solid var(--line); }
+.vs > div:nth-last-child(-n+2) { border-bottom: 0; }
+.vs .vh { font-weight: 600; background: var(--paper); }
+
+footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: var(--s-xs); color: var(--muted); display: grid; gap: 8px; }
+
+@media (min-width: 640px) {
+  .hero { padding-block: 40px 30px; }
+  .hero h1 { font-size: 2.2rem; }
+  .hero-inner { padding-left: 36px; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="note">6 недель · 15–25 минут в день</p>
+    <h1>Планшет и диктанты</h1>
+    <p class="lead">План для сына 9 лет: меньше YouTube Shorts, Brawl Stars по правилам, меньше ошибок в диктантах и больше чтения. Две проблемы связаны: лента съедает вечер, а именно чтение копит зрительную память на слова. Поэтому план один на обе.</p>
+    <ol class="rules" aria-label="Три главных правила">
+      <li><span><b>Shorts в будни — ноль. Brawl Stars считаем матчами, а не минутами:</b> 5 матчей после уроков. У ленты нет конца, а у матча есть.</span></li>
+      <li><span><b>Русский — 15–25 минут в день в игровой форме</b>, один тип ошибок за раз. Ошибки он ищет сам, вы только подсказываете строку.</span></li>
+      <li><span><b>Каждый вечер 15 минут вы читаете ему вслух</b>, просто для удовольствия. Планшет ночует на зарядке вне спальни.</span></li>
+    </ol>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Разделы">
+  <div class="nav-scroll">
+    <a href="#weeks">Недели</a>
+    <a href="#day">День</a>
+    <a href="#dictation">Диктанты</a>
+    <a href="#tablet">Планшет</a>
+    <a href="#reading">Чтение</a>
+    <a href="#phrases">Фразы</a>
+    <a href="#specialist">Логопед</a>
+  </div>
+</nav>
+
+<section id="weeks" aria-labelledby="weeks-h">
+  <div class="section-head">
+    <h2 id="weeks-h">План по неделям</h2>
+    <p>Отмечайте сделанное. Не нужно выполнять всё идеально: если неделя получилась наполовину, переходите к следующей и возвращайтесь к пропущенному.</p>
+  </div>
+
+  <div class="status" aria-live="polite">
+    <div class="status-row">
+      <label for="start">Начали план</label>
+      <input type="date" id="start">
+    </div>
+    <div class="status-row">
+      <span class="now" id="now-text">Выберите день старта, и страница покажет текущую неделю</span>
+      <span class="count" id="total-count">0 из 0</span>
+    </div>
+    <div class="meter" aria-hidden="true"><span id="meter"></span></div>
+    <p class="save-note" id="save-note">Отметки сохраняются в этом браузере.</p>
+  </div>
+
+  <div class="weeks" id="week-list"></div>
+</section>
+
+<section id="day" aria-labelledby="day-h">
+  <div class="section-head">
+    <h2 id="day-h">Обычный будний день</h2>
+    <p>Повесьте на холодильник, лучше с картинками. Время подстройте под ваше расписание, важен порядок.</p>
+  </div>
+  <div class="card">
+    <ol class="day">
+      <li><time>7:00–8:00</time><span>Подъём, завтрак, сборы. <b>Экраны спят.</b></span></li>
+      <li><time>8:00–13:30</time><span>Школа</span></li>
+      <li><time>13:30–14:30</time><span>Обед, отдых, улица</span></li>
+      <li><time>14:30–16:00</time><span>Уроки, планшет на зарядке в коридоре. <span class="ru">В конце — 5 минут мини-диктанта и проверка по карточке.</span></span></li>
+      <li><time>16:00–17:30</time><span>Секция, друзья, улица, Lego</span></li>
+      <li><time>17:30–18:00</time><span class="hl">Brawl Stars: 5 матчей. Последний называет вслух и сам кладёт планшет на зарядку.</span></li>
+      <li><time>18:00–19:00</time><span>Ужин, помощь по дому</span></li>
+      <li><time>19:00–19:30</time><span><span class="ru">5–10 минут игры на зоркость или проект про бойцов.</span> Потом длинное видео вместе или настолка.</span></li>
+      <li><time>19:30–20:30</time><span>Планшет «спит» в коридоре. Душ. <span class="ru">10 минут читаете по очереди</span>, потом <b>15 минут вы читаете ему вслух</b>.</span></li>
+      <li><time>20:30</time><span>Сон. В 9 лет нужно 9–12 часов.</span></li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>Раз в неделю</h3>
+    <ul>
+      <li>Семейный вечер словесных игр: «Эрудит», «Балда», «Виселица».</li>
+      <li>Библиотека или книжный: он сам выбирает.</li>
+      <li>Один «настоящий» текст для живого читателя: гайд, карточка бойца, письмо бабушке.</li>
+      <li>В воскресенье 5 минут: пересчитать «трофеи» и переложить карточки.</li>
+      <li>Один день в неделю без дополнительного русского.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="dictation" aria-labelledby="dict-h">
+  <div class="section-head">
+    <h2 id="dict-h">Ошибки в диктантах</h2>
+    <p>Начните с разбора 2–3 его последних диктантов. Ошибки бывают трёх видов: не знает правило, не видит «опасное место» или не проверяет, специфические ошибки. Лечатся они по-разному.</p>
+  </div>
+
+  <div class="card">
+    <h3>Три вопроса к каждой ошибке</h3>
+    <ol class="steps">
+      <li><span><b>Ошибка на правило или там, где всё слышно?</b> «Тома» вместо «дома» — правило тут не нужно. Такие ошибки относятся к специфическим.</span></li>
+      <li><span><b>Если на правило: исправит ли сам?</b> Нашёл, когда вы показали строку, — правило знает, не хватает проверки (самый частый случай). Исправил, только когда показали слово, — не видит орфограмму. Не может и со словом — правило надо объяснить заново через состав слова.</span></li>
+      <li><span><b>Ошибается ли при спокойном списывании?</b> Да — внимание или дисграфия. Нет — мешают темп диктанта и усталость руки.</span></li>
+    </ol>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <span class="tag green">Тренируем дома</span>
+      <div class="errs">
+        <div class="err"><div class="err-head"><strong>Безударная гласная в корне</strong></div><span class="sample"><s>вада</s>, <s>лисной</s></span><p>Подобрать проверочное слово, найти корень. Морфологические игры.</p></div>
+        <div class="err"><div class="err-head"><strong>Парная согласная</strong></div><span class="sample"><s>дуп</s>, <s>скаска</s></span><p>Изменить слово, чтобы после согласной была гласная.</p></div>
+        <div class="err"><div class="err-head"><strong>Непроизносимая согласная</strong></div><span class="sample"><s>чуство</s>, <s>сонце</s></span><p>Семейки слов: известие → известный.</p></div>
+        <div class="err"><div class="err-head"><strong>Словарные слова</strong></div><span class="sample"><s>малако</s>, <s>сабака</s></span><p>Писать по памяти и повторять через дни. 3–5 новых слов в неделю.</p></div>
+        <div class="err"><div class="err-head"><strong>жи-ши, чк-чн, ь, ъ</strong></div><span class="sample"><s>машына</s>, <s>обявление</s></span><p>Выборочные мини-диктанты по одному правилу.</p></div>
+        <div class="err"><div class="err-head"><strong>Описки, точки, заглавные</strong></div><p>Одно слово то верно, то неверно; к концу ошибок больше. Нужна проверка по карточке и короткие задания.</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <span class="tag red">Логопеду, если в каждой работе</span>
+      <div class="errs">
+        <div class="err"><div class="err-head"><strong>Пропуски и перестановки букв</strong></div><span class="sample"><s>красый</s>, <s>онко</s></span><p>Изредка бывает от спешки. Если в каждой работе, даже без спешки, — к логопеду.</p></div>
+        <div class="err"><div class="err-head"><strong>Замены там, где звук ясно слышен</strong></div><span class="sample"><s>тома</s>, <s>сапака</s></span><p>Это уже не орфография. Возможна акустическая дисграфия.</p></div>
+        <div class="err"><div class="err-head"><strong>Мягкость, свистящие и шипящие</strong></div><span class="sample"><s>лубит</s>, <s>сапка</s> (шапка)</span><p>Трудности различения звуков.</p></div>
+        <div class="err"><div class="err-head"><strong>Похожие и зеркальные буквы</strong></div><span class="sample">и–у, п–т, б–д, зеркальные З, Е, Я</span><p>Оптическая дисграфия или моторика.</p></div>
+        <div class="err"><div class="err-head"><strong>Слитно с предлогом, раздельно приставку</strong></div><span class="sample"><s>настоле</s>, <s>на писал</s></span><p>Отчасти это незнание правила. Если держится с 1–2 класса — к логопеду.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Мини-диктант: главный инструмент, 5 минут в день</h3>
+    <ul>
+      <li><b>6–8 слов или 1–2 предложения:</b> 3 слова на текущую тему, 2 из «коллекции ошибок» прошлых дней и 1 слово недельной давности.</li>
+      <li><b>Диктуйте обычным произношением, без подсказки голосом.</b> Не «вОда». Иначе дома всё получается, а в школе нет.</li>
+      <li><b>Он сам сверяет с образцом.</b> Неверное слово: посмотри — закрой — напиши по памяти — сравни, 2 раза. Не переписывать по 10 раз.</li>
+    </ul>
+    <p class="muted">Писать по памяти и повторять с промежутками — одни из самых надёжных приёмов в исследованиях памяти.</p>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <h3>Карточка проверки (3 шага)</h3>
+      <ol class="steps">
+        <li><span>Все ли буквы на месте? Читаю, как написано, по слогам, веду карандашом.</span></li>
+        <li><span>Опасные места моей темы. Только один тип, например безударные.</span></li>
+        <li><span>Начало и конец предложения: заглавная буква, точка.</span></li>
+      </ol>
+      <p class="muted">Первую неделю проговаривает вслух, потом шёпотом, потом про себя, и карточка убирается.</p>
+    </div>
+    <div class="card">
+      <h3>«Коллекция трофеев»</h3>
+      <p>Каждая пойманная ошибка — «трофей». Слово записывается на карточку, а карточки живут в трёх коробках:</p>
+      <ol class="steps">
+        <li><span>«Каждый день»</span></li>
+        <li><span>«Через 3 дня»</span></li>
+        <li><span>«Раз в неделю»</span></li>
+      </ol>
+      <p class="muted">Написал верно — карточка переезжает дальше, ошибся — возвращается в первую. Трофеи здесь — счёт прогресса, а не плата за экран.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>«Охота на орфограммы» и морфологические игры</h3>
+    <p>Он подчёркивает карандашом все опасные места одного типа в напечатанном предложении и рядом пишет проверочное слово. Потом то же в своей вчерашней записи.</p>
+    <div class="legend" aria-label="Цветовой код">
+      <span class="mk"><i class="c-red"></i>безударные — кружок</span>
+      <span class="mk"><i class="c-blue"></i>парные — подчеркнуть</span>
+      <span class="mk"><i class="c-green"></i>словарные — рамка</span>
+    </div>
+    <ul>
+      <li><b>«Семейка слов»:</b> дерево с корнем в стволе (лес → лесник, лесной, перелесок). Подкиньте ловушку «лесенка»: она от «лестницы».</li>
+      <li><b>«Проверь меня»:</b> вы пишете 5 слов с пропуском (гр_бной, ск_зка), он ищет проверочное. Потом наоборот, и вы иногда «ошибаетесь».</li>
+      <li><b>«Конструктор слов»:</b> карточки приставок, корней, суффиксов. Попутно: под + езд = подъезд.</li>
+      <li><b>«Орфографический детектив»:</b> ваша записка с 5 спрятанными ошибками его темы. Потом он прячет ошибки для вас.</li>
+      <li><b>«Точка сомнения»:</b> если не уверен, ставит лёгкую точку над буквой и проверяет в конце. Спросите учителя, можно ли так в школе.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Как проверять домашку по русскому</h3>
+    <ol class="steps">
+      <li><span>Он проверяет первым, по карточке.</span></li>
+      <li><span>Вы не исправляете, а говорите: «В этой строке одна ошибка. Найдёшь?»</span></li>
+      <li><span>Не нашёл — покажите слово. Не может исправить — разберите через проверочное слово и состав.</span></li>
+      <li><span>Пойманную ошибку — в «трофеи».</span></li>
+      <li><span>Обсуждаете только один тип ошибок. Остальное пропустите.</span></li>
+      <li><span>Хвалите за найденное: «Сам поймал две — это и есть зоркость».</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="tablet" aria-labelledby="tab-h">
+  <div class="section-head">
+    <h2 id="tab-h">Планшет: Shorts и Brawl Stars</h2>
+    <p>В 9 лет самоконтроль ещё созревает, поэтому нужна внешняя структура, а не сила воли. Пусть выключает техника и договор, а не мама с криком.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>Будни</th><th>Выходные</th></tr></thead>
+      <tbody>
+        <tr><td>До школы</td><td>Экранов нет</td><td>Нет до завтрака и прогулки</td></tr>
+        <tr><td>Shorts</td><td><span class="zero">0</span></td><td>0 или 15 минут вместе с вами</td></tr>
+        <tr><td>Brawl Stars</td><td><b>5–6 матчей</b> после уроков и дел</td><td>2 блока по 6–8 матчей, лучше с другом или с вами</td></tr>
+        <tr><td>Длинные видео</td><td>До 30 минут по списку, в общей комнате</td><td>Фильм семьёй</td></tr>
+        <tr><td>Творчество</td><td>Отдельно от лимита, но не позже чем за час до сна</td><td>В разумных пределах</td></tr>
+        <tr><td>Час до сна</td><td>Без экранов, планшет вне спальни</td><td>То же</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">Это ориентир, а не научная граница. Если сейчас он сидит 3 часа и больше, двигайтесь к этим цифрам 2–3 недели, а не за один день.</p>
+
+  <div class="card">
+    <h3>Минимум настройки за 15 минут</h3>
+    <ol class="steps">
+      <li><span>Убрать банковские карты с планшета и из браузера, запретить встроенные покупки, включить «Попросить купить».</span></li>
+      <li><span>«Время покоя» с 20:00 до 7:30.</span></li>
+      <li><span>YouTube: лимит или удалить приложение. Shorts = 0 через «Семейный центр», если пункт доступен.</span></li>
+      <li><span>Лимит на Brawl Stars около 25 минут в будни как страховка к правилу «5 матчей».</span></li>
+      <li><span>Код «Экранного времени» или Family Link знают только родители, и он не совпадает с кодом разблокировки.</span></li>
+    </ol>
+    <p class="muted">Ставьте ограничения открыто: «Я настраиваю планшет так, как мы договорились». Тайные запреты он быстро найдёт и начнёт обходить.</p>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <h3>Как убрать Shorts</h3>
+      <ol class="steps">
+        <li><span><b>Самое надёжное:</b> удалить YouTube с планшета, видео смотреть на телевизоре по заранее выбранному списку.</span></li>
+        <li><span><b>Аккаунт под присмотром</b> через Family Link: уровень «Обзор», автовоспроизведение выключено, лимит ленты Shorts — 0. Есть ли этот пункт у детских аккаунтов 9–12 лет, источники расходятся. Проверьте у себя.</span></li>
+        <li><span><b>YouTube Kids</b> в режиме «Только одобренный контент». Отдельно выключить Shorts там, по сторонним гайдам, нельзя.</span></li>
+        <li><span>На iPad: <code>youtube.com/shorts</code> в списке «Не разрешать никогда». Работает только в Safari.</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Что знать про Brawl Stars</h3>
+      <ul>
+        <li><b>Матч длится не больше 3 минут.</b> Это готовая точка остановки, поэтому считаем матчами.</li>
+        <li><b>Starr Drops</b> — случайные награды за победы с дневным лимитом и анимацией «тапни, вдруг повезёт». Отсюда «ещё один, добрать дроп».</li>
+        <li><b>Родительского контроля в самой игре нет.</b> Все ограничения ставятся через устройство.</li>
+        <li><b>Веб-магазин Supercell обходит «Попросить купить».</b> Поэтому никаких карт в браузере.</li>
+        <li><b>«Бесплатные гемы» и продажа аккаунтов — всегда обман.</b> Пароль никому.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Ритуал «последний матч»</h3>
+    <ol class="steps">
+      <li><span><b>До начала:</b> «Сколько матчей сегодня? Пять. Скажи вслух, какой последний».</span></li>
+      <li><span><b>Перед последним:</b> «Это пятый. Что будешь делать после?»</span></li>
+      <li><span><b>После матча:</b> не забирайте планшет из рук, пусть сам кладёт его на зарядку.</span></li>
+      <li><span><b>Мост:</b> сразу понятное и приятное дело — перекус, мяч во дворе, Lego, ужин.</span></li>
+      <li><span><b>Видео:</b> ролик выбран до начала, автовоспроизведение выключено. Закончился — экран гаснет.</span></li>
+    </ol>
+    <p class="muted">Начал шестой матч сверх договора — завтра 4. Последствие известно заранее, объявляйте его спокойно и один раз.</p>
+  </div>
+
+  <div class="card">
+    <h3>Семейный совет (20–30 минут, с чаем)</h3>
+    <ol class="steps">
+      <li><span>«Мы заметили, что в Shorts время улетает незаметно. Как ты думаешь, почему?» Выслушать.</span></li>
+      <li><span>«Лента сделана без конца специально: чтобы ты не мог остановиться, а они зарабатывали на рекламе. Давай их перехитрим».</span></li>
+      <li><span>«Brawl Stars остаётся. Сколько матчей в будни будет честно?» Пусть предложит число, договоритесь в пределах 4–6.</span></li>
+      <li><span>«Что делаем, когда экран выключен? Составим список из 10 дел».</span></li>
+      <li><span>«Правила и для меня: я не сижу в телефоне за ужином. Если нарушу — что мне будет?»</span></li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Договор для сына</h3>
+    <div class="agreement" id="agreement">Наш договор про планшет
+Подписали ___.___.2026, проверяем через 2 недели.
+
+1. Brawl Stars. В будни я играю ___ матчей после уроков. В выходные ___ матчей, можно с другом. Последний матч называю вслух, доигрываю и сам кладу планшет на зарядку.
+2. Shorts и ленты. В будни ленты у нас нет: ни у меня, ни у мамы с папой при мне. Длинное видео выбираем заранее и смотрим в общей комнате.
+3. Деньги в играх. Ничего не покупаю сам. Покупок, где выпадает случайно, как в лотерее, у нас нет. «Бесплатные гемы» — всегда обман, пароль никому не даю.
+4. Общение. В чатах не пишу настоящее имя, школу и где живу. Если кто-то пишет странное или зовёт в другой мессенджер, сразу говорю родителям. Меня за это не накажут.
+5. Где планшет спит. На зарядке в ___. За час до сна экранов нет.
+6. Если поспорили при выключении, завтра на 1 матч меньше. Если выключил сам и спокойно, родители это заметят.
+7. Обещания родителей. Не сидим в телефоне за едой. Раз в неделю играем с тобой в одной команде. Не отбираем планшет за то, что с ним не связано.
+8. Мои 10 дел без экрана: ___
+
+Подписи: ______ (я) · ______ (мама) · ______ (папа)</div>
+    <button class="btn" type="button" id="copy-agreement">Скопировать текст</button>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <h3>Чем заменить</h3>
+      <ul>
+        <li><b>Соревнование офлайн:</b> мяч во дворе, секция, настольный теннис, настолки на победу («Каркассон», «Уно», «Свинтус»).</li>
+        <li><b>Строить:</b> Lego Technic, модели, шалаш или скворечник с папой.</li>
+        <li><b>Наука руками:</b> наборы опытов, кристаллы, микроскоп.</li>
+        <li><b>Друзья в гостях</b> без планшетов: «приводи друга, сделаем пиццу».</li>
+        <li><b>Взрослые дела:</b> готовить ужин, чинить велосипед, магазин по списку.</li>
+      </ul>
+      <p class="muted">Прежде чем убрать 30 минут Shorts, решите, что будет в эти 30 минут. Первые дни он будет «умирать от скуки» — предложите 2–3 варианта и отойдите.</p>
+    </div>
+    <div class="card">
+      <h3>Brawl Stars как учебник</h3>
+      <ul>
+        <li><b>Карточка бойца от руки:</b> имя, редкость, атака, суперспособность, слабое место. Потом проверить по вики.</li>
+        <li><b>Словарик игрока:</b> атака, защита, соперник, команда, территория — мостик к диктантам.</li>
+        <li><b>Придумай своего бойца:</b> полстраницы описания и рисунок.</li>
+        <li><b>Гайд для новичка:</b> «5 советов, как выиграть». Сначала устно, потом записать для папы или друга.</li>
+        <li><b>Комикс о матче</b> с репликами в облачках.</li>
+        <li><b>«Переводчик с чатского»:</b> 5 фраз из игрового чата перевести на грамотный русский.</li>
+      </ul>
+      <p class="muted">Коротко, 10–15 минут, тему выбирает он. Ошибки не правьте красным поверх: отметьте 1–2 слова, пусть сам перепишет начисто.</p>
+    </div>
+  </div>
+</section>
+
+<section id="reading" aria-labelledby="read-h">
+  <div class="section-head">
+    <h2 id="read-h">Чтение для удовольствия</h2>
+    <p>Чтение для удовольствия и грамотность растут вместе: зрительный образ слова копится от прочитанного. Задача — чтобы книга стала приятной, а не «заданием».</p>
+  </div>
+  <div class="card">
+    <ol class="steps">
+      <li><span><b>Читайте ему вслух и в 9 лет.</b> 15–20 минут вечером, книга чуть сложнее, чем он прочтёт сам.</span></li>
+      <li><span><b>По очереди:</b> страница ваша, абзац или реплики героя — его. Потом его доля растёт.</span></li>
+      <li><span><b>Аудиокнига плюс бумажная книга:</b> слушает и водит пальцем по тексту. Для запоминания слов нужны глаза на тексте.</span></li>
+      <li><span><b>Выбор за ним.</b> Комиксы, книги про его игры, энциклопедии — это тоже чтение.</span></li>
+      <li><span><b>Можно не дочитывать</b> и пропускать скучное. Скучная книга бросается без чувства вины.</span></li>
+      <li><span><b>Книга на тумбочке, а не в шкафу.</b> Читаем, когда планшет уже убран.</span></li>
+      <li><span><b>Не экзамен:</b> никаких «перескажи главу» и «20 страниц за планшет». Лучше: «Кого бы ты взял в команду?»</span></li>
+    </ol>
+  </div>
+  <div class="card books">
+    <div>
+      <h3>Про его игру и с картинками</h3>
+      <ul>
+        <li><b>Комиксы TeamGamerz «Бравл Старс»</b> (Эксмо)</li>
+        <li><b>Джейсон Рич, «Бравл Старс. Энциклопедия»</b> — неофициальный гайд</li>
+        <li><b>«Дневник Стива, застрявшего в Minecraft»</b> (Эксмо)</li>
+        <li><b>Джефф Кинни, «Дневник слабака»</b> — серия для тех, кто «не любит читать»</li>
+        <li><b>Дэв Пилки, «Догмен»</b> — серия комиксов</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Смешное и про школу</h3>
+      <ul>
+        <li><b>Лия Гераскина, «В Стране невыученных уроков»</b> — двоечник попадает в страну своих ошибок. Есть аудиокнига.</li>
+        <li><b>Лев Давыдычев, «Жизнь и страдания Ивана Семёнова»</b></li>
+        <li><b>Валерий Медведев, «Баранкин, будь человеком!»</b></li>
+        <li><b>Нил Гейман, «Но молоко, к счастью…»</b> — короткая смешная фантастика</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Детективы, серии и классика</h3>
+      <ul>
+        <li><b>Мартин Видмарк, «Детективное агентство Лассе и Майя»</b> — короткие, много картинок</li>
+        <li><b>Драгунский «Денискины рассказы»</b>, <b>Носов «Витя Малеев в школе и дома»</b>, <b>Велтистов «Приключения Электроника»</b>, <b>Булычёв «Приключения Алисы»</b></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Про язык — весело</h3>
+      <ul>
+        <li><b>Татьяна Рик, «Здравствуйте, Имя Существительное!»</b> и продолжения — части речи стали персонажами</li>
+        <li><b>«Радионяня. Весёлая грамматика»</b> — книга и аудио</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="phrases" aria-labelledby="ph-h">
+  <div class="section-head">
+    <h2 id="ph-h">Говорить так, а не так</h2>
+    <p>Зелёная ручка — как говорить. Красная — как не надо.</p>
+  </div>
+  <div class="filters" role="group" aria-label="Фильтр фраз">
+    <button type="button" data-filter="all" aria-pressed="true">Все</button>
+    <button type="button" data-filter="ru" aria-pressed="false">Русский и чтение</button>
+    <button type="button" data-filter="tab" aria-pressed="false">Планшет</button>
+  </div>
+  <ul class="phrases" id="phrase-list">
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Опять 15 ошибок! Ты вообще слушаешь?</q></div><div class="yes"><span class="pen">так</span><q>Давай рассортируем. Шесть — безударные, это одна тема. Её можно победить за пару недель</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Перепиши пять раз</q></div><div class="yes"><span class="pen">так</span><q>Посмотри, закрой, напиши по памяти, сравни</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Ты невнимательный</q></div><div class="yes"><span class="pen">так</span><q>Внимание — это способ проверки. Давай научим глаза проверять по шагам</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span>молча исправить самому</div><div class="yes"><span class="pen">так</span><q>В этой строке одна ошибка. Сыщик, где она?</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Вот Маша пишет без ошибок</q></div><div class="yes"><span class="pen">так</span><q>Сравним с тобой месяц назад: было 12, стало 7</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Не волнуйся на диктанте</q></div><div class="yes"><span class="pen">так</span><q>Волноваться нормально. План: пишешь, сомнительное отмечаешь точкой, в конце проверяешь</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Пока не прочитаешь 20 страниц, никакого планшета</q></div><div class="yes"><span class="pen">так</span><q>Выбери, что читаем вечером. Можно комикс</q></div></li>
+    <li class="phrase" data-kind="ru"><div class="no"><span class="pen">не так</span><q>Ну читай быстрее!</q></div><div class="yes"><span class="pen">так</span><q>Я страницу, ты страницу</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Сколько можно смотреть эту чушь!</q></div><div class="yes"><span class="pen">так</span><q>Shorts в будни у нас ноль. Выбери одно длинное видео, посмотрим вместе</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>У тебя от этих видео мозги испортятся</q></div><div class="yes"><span class="pen">так</span><q>Лента специально сделана без конца, чтобы невозможно было остановиться. Это не ты слабый, это они хитрые</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Ладно, играй, только недолго</q></div><div class="yes"><span class="pen">так</span><q>Сколько матчей берёшь — пять или шесть? Твой выбор</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Выключай немедленно!</q> посреди боя</div><div class="yes"><span class="pen">так</span><q>Это последний. Сыграй его хорошо</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Сам виноват, надо было лучше играть</q></div><div class="yes"><span class="pen">так</span><q>Обидно проигрывать последний. Завтра начнёшь с этого боя</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Денег нет</q> или молча дать</div><div class="yes"><span class="pen">так</span><q>В игре мы не покупаем то, где выпадает случайно. Это как лотерея. Давай посмотрим, как они это придумали</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Раз так, неделю без планшета!</q></div><div class="yes"><span class="pen">так</span><q>Ты злишься, это понятно. Правило остаётся. Пойдём, поможешь мне с ужином</q></div></li>
+    <li class="phrase" data-kind="tab"><div class="no"><span class="pen">не так</span><q>Опять ты в свою стрелялку</q></div><div class="yes"><span class="pen">так</span><q>Научи меня. Кто из бойцов твой любимый и почему?</q></div></li>
+  </ul>
+</section>
+
+<section id="specialist" aria-labelledby="sp-h">
+  <div class="section-head">
+    <h2 id="sp-h">Когда к логопеду</h2>
+    <p>Если за 6 недель сдвига почти нет или есть признаки ниже, нужен логопед, а не «давить сильнее». По оценкам, трудности чтения бывают у 5–10% школьников, у мальчиков чаще, а трудности письма — ещё чаще.</p>
+  </div>
+  <div class="card">
+    <ul class="flags">
+      <li><span>В <b>каждой</b> работе пропуски, перестановки, лишние буквы, хотя он не спешил.</span></li>
+      <li><span>Заменяет звуки, которые ясно слышны: «тома», «сапка», «лубит».</span></li>
+      <li><span>Путает похожие буквы, пишет зеркально.</span></li>
+      <li><span>Много ошибок при <b>списывании</b> с образца.</span></li>
+      <li><span>Читает очень медленно, по слогам, быстро устаёт, плохо понимает прочитанное, хотя на слух понимает хорошо.</span></li>
+      <li><span>Рассказывает интересно, а пишет 2–3 короткие фразы. Сильный нажим, боль в руке.</span></li>
+      <li><span>Знает правило и может его объяснить, но после месяца тренировки так и не применяет.</span></li>
+      <li><span>Слёзы и боли в животе в дни диктантов.</span></li>
+    </ul>
+  </div>
+  <div class="vs" role="table" aria-label="Не хочет или не может">
+    <div class="vh" role="columnheader">Скорее «не хочет»</div><div class="vh" role="columnheader">Скорее «не может»</div>
+    <div role="cell">Интересный текст пишет и читает заметно лучше скучного</div><div role="cell">Трудности одинаковы на любом тексте</div>
+    <div role="cell">При спокойном списывании ошибок мало</div><div role="cell">Ошибки и при списывании, и без спешки</div>
+    <div role="cell">После короткой тренировки по одной теме быстро растёт</div><div role="cell">Месяц стараний — почти без сдвига</div>
+    <div role="cell">Ошибки на правила, сам находит их по подсказке</div><div role="cell">Специфические ошибки: пропуски, замены, зеркальные буквы</div>
+  </div>
+  <div class="card">
+    <h3>К кому идти</h3>
+    <ul>
+      <li><b>Логопед</b> — первый адрес при ошибках письма и чтения: отличит дисграфию от дизорфографии и дислексии.</li>
+      <li><b>Нейропсихолог</b> — если подозреваете трудности внимания, зрительно-пространственные трудности, медленную моторику.</li>
+      <li><b>Офтальмолог и ЛОР</b> — проверить зрение и слух, если давно не проверяли.</li>
+      <li><b>ПМПК</b> — только если нужны официальные условия обучения или особые условия на контрольных. Большинству детей хватает логопеда и договорённости с учителем.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p>План собран из обзоров исследований — метаанализов, крупных исследований — и устоявшихся методик русской школы. Подробные отчёты с источниками лежат в репозитории CMFL: research/08 (русский язык) и research/09 (планшет).</p>
+  <p>Цифры в отчётах взяты в основном из аннотаций статей. Пороги вроде «5 матчей» и «минус 30–50% ошибок» — практические ориентиры, а не нормы. Это не медицинская консультация.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var WEEKS = [
+    { n: 1, title: "Разобраться, ничего не запрещая", goal: "понятны 1–2 главных типа ошибок, решено, нужен ли логопед; есть честная цифра экранного времени.",
+      groups: [
+        { label: "Планшет", tasks: [
+          ["w1p1", "Включить статистику экранного времени на его планшете и на своём телефоне", "Ничего не урезать, только смотреть: сколько, когда, после чего."],
+          ["w1p2", "Попросить сына научить вас Brawl Stars и сыграть вместе 3–4 матча", "Спросить: кто любимый боец, что нравится, что бесит."],
+          ["w1p3", "Посмотреть вместе 10 минут его Shorts, без комментариев", ""],
+          ["w1p4", "Убрать банковские карты с планшета и из браузера, включить «Попросить купить»", "Это безопасность, не обсуждается."],
+          ["w1p5", "Планшет на ночь заряжается вне спальни", "Коридор или кухня. И ваш телефон тоже."]
+        ]},
+        { label: "Русский и чтение", tasks: [
+          ["w1r1", "Разобрать 2–3 последних диктанта по типам ошибок", "Раздел «Диктанты»: три вопроса к каждой ошибке."],
+          ["w1r2", "Спокойные домашние проверки, по 10–15 минут", "Списать 40–50 слов из учебника; «найди ошибку сам»; 10 проверочных слов; минута чтения вслух; рассказ устно и письменно."],
+          ["w1r3", "Каждый вечер 15 минут читать ему вслух", "Просто для удовольствия, без вопросов и пересказов."],
+          ["w1r4", "Сходить в библиотеку или книжный", "Он сам выбирает 3–4 книги или комикса."],
+          ["w1r5", "Завести три коробки «трофеев»", "«Каждый день», «через 3 дня», «раз в неделю»."]
+        ]}
+      ]},
+    { n: 2, title: "Договориться и настроить", goal: "в мини-диктантах сам находит больше половины своих ошибок; договор подписан.",
+      groups: [
+        { label: "Планшет", tasks: [
+          ["w2p1", "Семейный совет 20–30 минут в выходной, с чаем", "Сценарий в разделе «Планшет»."],
+          ["w2p2", "Подписать договор и повесить расписание дня на холодильник", ""],
+          ["w2p3", "Настроить планшет вместе с ним", "Время покоя 20:00–7:30, лимит на Brawl Stars около 25 минут, YouTube. «Смотри, теперь планшет сам напомнит»."],
+          ["w2p4", "Shorts в эту неделю — 15 минут в день", "Промежуточный шаг перед нулём."],
+          ["w2p5", "Составить вместе список из 10 дел без экрана", ""]
+        ]},
+        { label: "Русский и чтение", tasks: [
+          ["w2r1", "Начать мини-диктанты по 5 минут в день по главному типу ошибок", "6–8 слов, обычным произношением, сам сверяет с образцом."],
+          ["w2r2", "Сделать карточку проверки из 3 шагов", "Первую неделю он проговаривает её вслух."],
+          ["w2r3", "«Охота на орфограммы» и морфологическая игра — по 2 раза", ""],
+          ["w2r4", "Проверять домашку по схеме «в этой строке одна ошибка — найдёшь?»", ""]
+        ]}
+      ]},
+    { n: 3, title: "Shorts — ноль, матчи — правило", goal: "ошибок по первой теме заметно меньше, чем в первую неделю.",
+      groups: [
+        { label: "Планшет", tasks: [
+          ["w3p1", "Shorts в будни — ноль", "Лимит ленты Shorts, удалённое приложение или видео только на телевизоре."],
+          ["w3p2", "Brawl Stars по ритуалу «последний матч»", "Сам называет последний матч и сам кладёт планшет на зарядку."],
+          ["w3p3", "Два вечера — длинное видео вместе, выбранное заранее", ""],
+          ["w3p4", "Выдержать протест на 3–5-й день", "Признать чувства, правило не менять, сразу предложить дело из списка."]
+        ]},
+        { label: "Русский и чтение", tasks: [
+          ["w3r1", "Зрительные диктанты и «Проверь меня» с обменом ролями", "Прочитал — нашёл орфограммы — закрыл — написал по памяти — сравнил."],
+          ["w3r2", "Проект «Энциклопедия бойцов»: 3 карточки от руки за неделю", "Потом проверить по вики игры."],
+          ["w3r3", "Первый текст для живого читателя", "Рассказать устно → план из 3 пунктов → написать → сам найти 3 опасных места → прочитать адресату."]
+        ]}
+      ]},
+    { n: 4, title: "Новое дело офлайн и вторая тема", goal: "не путает, какое правило применять; карточку проверки проговаривает шёпотом.",
+      groups: [
+        { label: "Планшет", tasks: [
+          ["w4p1", "Добавить одно регулярное дело, которого он ждёт", "Секция, друг по средам, мастерская с папой. Пробное занятие обязательно."],
+          ["w4p2", "Выходные: Brawl Stars с другом или в одной команде с вами и одна вылазка без экранов", ""]
+        ]},
+        { label: "Русский и чтение", tasks: [
+          ["w4r1", "Вторая тема ошибок; в мини-диктантах слова обеих тем вперемешку", "Так он учится различать, какое правило нужно."],
+          ["w4r2", "«Орфографический детектив»", "Ваша записка с 5 спрятанными ошибками, потом он прячет ошибки для вас."],
+          ["w4r3", "Проект «Придумай своего бойца»", "Полстраницы описания и рисунок."],
+          ["w4r4", "Аудиокнига вместе с бумажной книгой", "Слушает и водит пальцем по тексту."]
+        ]}
+      ]},
+    { n: 5, title: "Больше самостоятельности", goal: "карточка почти не нужна; читает сам 10–15 минут без уговоров хотя бы через день.",
+      groups: [
+        { label: "Планшет", tasks: [
+          ["w5p1", "Недельный бюджет матчей", "Например, 25 на будни: распределяет сам и отмечает в таблице на холодильнике."],
+          ["w5p2", "Сам ставит таймер или лимит при вас", ""]
+        ]},
+        { label: "Русский и чтение", tasks: [
+          ["w5r1", "3–5 словарных слов с забавными картинками-ассоциациями", "Дальше они идут в мини-диктанты с интервалами."],
+          ["w5r2", "Квест с записками-подсказками от руки", "Ошибка в подсказке — «ловушка», которую надо найти."],
+          ["w5r3", "«Гайд для новичка» или комикс", "Показать бабушке или другу, чтобы у текста был настоящий читатель."],
+          ["w5r4", "Он сам выбирает следующую серию книг", ""]
+        ]}
+      ]},
+    { n: 6, title: "Итоги", goal: "ориентир, а не норма: ошибок меньше на 30–50%, сам находит больше половины.",
+      groups: [
+        { label: "Планшет", tasks: [
+          ["w6p1", "Сравнить статистику с первой неделей", "Сон, настроение, время на уроки. Похвалить конкретно: «Ты сам выключил после пятого матча три дня подряд»."],
+          ["w6p2", "Второй семейный совет и правила на каникулы", "Матчей больше, но Shorts всё равно ноль и экраны вне спальни."]
+        ]},
+        { label: "Русский и чтение", tasks: [
+          ["w6r1", "Повторить диагностику", "Списывание, домашний диктант 50–60 слов со старыми «трофеями», минута чтения вслух. Сравнить с первой неделей."],
+          ["w6r2", "Встретиться с учителем", "Показать, что делаете дома, спросить про «точку сомнения» и меньше красной ручки."],
+          ["w6r3", "Решить про логопеда", "Сдвига почти нет или есть специфические ошибки — к логопеду."]
+        ]}
+      ]}
+  ];
+
+  var KEY = "cmfl-plan-9-v1";
+  var state = { done: {}, start: "" };
+  var mode = "local";
+  var docRef = null, writing = false, again = false, timer = null;
+
+  function readLocal() {
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (s && typeof s === "object") state = { done: s.done || {}, start: s.start || "" };
+    } catch (e) {}
+  }
+  function writeLocal() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  var list = document.getElementById("week-list");
+  var allIds = [];
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function build() {
+    var html = "";
+    WEEKS.forEach(function (w) {
+      html += '<details class="week" id="week-' + w.n + '" data-week="' + w.n + '">';
+      html += '<summary><span class="wk-num" aria-hidden="true">' + w.n + '</span>';
+      html += '<span class="wk-title"><strong>Неделя ' + w.n + ". " + esc(w.title) + '</strong><span class="muted wk-count"></span></span>';
+      html += '<span class="wk-side"><span class="pill" hidden></span></span></summary>';
+      html += '<div class="wk-body">';
+      w.groups.forEach(function (g) {
+        html += '<div class="group"><span class="label">' + esc(g.label) + "</span>";
+        g.tasks.forEach(function (t) {
+          allIds.push(t[0]);
+          html += '<label class="task" for="' + t[0] + '"><input type="checkbox" id="' + t[0] + '" data-id="' + t[0] + '"><span>' + esc(t[1]) + (t[2] ? "<small>" + esc(t[2]) + "</small>" : "") + "</span></label>";
+        });
+        html += "</div>";
+      });
+      html += '<p class="check-goal"><b>Как понять, что идёт:</b> ' + esc(w.goal) + "</p>";
+      html += "</div></details>";
+    });
+    list.innerHTML = html;
+  }
+
+  function currentWeek() {
+    if (!state.start) return null;
+    var p = state.start.split("-");
+    if (p.length !== 3) return null;
+    var start = new Date(+p[0], +p[1] - 1, +p[2]);
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var diff = Math.round((today - start) / 86400000);
+    return diff;
+  }
+
+  var opened = false;
+  function render() {
+    var total = allIds.length, done = 0;
+    allIds.forEach(function (id) {
+      var box = document.getElementById(id);
+      var v = !!state.done[id];
+      if (box.checked !== v) box.checked = v;
+      if (v) done++;
+    });
+    document.getElementById("total-count").textContent = done + " из " + total;
+    document.getElementById("meter").style.width = (total ? Math.round(done * 100 / total) : 0) + "%";
+
+    var diff = currentWeek();
+    var wk = null;
+    var nowText = document.getElementById("now-text");
+    if (diff === null) {
+      nowText.textContent = "Выберите день старта, и страница покажет текущую неделю";
+    } else if (diff < 0) {
+      nowText.textContent = "Старт через " + (-diff) + " дн.";
+      wk = 1;
+    } else if (diff >= 42) {
+      nowText.textContent = "Шесть недель позади. Время для итогового совета";
+      wk = 6;
+    } else {
+      wk = Math.floor(diff / 7) + 1;
+      nowText.textContent = "Идёт неделя " + wk + ", день " + (diff % 7 + 1);
+    }
+    var dateInput = document.getElementById("start");
+    if (dateInput.value !== state.start) dateInput.value = state.start;
+
+    WEEKS.forEach(function (w) {
+      var el = document.getElementById("week-" + w.n);
+      var ids = [];
+      w.groups.forEach(function (g) { g.tasks.forEach(function (t) { ids.push(t[0]); }); });
+      var d = ids.filter(function (id) { return state.done[id]; }).length;
+      el.querySelector(".wk-count").textContent = "сделано " + d + " из " + ids.length;
+      var pill = el.querySelector(".pill");
+      if (d === ids.length) { pill.hidden = false; pill.className = "pill done-pill"; pill.textContent = "готово"; }
+      else if (wk === w.n) { pill.hidden = false; pill.className = "pill now-pill"; pill.textContent = "сейчас"; }
+      else { pill.hidden = true; }
+    });
+    if (!opened) {
+      opened = true;
+      var target = document.getElementById("week-" + (wk || 1));
+      if (target) target.open = true;
+    }
+
+    var note = document.getElementById("save-note");
+    if (mode === "db") note.textContent = "Отметки хранятся вместе со страницей и видны на любом устройстве, где вы её откроете.";
+    else if (mode === "readonly") note.textContent = "Общие отметки сохранить не получилось, поэтому они сохраняются только в этом браузере.";
+    else note.textContent = "Отметки сохраняются в этом браузере.";
+  }
+
+  function save() {
+    writeLocal();
+    if (mode !== "db" || !docRef) return;
+    clearTimeout(timer);
+    timer = setTimeout(function () { timer = null; flush(); }, 400);
+  }
+  function flush() {
+    if (writing) { again = true; return; }
+    writing = true;
+    docRef.set({ done: state.done, start: state.start }).then(function () {
+      writing = false;
+      if (again) { again = false; flush(); }
+    }, function (e) {
+      writing = false;
+      if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) { mode = "readonly"; render(); }
+      else if (e && e.code === "unavailable" && !again) { again = false; setTimeout(flush, 800 + Math.random() * 800); }
+    });
+  }
+
+  list.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (!t || !t.dataset || !t.dataset.id) return;
+    if (t.checked) state.done[t.dataset.id] = true; else delete state.done[t.dataset.id];
+    render();
+    save();
+  });
+  document.getElementById("start").addEventListener("change", function (ev) {
+    state.start = ev.target.value || "";
+    opened = false;
+    document.querySelectorAll("details.week").forEach(function (d) { d.open = false; });
+    render();
+    save();
+  });
+
+  // Phrase filter
+  var buttons = document.querySelectorAll(".filters button");
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      var f = b.getAttribute("data-filter");
+      buttons.forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      document.querySelectorAll("#phrase-list .phrase").forEach(function (li) {
+        li.hidden = !(f === "all" || li.getAttribute("data-kind") === f);
+      });
+    });
+  });
+
+  // Copy agreement
+  var copyBtn = document.getElementById("copy-agreement");
+  copyBtn.addEventListener("click", function () {
+    var el = document.getElementById("agreement");
+    var text = el.textContent;
+    function selectIt() {
+      try { var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {}
+      copyBtn.textContent = "Текст выделен — скопируйте";
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { copyBtn.textContent = "Скопировано"; setTimeout(function () { copyBtn.textContent = "Скопировать текст"; }, 2000); }, selectIt);
+    } catch (e) { selectIt(); }
+  });
+
+  readLocal();
+  build();
+  render();
+
+  // Shared store, when the viewer provides one
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("db").then(function (db) {
+        if (!db) return;
+        docRef = db.doc("progress/main");
+        mode = "db";
+        render();
+        docRef.onSnapshot(function (snap) {
+          if (timer || writing) return;
+          if (snap.exists) {
+            var d = snap.data() || {};
+            var done = {};
+            var src = d.done || {};
+            Object.keys(src).forEach(function (k) { if (src[k]) done[k] = true; });
+            state = { done: done, start: typeof d.start === "string" ? d.start : "" };
+            writeLocal();
+          }
+          render();
+        }, function () { mode = "readonly"; render(); });
+      }, function () {});
+    }
+  } catch (e) {}
+})();
+</script>
