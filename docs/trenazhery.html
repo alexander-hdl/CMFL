@@ -431,6 +431,37 @@ details.q-gen[open] > summary::before { content: "▾"; }
 .day-move ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; font-size: 1.1rem; font-weight: 700; }
 .report { white-space: pre-wrap; background: var(--paper); color: #1b2333; border-radius: 14px; padding: 14px 16px; font-family: var(--f-body); font-size: 0.95rem; line-height: 1.5; margin: 0; max-height: 70vh; overflow: auto; }
 
+/* Gems, pet and his notes */
+.top-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hdr-btn { height: 46px; min-width: 46px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; cursor: pointer; font: inherit; position: relative; }
+.gem-btn b { font-family: var(--f-display); font-weight: 400; font-size: 1.2rem; color: #6fc3ff; font-variant-numeric: tabular-nums; }
+.pet-btn { padding: 0; width: 46px; overflow: hidden; font-size: 1.3rem; }
+.pet-btn svg { width: 44px; height: 44px; display: block; }
+.note-btn { padding: 0; width: 46px; font-size: 1.2rem; }
+.nb { position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--bad); color: #fff; font-size: 0.75rem; font-style: normal; font-weight: 800; display: grid; place-items: center; padding: 0 5px; }
+.pet-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pet-card { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 8px; display: grid; justify-items: center; gap: 4px; cursor: pointer; color: var(--ink); font: inherit; }
+.pet-card svg { width: 100%; max-width: 120px; height: auto; }
+.pet-scene { display: grid; gap: 8px; justify-items: center; }
+.room-svg { width: 100%; max-width: 480px; height: auto; border-radius: 16px; display: block; }
+.pet-hop.hop { animation: pethop 0.6s ease; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes pethop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-18px) scale(1.04); } }
+.pet-eyes { animation: petblink 4.5s infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes petblink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+.pet-say { background: var(--paper); color: #1b2333; border-radius: 14px; padding: 10px 14px; font-weight: 700; margin: 0; max-width: 480px; width: 100%; }
+.gem-big { font-family: var(--f-display); font-size: 1.5rem; color: #6fc3ff; }
+.shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.shop-item { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: start; align-content: start; }
+.shop-item.on { border-color: var(--good); }
+.shop-e { font-size: 1.6rem; line-height: 1; }
+.btn.sm { min-height: 40px; padding: 8px 14px; font-size: 0.95rem; }
+.note-list { display: grid; gap: 8px; }
+.note-item { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 6px; }
+.note-item p { margin: 0; }
+.note-item.done { opacity: 0.72; }
+.note-done { color: var(--good); font-weight: 800; }
+.note-reply { background: var(--paper); color: #1b2333; border-radius: 10px; padding: 8px 10px; }
+
 /* Schulte */
 .schulte { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 420px; width: 100%; margin: 0 auto; }
 .schulte button { aspect-ratio: 1; border: 0; border-radius: 10px; background: var(--paper); color: #1b2333; font-family: var(--f-display); font-size: clamp(1.1rem, 5vw, 1.6rem); cursor: pointer; }
@@ -472,10 +503,15 @@ details.q-gen[open] > summary::before { content: "▾"; }
       <h1>Тренировочная арена</h1>
       <p class="muted">Счёт, чтение и слова. Одна тренировка — 5 минут.</p>
     </div>
-    <div class="trophies" title="Трофей — это пример или слово, которое ты уже знаешь твёрдо">
+    <div class="top-right">
+      <div class="trophies" title="Трофей — это пример или слово, которое ты уже знаешь твёрдо">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4h14v6a7 7 0 0 1-14 0z" fill="#ffc83d"/><path d="M9 6H4v2a5 5 0 0 0 5 5M23 6h5v2a5 5 0 0 1-5 5" fill="none" stroke="#ffc83d" stroke-width="2.4"/><rect x="14" y="16" width="4" height="6" fill="#e0a92a"/><rect x="9" y="22" width="14" height="5" rx="1.5" fill="#ffc83d"/></svg>
       <b id="trophy-count">0</b>
       <span>трофеев</span>
+    </div>
+      <button type="button" class="hdr-btn gem-btn" id="gem-btn" aria-label="Гемы и питомец"><span aria-hidden="true">💎</span><b id="gem-count">0</b></button>
+      <button type="button" class="hdr-btn pet-btn" id="pet-btn" aria-label="Питомец"><span aria-hidden="true">🐾</span></button>
+      <button type="button" class="hdr-btn note-btn" id="note-btn" aria-label="Мои заметки: что подлатать"><span aria-hidden="true">📝</span><i class="nb" id="note-badge" hidden></i></button>
     </div>
   </header>
 
@@ -649,6 +685,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       '<span class="small">Хватит двух тренировок в день.</span>';
     renderDayStrip();
     renderWeekStrip();
+    renderPetHeader();
   }
 
   /* =====================================================================
@@ -2362,7 +2399,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       var w = e.target.closest(".qw"); if (!w) return;
       if (isTsya(w.textContent)) {
         prog.gems.push(quest.page); save("reading");
-        quest.gemMsg = "💎 +1. " + esc(tsyaWhy(w.textContent)) + ' <span class="muted small">Гемов: ' + Object.keys(data.reading.qp).reduce(function (s, k) { return s + data.reading.qp[k].gems.length; }, 0) + "</span>";
+        quest.gemMsg = "💎 +1. " + esc(tsyaWhy(w.textContent)) + ' <span class="muted small">У тебя 💎 ' + gemLedger().balance + "</span>";
         renderQuest();
       } else { w.classList.add("miss"); setTimeout(function () { w.classList.remove("miss"); }, 600); }
     });
@@ -3298,7 +3335,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
     if (!nx) {
       var g = weekGoal(weekStart(dayKey()));
       act = '<div class="feedback good"><div class="big">' + (P.steps.every(function (s) { return s.done; }) ? "Всё! Тренировка дня готова 🎉" : "Тренировка дня закончена") + "</div>" +
-        (g && g.k === "daily" ? "<p>Это засчиталось в цель недели.</p>" : "") + '<p class="muted">Дальше — что захочешь: книга, гонка, комикс или улица.</p>' +
+        (P.fin ? "<p>+" + GEM.daily + " 💎 для питомца.</p>" : "") + (g && g.k === "daily" ? "<p>Это засчиталось в цель недели.</p>" : "") + '<p class="muted">Дальше — что захочешь: книга, гонка, комикс или улица.</p>' +
         '<button class="btn gold" type="button" id="day-close2">Закрыть</button></div>';
     } else if (nx.k === "move") {
       act = '<div class="day-move"><p class="ask" style="text-align:left">Встань из-за стола и сделай:</p><ol>' + P.moves.map(function (m) { return "<li>" + esc(m) + "</li>"; }).join("") + "</ol>" +
@@ -3446,6 +3483,274 @@ details.q-gen[open] > summary::before { content: "▾"; }
       try { navigator.clipboard.writeText(report.text).then(done, fallback); } catch (e) { fallback(); }
     });
   }
+
+  /* ---------- gems and a pet (his idea): gems come from effort and mastery, never from single answers ---------- */
+  // No decay, no sadness, no random eggs, a daily cap on session gems; gems never turn into matches or presents.
+  var GEM = { daily: 10, sess: 2, run: 3, take: 2, page: 1, fam: 3, trophy: 5, tsya: 1, week: 15, cap: 30 };
+  var PET_KINDS = { dragon: "Дракончик", cat: "Котёнок", robot: "Робот" };
+  var PET_STAGES = [{ at: 0, n: "Малыш", s: 0.82 }, { at: 150, n: "Подросток", s: 0.95 }, { at: 450, n: "Взрослый", s: 1.08 }];
+  var SHOP = [
+    { id: "cap", slot: "hat", n: "Кепка", p: 20, e: "🧢" }, { id: "wizard", slot: "hat", n: "Колпак волшебника", p: 50, e: "🎩" },
+    { id: "helmet", slot: "hat", n: "Шлем рыцаря", p: 60, e: "⛑️" }, { id: "crown", slot: "hat", n: "Корона", p: 90, e: "👑" },
+    { id: "glasses", slot: "face", n: "Очки", p: 25, e: "👓" }, { id: "mask", slot: "face", n: "Маска героя", p: 40, e: "🦸" },
+    { id: "scarf", slot: "neck", n: "Шарф", p: 20, e: "🧣" }, { id: "medal", slot: "neck", n: "Медаль", p: 35, e: "🏅" }, { id: "cape", slot: "neck", n: "Плащ", p: 70, e: "🦇" },
+    { id: "ball", slot: "toy", n: "Мяч", p: 15, e: "⚽" }, { id: "cube", slot: "toy", n: "Кубик", p: 30, e: "🧊" },
+    { id: "rug", slot: "rug", n: "Ковёр", p: 30, e: "🟫" }, { id: "bed", slot: "bed", n: "Лежанка", p: 40, e: "🛏️" },
+    { id: "lamp", slot: "lamp", n: "Лампа-звезда", p: 45, e: "⭐" }, { id: "poster", slot: "poster", n: "Постер «Арена»", p: 25, e: "🖼️" }
+  ];
+  var TREATS = [{ id: "cookie", n: "Печенье", p: 3, e: "🍪" }, { id: "fish", n: "Рыбка", p: 5, e: "🐟" }];
+  var PET_FACTS = ["А ты знал, что у осьминога три сердца?", "Самое большое животное на Земле — синий кит.", "Пингвины не летают, зато отлично плавают.", "Вода замерзает при 0 градусов.", "7 × 8 = 56. Запомни: пять, шесть, семь, восемь!", "Я горжусь тобой!", "Давай сегодня найдём ещё одну концовку в квесте?"];
+  var pet = { msg: "", jump: false, fact: -1 };
+  function petData() {
+    var f = fam();
+    if (!f.pet || typeof f.pet !== "object") f.pet = {};
+    var p = f.pet;
+    if (!Array.isArray(p.buys)) p.buys = [];
+    if (!Array.isArray(p.items)) p.items = [];
+    if (!p.wear || typeof p.wear !== "object") p.wear = {};
+    return p;
+  }
+  function gemLedger() {
+    var m = data.math, w = data.words, r = data.reading, f = fam(), p = petData(), byDay = {};
+    function add(d, n) { if (d) byDay[d] = (byDay[d] || 0) + n; }
+    [m.sessions, m.df && m.df.sessions, m.cm && m.cm.sessions, m.wp, w.sessions, w.hunt, w.fam].forEach(function (a) { (a || []).forEach(function (x) { add(x.d, GEM.sess); }); });
+    (r.runs || []).forEach(function (x) { add(x.d, GEM.run); });
+    (r.takes || []).forEach(function (x) { add(x.d, GEM.take); });
+    (r.ql || []).forEach(function (x) { add(x.d, (x.pages || 0) * GEM.page); });
+    [m.race && m.race.games, f.quiz && f.quiz.games].forEach(function (a) { (a || []).forEach(function (x) { add(x.d, GEM.fam); }); });
+    var dl = f.daily || {}; Object.keys(dl).forEach(function (k) { if (dl[k] && dl[k].fin) add(k, GEM.daily); });
+    var sess = Object.keys(byDay).reduce(function (s, d) { return s + Math.min(GEM.cap, byDay[d]); }, 0);
+    var tr = trophyCount(), changed = false;
+    if (tr > (p.maxTr || 0)) { p.maxTr = tr; changed = true; }
+    var tsya = 0, qp = r.qp || {}; Object.keys(qp).forEach(function (k) { tsya += ((qp[k] || {}).gems || []).length; });
+    var weeks = Object.keys((f.week && f.week.goals) || {}).filter(function (k) { return f.week.goals[k] && f.week.goals[k].hit; }).length;
+    var earned = sess + (p.maxTr || 0) * GEM.trophy + tsya * GEM.tsya + weeks * GEM.week;
+    // Old log entries get trimmed one day; what was earned once stays earned.
+    if (earned > (p.earnedMax || 0)) { p.earnedMax = earned; changed = true; }
+    if (changed) save("family");
+    var spent = p.buys.reduce(function (s, b) { return s + (b.p || 0); }, 0);
+    return { earned: p.earnedMax || 0, spent: spent, balance: Math.max(0, (p.earnedMax || 0) - spent), today: Math.min(GEM.cap, byDay[dayKey()] || 0) };
+  }
+  function petStage(earned) { var st = PET_STAGES[0]; PET_STAGES.forEach(function (x) { if (earned >= x.at) st = x; }); return st; }
+
+  // The pet is drawn in a 200×200 box, centred at (100, 120).
+  function petSVG(p, opt) {
+    opt = opt || {};
+    var kind = p.kind || "dragon", st = petStage(opt.earned || 0);
+    return '<svg class="pet-svg" viewBox="0 0 200 200" role="img" aria-label="' + esc((p.name || PET_KINDS[kind]) + ", " + st.n.toLowerCase()) + '">' + petInner(p, opt.earned || 0) + "</svg>";
+  }
+  function petInner(p, earned) {
+    var kind = p.kind || "dragon", w = p.wear || {}, st = petStage(earned);
+    var col = { dragon: ["#5ddc8c", "#b8f2cd", "#2fa65f"], cat: ["#ff9f4a", "#ffd9b0", "#d9762a"], robot: ["#8fb8d6", "#dceaf4", "#5c87a8"] }[kind];
+    var s = "";
+    if (w.neck === "cape") s += '<path d="M62 118 Q100 104 138 118 L150 182 Q100 172 50 182 Z" fill="#c0392b"/>';
+    if (kind === "dragon") {
+      s += '<path d="M150 150 Q182 150 176 120 Q172 140 150 138 Z" fill="' + col[0] + '"/>' +
+        '<path d="M58 112 L28 92 L44 128 Z" fill="' + col[2] + '"/><path d="M142 112 L172 92 L156 128 Z" fill="' + col[2] + '"/>' +
+        '<ellipse cx="100" cy="128" rx="50" ry="48" fill="' + col[0] + '"/><ellipse cx="100" cy="146" rx="30" ry="24" fill="' + col[1] + '"/>' +
+        '<path d="M78 84 L84 66 L90 84 Z M110 84 L116 66 L122 84 Z" fill="' + col[2] + '"/>';
+    } else if (kind === "cat") {
+      s += '<path d="M146 156 Q184 150 172 108" stroke="' + col[0] + '" stroke-width="12" fill="none" stroke-linecap="round"/>' +
+        '<path d="M58 96 L64 60 L88 84 Z M142 96 L136 60 L112 84 Z" fill="' + col[0] + '"/><path d="M66 88 L68 70 L80 84 Z M134 88 L132 70 L120 84 Z" fill="' + col[1] + '"/>' +
+        '<ellipse cx="100" cy="128" rx="50" ry="46" fill="' + col[0] + '"/><ellipse cx="100" cy="146" rx="28" ry="22" fill="' + col[1] + '"/>' +
+        '<path d="M60 124 H40 M60 132 H42 M140 124 H160 M140 132 H158" stroke="#7a4a1c" stroke-width="2" stroke-linecap="round"/>';
+    } else {
+      s += '<line x1="100" y1="80" x2="100" y2="58" stroke="' + col[2] + '" stroke-width="4"/><circle cx="100" cy="54" r="7" fill="#ffc83d"/>' +
+        '<rect x="50" y="80" width="100" height="96" rx="26" fill="' + col[0] + '"/><rect x="64" y="96" width="72" height="44" rx="12" fill="#13202a"/>' +
+        '<rect x="40" y="118" width="12" height="30" rx="6" fill="' + col[2] + '"/><rect x="148" y="118" width="12" height="30" rx="6" fill="' + col[2] + '"/>' +
+        '<circle cx="100" cy="158" r="8" fill="' + col[1] + '"/>';
+    }
+    var eyeY = kind === "robot" ? 116 : 116, eyeFill = kind === "robot" ? "#6fc3ff" : "#fff";
+    s += '<g class="pet-eyes"><ellipse cx="84" cy="' + eyeY + '" rx="9" ry="10" fill="' + eyeFill + '"/><ellipse cx="116" cy="' + eyeY + '" rx="9" ry="10" fill="' + eyeFill + '"/>' +
+      (kind === "robot" ? "" : '<circle cx="86" cy="' + (eyeY + 1) + '" r="4.5" fill="#13202a"/><circle cx="118" cy="' + (eyeY + 1) + '" r="4.5" fill="#13202a"/>') + "</g>";
+    s += kind === "robot" ? '<path d="M88 130 Q100 138 112 130" stroke="#6fc3ff" stroke-width="3" fill="none" stroke-linecap="round"/>' : '<path d="M90 132 Q100 140 110 132" stroke="#13202a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="72" cy="130" r="5" fill="#ff7aa2" opacity="0.5"/><circle cx="128" cy="130" r="5" fill="#ff7aa2" opacity="0.5"/>';
+    if (w.neck === "scarf") s += '<path d="M62 150 Q100 166 138 150 L136 160 Q100 174 64 160 Z" fill="#e5484d"/><rect x="120" y="156" width="10" height="20" rx="3" fill="#e5484d"/>';
+    if (w.neck === "medal") s += '<path d="M86 148 L100 164 L114 148" stroke="#2f6fd6" stroke-width="5" fill="none"/><circle cx="100" cy="168" r="9" fill="#ffc83d" stroke="#b9861a" stroke-width="2"/>';
+    if (w.face === "glasses") s += '<g fill="none" stroke="#13202a" stroke-width="3"><circle cx="84" cy="116" r="12"/><circle cx="116" cy="116" r="12"/><line x1="96" y1="116" x2="104" y2="116"/></g>';
+    if (w.face === "mask") s += '<path d="M68 108 Q100 98 132 108 L130 124 Q116 128 104 120 L96 120 Q84 128 70 124 Z" fill="#2f6fd6" opacity="0.92"/><ellipse cx="84" cy="115" rx="6" ry="5" fill="#fff"/><ellipse cx="116" cy="115" rx="6" ry="5" fill="#fff"/>';
+    var top = kind === "robot" ? 80 : 84;
+    if (w.hat === "cap") s += '<path d="M70 ' + top + ' Q100 ' + (top - 34) + " 130 " + top + ' Z" fill="#e5484d"/><path d="M118 ' + top + " Q146 " + (top - 4) + " 150 " + (top + 4) + ' L120 ' + (top + 2) + ' Z" fill="#b8323a"/>';
+    if (w.hat === "wizard") s += '<path d="M72 ' + top + " L100 " + (top - 60) + " L128 " + top + ' Z" fill="#6c4ccf"/><circle cx="100" cy="' + (top - 30) + '" r="4" fill="#ffc83d"/><circle cx="112" cy="' + (top - 14) + '" r="3" fill="#ffc83d"/>';
+    if (w.hat === "helmet") s += '<path d="M66 ' + (top + 6) + " Q100 " + (top - 40) + " 134 " + (top + 6) + ' Z" fill="#9aa7b5"/><rect x="96" y="' + (top - 30) + '" width="8" height="34" fill="#e5484d"/>';
+    if (w.hat === "crown") s += '<path d="M72 ' + top + " L76 " + (top - 30) + " L90 " + (top - 14) + " L100 " + (top - 34) + " L110 " + (top - 14) + " L124 " + (top - 30) + " L128 " + top + ' Z" fill="#ffc83d" stroke="#b9861a" stroke-width="2"/><circle cx="100" cy="' + (top - 8) + '" r="4" fill="#e5484d"/>';
+    return '<g transform="translate(100 190) scale(' + st.s + ') translate(-100 -190)">' + s + "</g>";
+  }
+  function roomSVG(p, earned, jump) {
+    var w = p.wear || {}, s = '<svg class="room-svg" viewBox="0 0 360 260" role="img" aria-label="Комната питомца">' +
+      '<rect width="360" height="170" fill="#1d3b4a"/><rect y="170" width="360" height="90" fill="#16303d"/><line x1="0" y1="170" x2="360" y2="170" stroke="#2a4d5d" stroke-width="3"/>';
+    if (w.poster) s += '<rect x="34" y="34" width="70" height="90" rx="6" fill="#fbfaf3"/><text x="69" y="74" text-anchor="middle" font-size="26">🏆</text><text x="69" y="106" text-anchor="middle" font-size="11" font-weight="800" fill="#1b2333">АРЕНА</text>';
+    if (w.lamp) s += '<line x1="300" y1="0" x2="300" y2="40" stroke="#9db3bc" stroke-width="2"/><text x="300" y="66" text-anchor="middle" font-size="34">⭐</text><circle cx="300" cy="56" r="44" fill="#ffc83d" opacity="0.12"/>';
+    if (w.rug) s += '<ellipse cx="180" cy="222" rx="120" ry="26" fill="#8a5a3c"/><ellipse cx="180" cy="222" rx="96" ry="18" fill="#a8714d"/>';
+    if (w.bed) s += '<ellipse cx="64" cy="222" rx="50" ry="18" fill="#6c4ccf"/><ellipse cx="64" cy="214" rx="38" ry="10" fill="#8e74e0"/>';
+    if (w.toy === "ball") s += '<text x="282" y="234" text-anchor="middle" font-size="30">⚽</text>';
+    if (w.toy === "cube") s += '<text x="282" y="234" text-anchor="middle" font-size="30">🧊</text>';
+    return s + '<g transform="translate(40 -8) scale(1.4)"><g class="pet-hop' + (jump ? " hop" : "") + '">' + petInner(p, earned) + "</g></g></svg>";
+  }
+  function petPhrase(L) {
+    var P = todayPlan && todayPlan();
+    if (pet.msg) return pet.msg;
+    if (P && P.fin) return "Ура, тренировка дня сделана! Ты сегодня заработал " + L.today + " 💎.";
+    if (L.today > 0) return "Классно позанимались! Сегодня уже " + L.today + " 💎.";
+    return "Привет! Начнём «Тренировку дня»? За неё дают 10 💎.";
+  }
+  function openPet() {
+    var el = $("pet-ov");
+    if (!el) { el = document.createElement("div"); el.id = "pet-ov"; el.className = "week-ov"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Питомец"); document.body.appendChild(el); }
+    pet.msg = ""; renderPet();
+  }
+  function closePet() { var el = $("pet-ov"); if (el) el.remove(); renderHeader(); }
+  function renderPet() {
+    var el = $("pet-ov"); if (!el) return;
+    var p = petData(), L = gemLedger(), st = petStage(L.earned), next = PET_STAGES.filter(function (x) { return x.at > L.earned; })[0];
+    var html;
+    if (!p.kind) {
+      html = '<div class="week-box"><div class="row" style="justify-content:space-between"><h2>Твой питомец</h2><button class="btn ghost" type="button" id="pet-x">✕ Закрыть</button></div>' +
+        '<p class="muted">Выбери, кто будет жить в арене. Он растёт, когда ты занимаешься, а за гемы ему можно покупать вещи и угощения.</p>' +
+        '<div class="pet-pick">' + Object.keys(PET_KINDS).map(function (k) { return '<button type="button" class="pet-card" data-pk="' + k + '">' + petSVG({ kind: k }, { earned: 150 }) + "<b>" + PET_KINDS[k] + "</b></button>"; }).join("") + "</div>" +
+        '<label class="f" for="pet-name">Как его зовут?<input type="text" id="pet-name" maxlength="16" placeholder="Придумай имя"></label>' +
+        '<p class="small" id="pet-err" style="color:var(--bad);margin:0"></p></div>';
+      el.innerHTML = html;
+      $("pet-x").addEventListener("click", closePet);
+      el.querySelectorAll("[data-pk]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var nm = $("pet-name").value.trim().slice(0, 16);
+          if (!nm) { $("pet-err").textContent = "Сначала придумай имя."; $("pet-name").focus(); return; }
+          p.kind = b.getAttribute("data-pk"); p.name = nm; p.born = dayKey(); save("family"); renderPet(); renderHeader();
+        });
+      });
+      return;
+    }
+    var shop = ["hat", "face", "neck", "toy", "rug", "bed", "lamp", "poster"].map(function (slot) {
+      return SHOP.filter(function (x) { return x.slot === slot; }).map(function (it) {
+        var own = p.items.indexOf(it.id) >= 0, on = p.wear[it.slot] === it.id, need = it.p - L.balance;
+        var btn = own ? '<button type="button" class="btn ' + (on ? "good" : "ghost") + ' sm" data-wear="' + it.id + '">' + (on ? "Снять" : "Надеть") + "</button>" :
+          '<button type="button" class="btn gold sm" data-buy="' + it.id + '"' + (need > 0 ? " disabled" : "") + ">" + it.p + " 💎</button>" + (need > 0 ? '<span class="muted small">не хватает ' + need + "</span>" : "");
+        return '<div class="shop-item' + (on ? " on" : "") + '"><span class="shop-e">' + it.e + "</span><b>" + esc(it.n) + "</b>" + btn + "</div>";
+      }).join("");
+    }).join("");
+    html = '<div class="week-box"><div class="row" style="justify-content:space-between"><h2>' + esc(p.name) + ' <span class="muted small">' + esc(PET_KINDS[p.kind]) + ", " + st.n.toLowerCase() + '</span></h2><button class="btn ghost" type="button" id="pet-x">✕ Закрыть</button></div>' +
+      '<div class="pet-scene">' + roomSVG(p, L.earned, pet.jump) + '<p class="pet-say">' + esc(petPhrase(L)) + "</p></div>" +
+      '<div class="row" style="justify-content:space-between"><span class="gem-big">💎 ' + L.balance + '</span><span class="muted small">' + (next ? "До стадии «" + next.n.toLowerCase() + "» осталось заработать " + (next.at - L.earned) + " 💎" : "Твой питомец уже взрослый!") + "</span></div>" +
+      '<div class="row">' + TREATS.map(function (t) { return '<button type="button" class="btn ghost" data-treat="' + t.id + '"' + (L.balance < t.p ? " disabled" : "") + ">" + t.e + " " + t.n + " · " + t.p + " 💎</button>"; }).join("") + '<button type="button" class="btn ghost" id="pet-pat">Погладить</button></div>' +
+      '<div class="panel wk-panel"><h3>Магазин</h3><div class="shop">' + shop + "</div></div>" +
+      '<details class="names"><summary class="muted">Откуда берутся гемы</summary><ul class="tips">' +
+        "<li>Тренировка дня — 10 💎, раунд счёта или слов — 2, чтение вслух — 3, дубль в «Суфлёре» — 2, страница квеста — 1, игра со взрослым — 3. За занятия в день — не больше " + GEM.cap + " 💎.</li>" +
+        "<li>Новый трофей — 5 💎, слово на -тся/-ться в квесте — 1, выполненная цель недели — 15.</li>" +
+        "<li>Сегодня заработано: " + L.today + " из " + GEM.cap + ". Всего: " + L.earned + ", потрачено: " + L.spent + ".</li></ul></details></div>";
+    el.innerHTML = html; pet.jump = false;
+    $("pet-x").addEventListener("click", closePet);
+    el.querySelectorAll("[data-buy]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var it = SHOP.filter(function (x) { return x.id === b.getAttribute("data-buy"); })[0], L2 = gemLedger();
+        if (!it || L2.balance < it.p || p.items.indexOf(it.id) >= 0) return;
+        p.buys.push({ id: it.id, p: it.p, d: dayKey() }); p.items.push(it.id); p.wear[it.slot] = it.id;
+        pet.msg = "Спасибо! " + it.n + " — то, что надо!"; pet.jump = true; save("family"); renderPet(); renderHeader();
+      });
+    });
+    el.querySelectorAll("[data-wear]").forEach(function (b) {
+      b.addEventListener("click", function () { var it = SHOP.filter(function (x) { return x.id === b.getAttribute("data-wear"); })[0]; if (!it) return; p.wear[it.slot] = p.wear[it.slot] === it.id ? null : it.id; pet.msg = ""; save("family"); renderPet(); renderHeader(); });
+    });
+    el.querySelectorAll("[data-treat]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var t = TREATS.filter(function (x) { return x.id === b.getAttribute("data-treat"); })[0], L2 = gemLedger();
+        if (!t || L2.balance < t.p) return;
+        p.buys.push({ id: t.id, p: t.p, d: dayKey() }); pet.jump = true; pet.msg = t.n + "! Ням-ням, спасибо!"; save("family"); renderPet(); renderHeader();
+      });
+    });
+    $("pet-pat").addEventListener("click", function () { pet.fact = (pet.fact + 1) % PET_FACTS.length; pet.msg = PET_FACTS[pet.fact]; pet.jump = true; renderPet(); });
+  }
+  function petProgressHTML() {
+    var p = petData(), L = gemLedger();
+    if (!p.kind && !L.earned) return "";
+    var bought = p.items.map(function (id) { var it = SHOP.filter(function (x) { return x.id === id; })[0]; return it ? it.n.toLowerCase() : ""; }).filter(Boolean);
+    return '<div class="panel"><h3>Гемы и питомец</h3><div class="stats">' + stat(String(L.earned), "гемов заработано") + stat(String(L.spent), "потрачено") + stat(String(L.today) + " / " + GEM.cap, "за занятия сегодня") + "</div>" +
+      (p.kind ? '<p class="muted small">Питомец: ' + esc(p.name) + " (" + esc(PET_KINDS[p.kind].toLowerCase()) + ", " + petStage(L.earned).n.toLowerCase() + ")" + (bought.length ? ". Куплено: " + esc(bought.join(", ")) : "") + ".</p>" : "") +
+      '<p class="muted small">Гемы придумал сын. Они начисляются за усилие и освоение, а не за каждый ответ, и не больше ' + GEM.cap + " в день за занятия. Тратятся только на питомца внутри арены. Не меняйте их на матчи и подарки: тогда учёба превратится в работу за плату.</p></div>";
+  }
+
+  /* ---------- his notes: what to fix or add (he is a tester too) ---------- */
+  var NOTE_KINDS = { bug: "🐞 Сломалось", meh: "😕 Неудобно", bored: "😴 Скучно", idea: "💡 Хочу добавить", love: "❤️ Нравится" };
+  var note = { kind: "bug" };
+  function notesData() { var f = fam(); if (!Array.isArray(f.notes)) f.notes = []; return f.notes; }
+  function whereNow() {
+    var tab = { math: "Счёт", read: "Чтение", words: "Слова", games: "Матчи", prog: "Прогресс" }[current] || "";
+    var sub = "";
+    if (current === "math") sub = math.round ? "таблица" : math.df ? "опорные факты" : math.wp ? "задачи бравлера" : math.cm ? "часы и деньги" : math.race ? "гонка" : math.nl ? "числовая прямая" : "";
+    if (current === "read") sub = { quest: "книга-квест", play: "суфлёр", schulte: "таблица Шульте", ready: "чтение вслух", reading: "чтение вслух", mark: "чтение вслух" }[reading.view] || "";
+    if (current === "words") sub = words.round ? "диктант" : words.hunt ? "охота на орфограммы" : words.fam ? "семейка слов" : "";
+    if (current === "games" && quiz.g) sub = "своя игра";
+    return tab + (sub ? " · " + sub : "");
+  }
+  function openNotes() {
+    var el = $("note-ov");
+    if (!el) { el = document.createElement("div"); el.id = "note-ov"; el.className = "week-ov"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Мои заметки"); document.body.appendChild(el); }
+    note.where = whereNow();
+    var changed = false; notesData().forEach(function (n) { if (n.reply && !n.seen) { n.seen = true; changed = true; } });
+    if (changed) save("family");
+    renderNotes();
+  }
+  function closeNotes() { var el = $("note-ov"); if (el) el.remove(); renderHeader(); }
+  function renderNotes() {
+    var el = $("note-ov"); if (!el) return;
+    var list = notesData().slice().sort(function (a, b) { return b.ts - a.ts; });
+    el.innerHTML = '<div class="week-box"><div class="row" style="justify-content:space-between"><h2>Мои заметки</h2><button class="btn ghost" type="button" id="note-x">✕ Закрыть</button></div>' +
+      '<p class="muted">Что подлатать или придумать? Пиши всё: что сломалось, что неудобно, что скучно и что хочется добавить. Взрослые прочитают и ответят.</p>' +
+      '<div class="seg">' + Object.keys(NOTE_KINDS).map(function (k) { return '<button type="button" data-nk="' + k + '" aria-pressed="' + (note.kind === k) + '">' + NOTE_KINDS[k] + "</button>"; }).join("") + "</div>" +
+      '<textarea id="note-text" maxlength="300" placeholder="Например: в часах стрелку трудно крутить пером"></textarea>' +
+      '<p class="muted small" style="margin:0">Где: ' + esc(note.where || "арена") + "</p>" +
+      '<div class="row"><button class="btn gold" type="button" id="note-add">Записать</button><span class="small" id="note-msg"></span></div>' +
+      (list.length ? '<div class="note-list">' + list.map(function (n) {
+        return '<div class="note-item' + (n.done ? " done" : "") + '"><div class="row" style="justify-content:space-between"><b>' + NOTE_KINDS[n.kind] + '</b><span class="muted small">' + esc(n.d.split("-").reverse().slice(0, 2).join(".")) + (n.where ? " · " + esc(n.where) : "") + "</span></div>" +
+          "<p>" + esc(n.text) + "</p>" + (n.done ? '<p class="note-done">✓ Сделано</p>' : "") + (n.reply ? '<p class="note-reply">Ответ взрослого: ' + esc(n.reply) + "</p>" : "") +
+          '<button type="button" class="btn ghost sm" data-ndel="' + esc(n.id) + '">Удалить</button></div>';
+      }).join("") + "</div>" : "") + "</div>";
+    $("note-x").addEventListener("click", closeNotes);
+    el.querySelectorAll("[data-nk]").forEach(function (b) { b.addEventListener("click", function () { var t = $("note-text").value; note.kind = b.getAttribute("data-nk"); renderNotes(); $("note-text").value = t; }); });
+    $("note-add").addEventListener("click", function () {
+      var t = $("note-text").value.trim().slice(0, 300);
+      if (!t) { $("note-msg").textContent = "Напиши хотя бы пару слов."; return; }
+      var L = notesData(); L.push({ id: "n" + Date.now().toString(36), ts: Date.now(), d: dayKey(), kind: note.kind, text: t, where: note.where || "", done: false, reply: "", seen: true });
+      while (L.length > 200) L.shift();
+      save("family"); renderNotes(); $("note-msg").textContent = "Записано! Спасибо, тестировщик.";
+    });
+    el.querySelectorAll("[data-ndel]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-sure") !== "1") { b.setAttribute("data-sure", "1"); b.textContent = "Точно удалить?"; return; }
+        var id = b.getAttribute("data-ndel"), f = fam(); f.notes = notesData().filter(function (n) { return n.id !== id; }); save("family"); renderNotes();
+      });
+    });
+  }
+  function notesProgressHTML() {
+    var list = notesData().slice().sort(function (a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0) || b.ts - a.ts; });
+    if (!list.length) return '<div class="panel"><h3>Заметки сына</h3><p class="muted">Заметок пока нет. Кнопка 📝 в шапке — его способ сказать, что подлатать или добавить.</p></div>';
+    var open = list.filter(function (n) { return !n.done; }).length;
+    return '<div class="panel"><h3>Заметки сына <span class="muted small">(' + open + " новых из " + list.length + ")</span></h3>" +
+      '<div class="note-list">' + list.map(function (n) {
+        return '<div class="note-item' + (n.done ? " done" : "") + '"><div class="row" style="justify-content:space-between"><b>' + NOTE_KINDS[n.kind] + '</b><span class="muted small">' + esc(n.d.split("-").reverse().join(".")) + (n.where ? " · " + esc(n.where) : "") + "</span></div><p>" + esc(n.text) + "</p>" +
+          '<div class="row"><input type="text" maxlength="200" data-nrep="' + esc(n.id) + '" placeholder="Ответ сыну" value="' + esc(n.reply || "") + '" style="max-width:320px"><button type="button" class="btn ghost sm" data-ndone="' + esc(n.id) + '">' + (n.done ? "Вернуть в новые" : "Сделано ✓") + "</button></div></div>";
+      }).join("") + "</div>" +
+      '<p class="muted small">Чтобы я починил или добавил то, о чём он пишет, скажите мне в чате Claude: «прочитай заметки сына в арене». Отвечайте ему коротко: «Починили!», «Хорошая идея, подумаем». Так он видит, что его слышат.</p></div>';
+  }
+  function bindNotesProgress() {
+    document.querySelectorAll("[data-ndone]").forEach(function (b) {
+      b.addEventListener("click", function () { var n = notesData().filter(function (x) { return x.id === b.getAttribute("data-ndone"); })[0]; if (!n) return; n.done = !n.done; save("family"); renderProgress(); });
+    });
+    document.querySelectorAll("[data-nrep]").forEach(function (inp) {
+      inp.addEventListener("change", function () { var n = notesData().filter(function (x) { return x.id === inp.getAttribute("data-nrep"); })[0]; if (!n) return; var v = inp.value.trim().slice(0, 200); if (v !== n.reply) { n.reply = v; n.seen = !v; save("family"); renderPetHeader(); } });
+    });
+  }
+
+  function renderPetHeader() {
+    var L = gemLedger(), p = petData();
+    if ($("gem-count")) $("gem-count").textContent = L.balance;
+    var pb = $("pet-btn"); if (pb) pb.innerHTML = p.kind ? petSVG(p, { earned: L.earned }) : '<span aria-hidden="true">🐾</span>';
+    var unseen = notesData().filter(function (n) { return n.reply && !n.seen; }).length, badge = $("note-badge");
+    if (badge) { badge.hidden = !unseen; badge.textContent = unseen || ""; }
+  }
+  document.addEventListener("keydown", function (e) { if (e.key !== "Escape") return; if ($("pet-ov")) closePet(); else if ($("note-ov")) closeNotes(); });
+  $("gem-btn").addEventListener("click", openPet);
+  $("pet-btn").addEventListener("click", openPet);
+  $("note-btn").addEventListener("click", openNotes);
 
   /* ---------- speech ---------- */
   var ruVoice = null;
@@ -4214,7 +4519,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
         '<p class="muted">Это экран для взрослого. Здесь видно, что получается и над чем работать.</p>' +
         '<div><p class="small muted" style="margin-bottom:6px">Дни с тренировками за 2 недели: ' + active + " из 14</p><div class=\"days\">" + days.map(function (d) { return '<i class="' + (set[d] ? "on" : "") + '" title="' + d + '"></i>'; }).join("") + "</div></div>" +
         '<div class="stats">' + stat(String(trophyCount()), "трофеев") + stat(mastered + " / " + PAIRS.length, "примеров умножения освоено") + stat(String(Object.keys(bestBy).length), "текстов прочитано") + (nlLast ? stat(nlLast.err.toFixed(1).replace(".", ",") + "%", "промах на числовой прямой 0–" + nlLast.range) : "") + "</div>" +
-      "</div>" + reportPanelHTML() + dailyProgressHTML() +
+      "</div>" + notesProgressHTML() + reportPanelHTML() + dailyProgressHTML() + petProgressHTML() +
       '<div class="panel"><h3>Счёт: последние раунды</h3>' +
         (msess.length ? '<div class="bars">' + msess.map(function (s) {
           return '<div class="bar"><span class="muted">' + s.d.slice(8) + "." + s.d.slice(5, 7) + '</span><div class="track"><div class="fill" style="width:' + Math.round(s.ok / Math.max(1, s.n) * 100) + '%;background:var(--good)"></div></div><b>' + s.ok + "/" + s.n + "</b></div>";
@@ -4235,6 +4540,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
         "<li>1–2 тренировки в день по 5 минут. Это учебное время, а не развлекательное, и оно не входит в матчи Brawl Stars.</li>" +
         "<li>Не перед сном: последний час без экранов остаётся в силе.</li>" +
         "<li>Трофеи — это счёт выученного, а не валюта. Не меняйте их на планшет или подарки.</li>" +
+        "<li>Гемы тратятся только на питомца внутри арены. Их тоже не меняют на матчи и подарки.</li>" +
         "<li>В «Словах» выбирайте одну тему за раз — ту, что сейчас по плану. Слова пишите на бумаге, если логопед не советует иначе.</li>" +
         "<li>Покажите логопеду экран «Прогресс» и спросите, какие слова добавить в «Мои слова».</li>" +
         "<li>Хвалите за процесс: «Ты сам нашёл ошибку», «Сегодня быстрее, чем вчера».</li>" +
@@ -4244,6 +4550,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       "</ul><p class=\"note\" id=\"store-note\"></p></div>";
     var note = $("store-note");
     bindReportPanel();
+    bindNotesProgress();
     if (note) note.textContent = store.mode === "db" ? "Прогресс хранится вместе со страницей: его видно на любом устройстве, где вы её откроете." : store.mode === "readonly" ? "Общий прогресс сохранить не получилось, поэтому он сохраняется только в этом браузере." : "Прогресс сохраняется в этом браузере.";
   }
 
