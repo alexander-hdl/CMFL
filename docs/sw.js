@@ -1,5 +1,5 @@
 // Offline cache: stale-while-revalidate for this site and Google Fonts. CACHE changes with every build.
-const CACHE = "cmfl-ee17babaa3";
+const CACHE = "cmfl-6e35341b3f";
 const CORE = ["./", "index.html", "trenazhery.html", "plan.html", "komiksy.html", "blokograd.html", "manifest-arena.webmanifest", "manifest-plan.webmanifest", "manifest-comics.webmanifest", "manifest-blok.webmanifest", "manifest-home.webmanifest", "icons/arena-180.png", "icons/arena-192.png", "icons/arena-512.png", "icons/blok-180.png", "icons/blok-192.png", "icons/blok-512.png", "icons/comics-180.png", "icons/comics-192.png", "icons/comics-512.png", "icons/plan-180.png", "icons/plan-192.png", "icons/plan-512.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));

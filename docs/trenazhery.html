@@ -435,6 +435,10 @@ details.q-gen[open] > summary::before { content: "▾"; }
 .top-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .hdr-btn { height: 46px; min-width: 46px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; cursor: pointer; font: inherit; position: relative; }
 .gem-btn b { font-family: var(--f-display); font-weight: 400; font-size: 1.2rem; color: #6fc3ff; font-variant-numeric: tabular-nums; }
+a.btn { display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
+a.hdr-btn { text-decoration: none; }
+.blok-btn { font-weight: 800; font-size: 0.9rem; min-height: 44px; }
+.blok-panel .btn { justify-self: center; min-width: 200px; font-size: 1.3rem; }
 .pet-btn { padding: 0; width: 46px; overflow: hidden; font-size: 1.3rem; }
 .pet-btn svg { width: 44px; height: 44px; display: block; }
 .note-btn { padding: 0; width: 46px; font-size: 1.2rem; }
@@ -510,6 +514,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
       <span>трофеев</span>
     </div>
       <button type="button" class="hdr-btn gem-btn" id="gem-btn" aria-label="Гемы и питомец"><span aria-hidden="true">💎</span><b id="gem-count">0</b></button>
+      <a class="hdr-btn blok-btn" href="blokograd.html" rel="noopener" aria-label="Играть в Блокоград"><span aria-hidden="true">🧱</span>Блокоград</a>
       <button type="button" class="hdr-btn pet-btn" id="pet-btn" aria-label="Питомец"><span aria-hidden="true">🐾</span></button>
       <button type="button" class="hdr-btn note-btn" id="note-btn" aria-label="Мои заметки: что подлатать"><span aria-hidden="true">📝</span><i class="nb" id="note-badge" hidden></i></button>
     </div>
@@ -4398,6 +4403,11 @@ details.q-gen[open] > summary::before { content: "▾"; }
     }
     var d = keyDate(t);
     v.innerHTML =
+      '<div class="panel blok-panel">' +
+        "<h2>Блокоград</h2>" +
+        '<p class="muted">Песочница: стройка — умножение, верстак — слова, торговля — деньги</p>' +
+        '<a class="btn gold" href="blokograd.html" rel="noopener">Играть</a>' +
+      "</div>" +
       '<div class="panel">' +
         '<div class="row" style="justify-content:space-between"><h2>Бюджет матчей</h2><span class="muted small">' + rangeLabel(ws) + "</span></div>" +
         '<div class="pools">' + poolHTML("Будни", s.budget.wd, wdUsed, !weekend) + poolHTML("Выходные", s.budget.we, weUsed, weekend) + "</div>" +
