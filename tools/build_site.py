@@ -24,6 +24,7 @@ ARTIFACTS = {
     "NUnVhvzy88WsXPZpf4yvSm": "trenazhery.html",
     "LeApqezzcT228szk3Jidf2": "plan.html",
     "78TnnhbtiWef319zJ2SQM8": "komiksy.html",
+    "6DiGYA6FVP3AJzrWKQjhSw": "blokograd.html",
 }
 
 PAGES = [
@@ -31,6 +32,7 @@ PAGES = [
     ("trenazhery.html", "trenazhery.html", "Тренировочная арена", "Арена", "#0e1d27", "arena"),
     ("plan-9-let.html", "plan.html", "План: планшет и диктанты", "План", "#f6f7f3", "plan"),
     ("komiksy.html", "komiksy.html", "Студия комиксов", "Комиксы", "#eef0f4", "comics"),
+    ("blokograd.html", "blokograd.html", "Блокоград", "Блокоград", "#8fd3ff", "blok"),
 ]
 
 # Texts shown where a feature needs claude.ai; each must exist in the source.
@@ -130,11 +132,12 @@ footer a { color: var(--accent); }
 <body>
 <main>
   <h1>Учебный уголок</h1>
-  <p class="lead">Тренажёры для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
+  <p class="lead">Тренажёры и игра-песочница для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
   <div class="cards">
     <a class="card" href="trenazhery.html"><img src="icons/arena-192.png" alt=""><div><b>Тренировочная арена</b><span>Для сына: «Тренировка дня», счёт, чтение, слова, игры вместе</span></div></a>
     <a class="card" href="plan.html"><img src="icons/plan-192.png" alt=""><div><b>План для родителей</b><span>6 недель, распорядок, диктанты, планшет, дневник открытий</span></div></a>
     <a class="card" href="komiksy.html"><img src="icons/comics-192.png" alt=""><div><b>Студия комиксов</b><span>Для пера XP-PEN: рисовать и писать реплики</span></div></a>
+    <a class="card" href="blokograd.html"><img src="icons/blok-192.png" alt=""><div><b>Блокоград</b><span>Песочница: стройка — умножение, верстак — слова, торговля — деньги</span></div></a>
   </div>
   <div class="note">
     <h2>Как пользоваться</h2>
@@ -186,7 +189,7 @@ self.addEventListener("fetch", (e) => {
 
 README = """# Автономная версия (GitHub Pages)
 
-Эта папка — готовый сайт: тренажёры, план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
+Эта папка — готовый сайт: тренажёры, «Блокоград», план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
 
 ## Как включить сайт
 

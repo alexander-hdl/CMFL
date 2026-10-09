@@ -1,0 +1,24 @@
+{
+  "name": "Блокоград",
+  "short_name": "Блокоград",
+  "lang": "ru",
+  "start_url": "blokograd.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#8fd3ff",
+  "theme_color": "#8fd3ff",
+  "icons": [
+    {
+      "src": "icons/blok-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/blok-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,1590 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8fd3ff">
+<link rel="manifest" href="manifest-blok.webmanifest">
+<link rel="icon" type="image/png" href="icons/blok-192.png">
+<link rel="apple-touch-icon" href="icons/blok-180.png">
+<meta name="apple-mobile-web-app-title" content="Блокоград">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Блокоград</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Russo+One&display=swap">
+<style>
+/* Layout: a full-screen voxel island under a thin top bar and a chunky bottom toolbar; dialogs are big cream "boards" with 48px+ controls.
+   One committed look for the game: daytime sky, warm wood panels, parchment boards, grass-green accent, coin gold. */
+:root {
+  --sky: #8fd3ff;
+  --wood: #6b4423;
+  --wood-2: #8a5a2e;
+  --wood-line: #3f2814;
+  --board: #fff6dc;
+  --board-2: #f3e6bf;
+  --board-line: #c9b27c;
+  --ink: #2a1d0e;
+  --muted: #6e5a3c;
+  --grass: #4caf50;
+  --grass-ink: #0c2a0e;
+  --gold: #ffc83d;
+  --gold-ink: #3a2a00;
+  --warn: #ff9f1c;
+  --bad: #e5484d;
+  --good: #2e9d5c;
+  --blue: #2f80ed;
+  --f-display: "Russo One", "Nunito", system-ui, sans-serif;
+  --f-body: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 16px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body { background: var(--sky); color: var(--ink); font-family: var(--f-body); font-size: 18px; line-height: 1.35; font-weight: 600; -webkit-text-size-adjust: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 400; line-height: 1.15; text-wrap: balance; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.9rem; }
+
+#app { position: fixed; inset: 0; overflow: hidden; }
+#c3d { position: absolute; inset: 0; }
+#c3d canvas { display: block; width: 100%; height: 100%; }
+
+/* Top bar */
+#top { position: absolute; left: 0; right: 0; top: 0; padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; pointer-events: none; }
+#top > * { pointer-events: auto; }
+.chip { display: flex; align-items: center; gap: 8px; background: var(--board); border: 3px solid var(--wood); border-radius: 999px; padding: 6px 14px 6px 10px; min-height: 48px; box-shadow: 0 3px 0 var(--wood-line); font-family: var(--f-display); font-size: 1.25rem; }
+.chip svg { width: 30px; height: 30px; flex: none; }
+.chip b { font-weight: 400; font-variant-numeric: tabular-nums; }
+.chip .lbl { font-family: var(--f-body); font-size: 0.85rem; color: var(--muted); line-height: 1.1; }
+#sunchip { padding-right: 16px; }
+#sunarc { width: 96px; height: 40px; }
+.ibtns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.ibtn { width: 52px; height: 52px; border-radius: 14px; border: 3px solid var(--wood); background: var(--board); box-shadow: 0 3px 0 var(--wood-line); display: grid; place-items: center; font-family: var(--f-display); font-size: 1.3rem; padding: 0; }
+.ibtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-line); }
+.ibtn svg { width: 28px; height: 28px; }
+.ibtn[aria-pressed="true"] { background: var(--gold); }
+
+/* Hint line */
+#hint { position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); top: calc(72px + env(safe-area-inset-top, 0px)); max-width: min(92vw, 640px); background: rgba(42, 29, 14, 0.82); color: #fff; padding: 8px 16px; border-radius: 12px; font-size: 1.05rem; text-align: center; pointer-events: none; transition: opacity .25s; }
+#hint.off { opacity: 0; }
+
+/* Bottom toolbar */
+#tools { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; gap: 8px; pointer-events: none; }
+#tools button { pointer-events: auto; flex: 1 1 0; max-width: 128px; min-width: 56px; min-height: 68px; border-radius: 14px; border: 3px solid var(--wood-line); background: var(--wood-2); color: #fff3d6; box-shadow: 0 4px 0 var(--wood-line); display: grid; gap: 2px; place-items: center; padding: 6px 4px; font-size: 0.95rem; font-weight: 800; line-height: 1; }
+#tools button svg { width: 30px; height: 30px; }
+#tools button[aria-pressed="true"] { background: var(--gold); color: var(--gold-ink); transform: translateY(2px); box-shadow: 0 2px 0 var(--wood-line); }
+#tools button .badge { position: absolute; }
+#tools button { position: relative; }
+.badge { position: absolute; top: -8px; right: -6px; min-width: 24px; height: 24px; border-radius: 12px; background: var(--bad); color: #fff; font-size: 0.85rem; display: grid; place-items: center; padding: 0 6px; border: 2px solid #fff; }
+
+/* Frame HUD: labels float over the 3D frame, actions sit above the toolbar */
+.flabel { position: absolute; z-index: 5; transform: translate(-50%, -50%); background: var(--board); border: 3px solid var(--grass-ink); color: var(--ink); border-radius: 10px; padding: 2px 10px; font-family: var(--f-display); font-size: 1.35rem; pointer-events: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.flabel.part { background: #fff; border-color: var(--blue); font-size: 1.05rem; }
+#frameact { position: absolute; z-index: 6; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 96vw; }
+#frameact[hidden] { display: none; }
+.btn { min-height: 52px; padding: 8px 18px; border-radius: 14px; border: 3px solid var(--wood-line); background: var(--board); box-shadow: 0 4px 0 var(--wood-line); font-weight: 800; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--wood-line); }
+.btn.primary { background: var(--grass); color: #fff; border-color: #1f5a24; box-shadow: 0 4px 0 #1f5a24; }
+.btn.gold { background: var(--gold); color: var(--gold-ink); }
+.btn.ghost { background: transparent; box-shadow: none; border-color: var(--board-line); }
+.btn.big { min-height: 64px; font-size: 1.3rem; padding: 10px 28px; }
+.btn.sq { min-width: 56px; padding: 8px; font-family: var(--f-display); font-size: 1.3rem; font-weight: 400; }
+.btn[disabled] { opacity: 0.45; pointer-events: none; }
+.btn.on { background: var(--gold); color: var(--gold-ink); }
+
+/* Toasts that float out of the world */
+.toast { position: absolute; z-index: 7; transform: translate(-50%, -50%); background: #fff; border: 3px solid var(--wood); border-radius: 12px; padding: 6px 14px; font-weight: 800; font-size: 1.15rem; pointer-events: none; animation: rise 1.8s ease-out forwards; white-space: nowrap; }
+.toast.bad { border-color: var(--bad); color: var(--bad); }
+.toast.good { border-color: var(--good); color: var(--good); }
+@keyframes rise { 0% { opacity: 0; translate: 0 10px; } 15% { opacity: 1; translate: 0 0; } 80% { opacity: 1; } 100% { opacity: 0; translate: 0 -40px; } }
+
+/* Modal boards */
+#modal { position: absolute; inset: 0; z-index: 50; background: rgba(20, 30, 40, 0.45); display: grid; place-items: center; padding: 12px; overflow: auto; }
+#modal[hidden] { display: none; }
+.board { width: min(100%, 720px); min-width: 0; max-width: 100%; max-height: calc(100% - 8px); overflow: auto; background: var(--board); border: 4px solid var(--wood); border-radius: 22px; box-shadow: 0 8px 0 var(--wood-line), 0 20px 40px rgba(0,0,0,0.35); padding: 18px; display: grid; gap: 14px; }
+.board.wide { width: min(100%, 860px); }
+.bhead { display: flex; align-items: center; gap: 12px; }
+.bhead .who { width: 56px; height: 56px; flex: none; image-rendering: pixelated; border-radius: 12px; background: var(--board-2); }
+.bhead h2 { flex: 1; min-width: 0; }
+.bubble { background: #fff; border: 3px solid var(--board-line); border-radius: 16px; padding: 12px 16px; font-size: 1.15rem; position: relative; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row.end { justify-content: flex-end; }
+.row.center { justify-content: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.close { margin-left: auto; }
+
+/* Number entry: big readout, keypad and stacks of ten */
+.readout { font-family: var(--f-display); font-size: 3rem; text-align: center; background: #fff; border: 3px solid var(--wood); border-radius: 14px; padding: 6px; min-height: 76px; font-variant-numeric: tabular-nums; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.keypad .btn { min-height: 56px; font-family: var(--f-display); font-size: 1.5rem; font-weight: 400; }
+.stacks { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; min-height: 56px; padding: 6px; background: var(--board-2); border-radius: 12px; }
+.stack { display: grid; gap: 1px; }
+.stack i { display: block; width: 12px; height: 5px; background: #c58a3c; border: 1px solid #7a4e1c; }
+.stack.one i { background: #ffd56a; }
+.entry { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+@media (max-width: 520px) { .entry { grid-template-columns: 1fr; } }
+
+/* Word work */
+.slots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 64px; }
+.slot { min-width: 52px; height: 60px; border-radius: 10px; border: 3px dashed var(--board-line); background: #fff; display: grid; place-items: center; font-family: var(--f-display); font-size: 1.6rem; padding: 0 10px; }
+.slot.filled { border-style: solid; border-color: var(--wood); }
+.slot.hole { border-color: var(--bad); background: #ffe9ea; border-style: solid; }
+.slot.lit { border-color: var(--gold); background: #fff3c4; box-shadow: 0 0 0 4px #ffe08a; }
+.slot.stress { color: var(--bad); }
+.tiles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.tile { min-width: 56px; min-height: 56px; border-radius: 12px; border: 3px solid var(--wood-line); background: #e9c893; box-shadow: 0 4px 0 var(--wood-line); font-family: var(--f-display); font-size: 1.5rem; padding: 4px 12px; }
+.tile.used { opacity: 0.25; pointer-events: none; }
+.tile.part { background: #cfe8ff; }
+.tile.gap { background: #ffd9d9; }
+.bigword { font-family: var(--f-display); font-size: 2.6rem; text-align: center; letter-spacing: 0.04em; padding: 10px; background: #fff; border-radius: 14px; border: 3px solid var(--wood); min-height: 86px; display: grid; place-items: center; }
+.bigword .syl { color: var(--blue); }
+.recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.recipe { border: 3px solid var(--board-line); background: #fff; border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: center; text-align: center; }
+.recipe img, .recipe canvas { width: 64px; height: 64px; image-rendering: pixelated; }
+.recipe b { font-family: var(--f-display); font-weight: 400; font-size: 1.1rem; }
+.recipe.done { opacity: 0.55; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs .btn { min-height: 46px; font-size: 1rem; }
+
+/* Trade */
+.coins { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.coin { width: 64px; height: 64px; border-radius: 50%; border: 4px solid #a67c00; background: radial-gradient(circle at 35% 35%, #ffe48a, #e0a800); font-family: var(--f-display); font-size: 1.3rem; color: #3a2a00; box-shadow: 0 4px 0 #7a5a00; display: grid; place-items: center; }
+.coin.bill { border-radius: 10px; width: 92px; height: 56px; background: linear-gradient(135deg, #cfe9c8, #8fcf8a); border-color: #3a7a3a; color: #10351a; box-shadow: 0 4px 0 #2a5a2a; }
+.counter { min-height: 80px; background: #e6d6b2; border: 3px solid var(--wood); border-radius: 14px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+.counter .coin { width: 44px; height: 44px; font-size: 0.95rem; box-shadow: none; }
+.counter .coin.bill { width: 64px; height: 38px; }
+.shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.shop .btn { display: grid; gap: 4px; justify-items: center; min-height: 92px; }
+.price { font-family: var(--f-display); color: var(--gold-ink); background: var(--gold); border-radius: 999px; padding: 2px 10px; }
+
+/* Lists & stats */
+.list { display: grid; gap: 8px; }
+.card { background: #fff; border: 3px solid var(--board-line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 6px; }
+.card.active { border-color: var(--grass); }
+.card h3 { display: flex; align-items: center; gap: 8px; }
+.pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 0.85rem; background: var(--board-2); color: var(--muted); }
+.pill.go { background: var(--grass); color: #fff; }
+.tablewrap { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 1rem; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--board-line); font-variant-numeric: tabular-nums; }
+th { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, Consolas, monospace; border: 3px solid var(--board-line); border-radius: 12px; padding: 10px; background: #fff; color: var(--ink); user-select: text; -webkit-user-select: text; }
+.sign { font-size: 1.5rem; font-family: var(--f-display); text-align: center; background: #d9b66a; border: 4px solid var(--wood-line); border-radius: 10px; padding: 14px; }
+.sign .gap { display: inline-block; min-width: 2.4em; border-bottom: 4px solid var(--bad); color: var(--bad); }
+.q { font-family: var(--f-display); font-size: 1.25rem; }
+.q em { font-style: normal; color: var(--bad); text-decoration: underline; }
+.meter { height: 12px; width: 80px; background: var(--board-2); border-radius: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--grass); }
+
+/* Night & start overlays */
+#night { position: absolute; inset: 0; z-index: 60; background: rgba(8, 12, 40, 0.55); display: grid; place-items: center; padding: 16px; }
+#night[hidden] { display: none; }
+#start { position: absolute; inset: 0; z-index: 70; background: linear-gradient(#5ab8ff, #8fd3ff 60%, #6fbf5e); display: grid; place-items: center; padding: 16px; text-align: center; }
+#start[hidden] { display: none; }
+#start h1 { font-size: clamp(2.4rem, 9vw, 4.5rem); color: #fff; text-shadow: 0 4px 0 #2b5a2e, 0 8px 16px rgba(0,0,0,0.3); }
+#start canvas { image-rendering: pixelated; width: min(60vw, 220px); height: auto; }
+.tip { font-size: 0.95rem; color: var(--muted); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="c3d"></div>
+
+  <div id="top">
+    <div class="chip" id="sunchip" title="День">
+      <svg id="sunarc" viewBox="0 0 96 40" aria-hidden="true">
+        <path d="M6 36 A42 42 0 0 1 90 36" fill="none" stroke="#c9b27c" stroke-width="3" stroke-dasharray="4 5"/>
+        <circle id="sundot" cx="6" cy="36" r="8" fill="#ffc83d" stroke="#b07a00" stroke-width="2"/>
+      </svg>
+      <div><b id="dayno">День 1</b><div class="lbl" id="daylbl">утро</div></div>
+    </div>
+    <div class="chip" title="Монеты">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#ffc83d" stroke="#a67c00" stroke-width="3"/><text x="16" y="21" text-anchor="middle" font-size="14" font-family="Russo One, sans-serif" fill="#3a2a00">₽</text></svg>
+      <b id="coins">0</b>
+    </div>
+    <div class="ibtns">
+      <button class="ibtn" id="b-rotl" aria-label="Повернуть влево">⟲</button>
+      <button class="ibtn" id="b-rotr" aria-label="Повернуть вправо">⟳</button>
+      <button class="ibtn" id="b-zin" aria-label="Приблизить">+</button>
+      <button class="ibtn" id="b-zout" aria-label="Отдалить">−</button>
+      <button class="ibtn" id="b-pause" aria-label="Пауза" aria-pressed="false">❚❚</button>
+      <button class="ibtn" id="b-sound" aria-label="Звук" aria-pressed="true">♪</button>
+      <button class="ibtn" id="b-gear" aria-label="Для взрослого (удерживать 2 секунды)">⚙</button>
+    </div>
+  </div>
+
+  <div id="hint" class="off"></div>
+
+  <div id="frameact" hidden></div>
+
+  <div id="tools">
+    <button data-tool="pick" aria-pressed="true"><svg viewBox="0 0 32 32"><path d="M6 26 L18 14" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/><path d="M12 6 Q22 4 28 12 Q22 10 16 16 Q20 10 12 6Z" fill="#9aa4ab"/></svg>Кирка</button>
+    <button data-tool="place"><svg viewBox="0 0 32 32"><path d="M6 12 L16 6 L26 12 L16 18Z" fill="#7bc96f"/><path d="M6 12 L16 18 L16 28 L6 22Z" fill="#8b5a2b"/><path d="M26 12 L16 18 L16 28 L26 22Z" fill="#6e4521"/></svg>Блок</button>
+    <button data-tool="frame"><svg viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" fill="none" stroke="#2e9d5c" stroke-width="4" stroke-dasharray="6 4"/></svg>Рамка</button>
+    <button data-tool="craft"><svg viewBox="0 0 32 32"><rect x="4" y="12" width="24" height="8" fill="#8a5a2e"/><rect x="6" y="20" width="5" height="8" fill="#6b4423"/><rect x="21" y="20" width="5" height="8" fill="#6b4423"/><rect x="12" y="6" width="8" height="6" fill="#9aa4ab"/></svg>Верстак</button>
+    <button data-tool="bag"><svg viewBox="0 0 32 32"><rect x="6" y="10" width="20" height="18" rx="4" fill="#c58a3c"/><rect x="11" y="5" width="10" height="7" rx="3" fill="none" stroke="#6b4423" stroke-width="3"/><rect x="12" y="16" width="8" height="5" fill="#6b4423"/></svg>Рюкзак</button>
+    <button data-tool="quests"><svg viewBox="0 0 32 32"><rect x="7" y="4" width="18" height="24" rx="2" fill="#fff6dc" stroke="#6b4423" stroke-width="3"/><path d="M11 11h10M11 16h10M11 21h6" stroke="#2f80ed" stroke-width="3" stroke-linecap="round"/></svg>Задания<span class="badge" id="qbadge" hidden>0</span></button>
+  </div>
+
+  <div id="modal" hidden><div class="board" id="board"></div></div>
+
+  <div id="night" hidden>
+    <div class="board" style="width:min(100%,520px)">
+      <h2>Ночь в Блокограде</h2>
+      <p class="bubble" id="nighttext">Солнце село. Жители идут спать, и строить уже темно.</p>
+      <div class="row end">
+        <button class="btn" id="b-more">Ещё чуть-чуть</button>
+        <button class="btn primary big" id="b-sleep">Сохранить и закончить день</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="start">
+    <div style="display:grid;gap:18px;justify-items:center;max-width:520px">
+      <canvas id="startart" width="96" height="64"></canvas>
+      <h1>Блокоград</h1>
+      <p style="color:#fff;font-size:1.2rem;text-shadow:0 2px 0 rgba(0,0,0,.3)">Остров, где ты копаешь, строишь, крафтишь и торгуешь.</p>
+      <button class="btn primary big" id="b-play">Играть</button>
+      <p class="tip" style="color:#eafbe6">Планшет: касайся пальцем или пером. Ноутбук: мышь.</p>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+(function () {
+"use strict";
+var $ = function (id) { return document.getElementById(id); };
+var h = function (tag, attrs, kids) {
+  var el = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    if (k === "class") el.className = attrs[k];
+    else if (k === "html") el.innerHTML = attrs[k];
+    else if (k === "text") el.textContent = attrs[k];
+    else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), attrs[k]);
+    else if (attrs[k] === false || attrs[k] == null) {}
+    else el.setAttribute(k, attrs[k]);
+  });
+  (kids || []).forEach(function (c) { if (c == null) return; el.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return el;
+};
+function plural(n, one, few, many) { var m = n % 100, d = n % 10; if (m >= 11 && m <= 19) return many; if (d === 1) return one; if (d >= 2 && d <= 4) return few; return many; }
+function shuffle(a, rnd) { rnd = rnd || Math.random; for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function pick(a, rnd) { return a[Math.floor((rnd || Math.random)() * a.length)]; }
+function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function todayKey(offset) { var d = new Date(); d.setDate(d.getDate() + (offset || 0)); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function dayDiff(a, b) { return Math.round((new Date(b) - new Date(a)) / 864e5); }
+
+/* ===================== CONTENT ===================== */
+/* Words are shown only in correct spelling. Gaps are shown as "_". Stress is the combining acute (U+0301). */
+var CONTENT = {
+  dict: [
+    ["корова", "ко-ро-ва"], ["молоко", "мо-ло-ко"], ["собака", "со-ба-ка"], ["ворона", "во-ро-на"], ["сорока", "со-ро-ка"],
+    ["город", "го-род"], ["капуста", "ка-пус-та"], ["морковь", "мор-ковь"], ["огород", "о-го-род"], ["яблоко", "яб-ло-ко"],
+    ["заяц", "за-яц"], ["медведь", "мед-ведь"], ["воробей", "во-ро-бей"], ["карандаш", "ка-ран-даш"], ["тетрадь", "тет-радь"],
+    ["ученик", "у-че-ник"], ["дорога", "до-ро-га"], ["лопата", "ло-па-та"], ["сапоги", "са-по-ги"], ["берёза", "бе-рё-за"],
+    ["малина", "ма-ли-на"], ["посуда", "по-су-да"], ["одежда", "о-деж-да"], ["горох", "го-рох"], ["петух", "пе-тух"],
+    ["лисица", "ли-си-ца"], ["ягода", "я-го-да"], ["деревня", "де-рев-ня"], ["ребята", "ре-бя-та"], ["мороз", "мо-роз"]
+  ],
+  /* word, index of the unstressed vowel, the check word (vowel under stress), two family words where this vowel is NOT stressed */
+  check: [
+    ["вода", 1, "во́ды", ["водяно́й", "водопа́д"]],
+    ["лесной", 1, "ле́с", ["лесни́к", "лесово́з"]],
+    ["гора", 1, "го́ры", ["гори́стый", "горня́к"]],
+    ["трава", 2, "тра́вы", ["травяно́й", "трави́нка"]],
+    ["звезда", 2, "звёзды", ["звездопа́д", "звездочёт"]],
+    ["моря", 1, "мо́ре", ["моря́к", "морско́й"]],
+    ["снега", 2, "сне́г", ["снегови́к", "снежо́к"]],
+    ["дома", 1, "до́м", ["домово́й", "дома́шний"]],
+    ["столы", 2, "сто́л", ["столо́вая", "столя́р"]],
+    ["река", 1, "ре́ки", ["речно́й", "речу́шка"]],
+    ["земля", 1, "зе́мли", ["земля́к", "земляно́й"]],
+    ["глаза", 2, "гла́з", ["глаза́стый", "глазно́й"]],
+    ["сады", 1, "са́д", ["садо́вник", "садо́вый"]],
+    ["мосты", 1, "мо́ст", ["мости́к", "мостово́й"]],
+    ["грибы", 2, "гри́б", ["грибно́й", "грибни́к"]],
+    ["дубы", 1, "ду́б", ["дубо́вый", "дубра́ва"]],
+    ["листы", 1, "ли́ст", ["листо́к", "листва́"]],
+    ["коза", 1, "ко́зы", ["козлёнок", "козёл"]],
+    ["окно", 0, "о́кна", ["око́нный", "око́шко"]],
+    ["зима", 1, "зи́мы", ["зимо́вка", "зимо́вье"]],
+    ["стена", 2, "сте́ны", ["стенно́й", "стено́чка"]],
+    ["кольцо", 1, "ко́льца", ["кольцево́й", "коле́чко"]],
+    ["гнездо", 2, "гнёзда", ["гнезди́ться", "гнездо́вье"]],
+    ["число", 1, "чи́сла", ["числово́й", "числи́тель"]],
+    ["село", 1, "сёла", ["селя́нин", "сельча́не"]],
+    ["ведро", 1, "вёдра", ["ведёрко", "ведёрный"]],
+    ["коса", 1, "ко́сы", ["коси́ть", "коса́рь"]],
+    ["нога", 1, "но́ги", ["ножно́й", "нога́ми"]],
+    ["рука", 1, "ру́ки", ["ручно́й", "рука́в"]],
+    ["голова", 1, "го́ловы", ["голо́вка", "головно́й"]],
+    ["волна", 1, "во́лны", ["волни́стый", "волнова́ться"]],
+    ["поля", 1, "по́ле", ["полево́й", "полёвка"]],
+    ["сова", 1, "со́вы", ["сови́ный", "совёнок"]],
+    ["часы", 1, "ча́с", ["часово́й", "часо́вня"]],
+    ["слеза", 2, "слёзы", ["слези́нка", "слезли́вый"]],
+    ["пятно", 1, "пя́тна", ["пятни́стый", "пятна́шки"]],
+    ["ряды", 1, "ря́д", ["рядово́й", "рядо́к"]],
+    ["тропа", 2, "тро́пы", ["тропи́нка", "тропо́й"]]
+  ],
+  /* parts in order -> item; what appears in the world (sprite kind) and a hint */
+  morph: [
+    { parts: ["лес", "ник"], item: "лесник", kind: "villager", hint: "житель, который бережёт лес" },
+    { parts: ["под", "снеж", "ник"], item: "подснежник", kind: "flower", hint: "первый весенний цветок" },
+    { parts: ["вод", "ян", "ой"], item: "водяной", kind: "mill", hint: "такая мельница крутится от воды" },
+    { parts: ["сад", "ов", "ник"], item: "садовник", kind: "villager", hint: "житель, который растит сад" },
+    { parts: ["гриб", "ник"], item: "грибник", kind: "villager", hint: "житель с корзиной грибов" },
+    { parts: ["колод", "ец"], item: "колодец", kind: "well", hint: "из него берут воду" },
+    { parts: ["фонар", "ик"], item: "фонарик", kind: "lamp", hint: "маленький фонарь" },
+    { parts: ["кораб", "лик"], item: "кораблик", kind: "boat", hint: "маленький корабль" },
+    { parts: ["мост", "ик"], item: "мостик", kind: "bridge", hint: "маленький мост" },
+    { parts: ["рыб", "ак"], item: "рыбак", kind: "villager", hint: "житель с удочкой" },
+    { parts: ["двор", "ник"], item: "дворник", kind: "villager", hint: "житель с метлой" },
+    { parts: ["цвет", "ник"], item: "цветник", kind: "flower", hint: "клумба с цветами" },
+    { parts: ["пекар", "ня"], item: "пекарня", kind: "shop", hint: "здесь пекут хлеб" },
+    { parts: ["снег", "о", "вик"], item: "снеговик", kind: "snowman", hint: "его лепят зимой" },
+    { parts: ["за", "бор"], item: "забор", kind: "fence", hint: "ограда вокруг двора" },
+    { parts: ["по", "сад", "ка"], item: "посадка", kind: "tree", hint: "молодые деревья" }
+  ],
+  /* sentence with {gap}, the correct verb, the question that fits, and the question that does not */
+  tsya: [
+    ["Здесь можно {купаться}", "купаться", "что делать?", "что делает?"],
+    ["Кот {купается} в пруду", "купается", "что делает?", "что делать?"],
+    ["Пора {учиться}", "учиться", "что делать?", "что делает?"],
+    ["Малыш {учится} ходить", "учится", "что делает?", "что делать?"],
+    ["Не спеши {садиться}", "садиться", "что делать?", "что делает?"],
+    ["Солнце {садится} за гору", "садится", "что делает?", "что делать?"],
+    ["Надо {готовиться} к зиме", "готовиться", "что делать?", "что делает?"],
+    ["Лодка {готовится} к плаванию", "готовится", "что делает?", "что делать?"],
+    ["Хочу {вернуться} домой", "вернуться", "что сделать?", "что сделают?"],
+    ["Птицы {вернутся} весной", "вернутся", "что сделают?", "что сделать?"],
+    ["Мост {строится} всё лето", "строится", "что делает?", "что делать?"],
+    ["Дом будет {строиться} год", "строиться", "что делать?", "что делает?"],
+    ["Пора {улыбнуться} гостям", "улыбнуться", "что сделать?", "что сделает?"],
+    ["Мастер {улыбнётся} гостям", "улыбнётся", "что сделает?", "что сделать?"]
+  ],
+  goods: [
+    { id: "lamp", name: "фонарь", base: 25, kind: "lamp" },
+    { id: "flag", name: "флаг", base: 17, kind: "flag" },
+    { id: "paint", name: "ведро краски", base: 40, kind: "paint" },
+    { id: "seed", name: "саженец", base: 12, kind: "tree" },
+    { id: "glass", name: "стекло", base: 8, kind: "block", block: 13 },
+    { id: "brick", name: "кирпич", base: 6, kind: "block", block: 10 }
+  ]
+};
+var INTRO_ORDER = [2, 10, 5, 3, 4, 6, 7, 8, 9];
+var INTERVALS = [1, 3, 7, 14];
+
+/* ===================== STATE ===================== */
+var LS = "blokograd.v1";
+var S = null;
+function freshState() {
+  return {
+    v: 1, day: 1, coins: 30, t: 0, extra: false, started: false,
+    blocks: { 8: 40, 3: 0, 2: 0, 6: 0, 4: 0, 10: 0, 13: 0, 12: 0 },
+    parts: [], gaps: [], items: {}, museum: [],
+    cards: {}, stats: {}, recent: { m: [], w: [], c: [] },
+    quests: [], qseq: 0, builds: 0, crafts: 0, trades: 0,
+    props: [], villagers: [{ id: "fedor", name: "Мастер Фёдор", x: 16, z: 20, skin: 0 }, { id: "marfa", name: "Бабушка Марфа", x: 20, z: 17, skin: 1 }, { id: "ilyas", name: "Торговец Ильяс", x: 12, z: 17, skin: 2 }],
+    today: { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() },
+    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}
+  };
+}
+function load() {
+  try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && o.v === 1) return o; } } catch (e) {}
+  return null;
+}
+var saveTimer = null, dbRef = null, dbWriting = false, savedAt = 0;
+function save(now) {
+  if (!S) return;
+  if (World.dirty) { S.world = World.encode(); World.dirty = false; }
+  S.savedAt = Date.now();
+  try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {}
+  if (dbRef && !saveTimer) saveTimer = setTimeout(function () { saveTimer = null; pushDb(); }, now ? 0 : 3000);
+}
+function pushDb() {
+  if (!dbRef || dbWriting) return;
+  dbWriting = true;
+  var body = { json: JSON.stringify(S), savedAt: S.savedAt };
+  dbRef.set(body).then(function () { dbWriting = false; }, function () { dbWriting = false; });
+}
+
+/* ===================== CARDS (spaced repetition) ===================== */
+function card(id) { return S.cards[id] || (S.cards[id] = { n: 0, ok: 0, iv: -1, due: null, cutFree: [] }); }
+function recordResult(type, id, correct) {
+  var c = card(id); c.n++; if (correct) c.ok++;
+  if (correct) { c.iv = Math.min(INTERVALS.length - 1, c.iv + 1); c.due = todayKey(INTERVALS[c.iv]); }
+  else { c.iv = -1; c.due = todayKey(1); }
+  c.last = todayKey();
+  var st = S.stats[type] || (S.stats[type] = { n: 0, ok: 0 }); st.n++; if (correct) st.ok++;
+  var r = S.recent[type[0] === "m" ? "m" : (type === "money" ? "c" : "w")]; r.push(correct ? 1 : 0); if (r.length > 10) r.shift();
+}
+function recentRate(key) { var r = S.recent[key]; if (r.length < 4) return 0.8; return r.reduce(function (a, b) { return a + b; }, 0) / r.length; }
+function accuracy(id) { var c = S.cards[id]; return c && c.n ? c.ok / c.n : null; }
+function dueNow(id) { var c = S.cards[id]; return c && c.due && c.due <= todayKey(); }
+
+/* multiplication facts */
+function factId(a, b) { return "m:" + Math.min(a, b) + "x" + Math.max(a, b); }
+function allFacts() { var out = []; INTRO_ORDER.forEach(function (a) { for (var b = 2; b <= 9; b++) { var id = factId(a, b); if (out.indexOf(id) < 0) out.push(id); } }); return out; }
+function pickFact() {
+  var facts = allFacts(), today = todayKey();
+  var due = facts.filter(function (id) { return dueNow(id); }).sort(function (a, b) { return S.cards[a].due < S.cards[b].due ? -1 : 1; });
+  var rate = recentRate("m");
+  var fresh = facts.filter(function (id) { return !S.cards[id]; });
+  var pool;
+  if (rate < 0.7) {
+    pool = facts.filter(function (id) { var a = accuracy(id); return a !== null && a >= 0.6 && S.cards[id].last !== today; });
+    if (!pool.length) pool = fresh.slice(0, 3);
+    if (!pool.length) pool = due;
+  } else if (due.length && !(rate > 0.9 && fresh.length && Math.random() < 0.3)) pool = due.slice(0, 3);
+  else pool = fresh.length ? fresh.slice(0, 2) : facts.filter(function (id) { return S.cards[id].last !== today; });
+  if (!pool.length) pool = facts;
+  var id = pick(pool); var m = id.match(/m:(\d+)x(\d+)/); var a = +m[1], b = +m[2];
+  return Math.random() < 0.5 ? { a: a, b: b, id: id } : { a: b, b: a, id: id };
+}
+function pickWord(list, prefix) {
+  var ids = list.map(function (w, i) { return prefix + i; });
+  var due = ids.filter(dueNow); if (due.length) return +due[0].slice(prefix.length);
+  var fresh = ids.filter(function (id) { return !S.cards[id]; }); if (fresh.length) return +fresh[0].slice(prefix.length);
+  var notToday = ids.filter(function (id) { return S.cards[id].last !== todayKey(); });
+  return +pick(notToday.length ? notToday : ids).slice(prefix.length);
+}
+function content() { return S.custom || CONTENT; }
+
+/* ===================== WORLD ===================== */
+var W = 32, H = 16, D = 32;
+var AIR = 0, GRASS = 1, DIRT = 2, STONE = 3, SAND = 4, WATER = 5, LOG = 6, LEAF = 7, PLANK = 8, ORE = 9, BRICK = 10, ROOF = 11, FENCE = 12, GLASS = 13, BED = 14, PATH = 15;
+var BLOCK_NAME = { 1: "дёрн", 2: "земля", 3: "камень", 4: "песок", 6: "бревно", 7: "листья", 8: "доски", 9: "руда", 10: "кирпич", 11: "черепица", 12: "забор", 13: "стекло", 14: "грядка", 15: "дорожка" };
+var World = {
+  b: new Uint8Array(W * H * D), dirty: false,
+  idx: function (x, y, z) { return (y * D + z) * W + x; },
+  get: function (x, y, z) { if (x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D) return AIR; return this.b[(y * D + z) * W + x]; },
+  set: function (x, y, z, v) { if (x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D) return; this.b[(y * D + z) * W + x] = v; this.dirty = true; },
+  top: function (x, z) { for (var y = H - 1; y >= 0; y--) { var v = this.b[(y * D + z) * W + x]; if (v && v !== WATER) return y; } return -1; },
+  encode: function () { var s = ""; for (var i = 0; i < this.b.length; i++) s += String.fromCharCode(this.b[i]); return btoa(s); },
+  decode: function (str) { var s = atob(str); for (var i = 0; i < this.b.length && i < s.length; i++) this.b[i] = s.charCodeAt(i); },
+  generate: function (seed) {
+    var rnd = mulberry(seed);
+    var b = this.b; b.fill(0);
+    var n1 = [], n2 = []; for (var i = 0; i < 64; i++) { n1.push(rnd()); n2.push(rnd()); }
+    function noise(arr, x, z, sc) { var fx = x / sc, fz = z / sc, ix = Math.floor(fx), iz = Math.floor(fz), tx = fx - ix, tz = fz - iz; function v(a, c) { return arr[((a & 7) * 8 + (c & 7))]; } var a = v(ix, iz), bb = v(ix + 1, iz), c = v(ix, iz + 1), d = v(ix + 1, iz + 1); tx = tx * tx * (3 - 2 * tx); tz = tz * tz * (3 - 2 * tz); return (a * (1 - tx) + bb * tx) * (1 - tz) + (c * (1 - tx) + d * tx) * tz; }
+    var hm = [];
+    for (var z = 0; z < D; z++) for (var x = 0; x < W; x++) {
+      var dx = (x - 15.5) / 15.5, dz = (z - 15.5) / 15.5, r = Math.sqrt(dx * dx + dz * dz);
+      var e = 1 - r * r * 1.15 + noise(n1, x, z, 9) * 0.5 + noise(n2, x, z, 4) * 0.2;
+      var hgt = Math.max(0, Math.min(9, Math.floor(e * 5.2)));
+      hm.push(hgt);
+    }
+    for (z = 0; z < D; z++) for (x = 0; x < W; x++) {
+      var hh = hm[z * W + x];
+      if (hh < 2) { for (var y = 0; y <= 1; y++) b[this.idx(x, y, z)] = y === 0 ? SAND : WATER; if (hh === 1) b[this.idx(x, 1, z)] = SAND; continue; }
+      for (y = 0; y <= hh; y++) {
+        var t = y === hh ? (hh <= 2 ? SAND : GRASS) : (y >= hh - 2 ? DIRT : STONE);
+        if (hh >= 7 && y >= hh - 1) t = STONE;
+        b[this.idx(x, y, z)] = t;
+      }
+    }
+    /* flatten the village square at the island's usual height */
+    for (z = 14; z <= 23; z++) for (x = 9; x <= 23; x++) { for (y = 0; y < H; y++) b[this.idx(x, y, z)] = y < 3 ? STONE : (y === 3 ? DIRT : (y === 4 ? GRASS : AIR)); }
+    for (z = 17; z <= 20; z++) for (x = 13; x <= 19; x++) b[this.idx(x, 4, z)] = PATH;
+    /* rock outcrops to mine: stone mounds with ore inside */
+    [[5, 7], [26, 8], [6, 26], [26, 26], [16, 4], [16, 28]].forEach(function (c) {
+      var cx = c[0], cz = c[1]; if (World.top(cx, cz) < 3) return;
+      for (var dx = -3; dx <= 3; dx++) for (var dz = -3; dz <= 3; dz++) { var xx = cx + dx, zz = cz + dz; if (xx < 1 || zz < 1 || xx >= W - 1 || zz >= D - 1) continue; var r = Math.abs(dx) + Math.abs(dz); if (r > 4) continue; var base = World.top(xx, zz); if (base < 3) continue; var add = r <= 1 ? 4 : (r <= 2 ? 3 : (r <= 3 ? 2 : 1)); for (var k = 1; k <= add && base + k < H; k++) b[World.idx(xx, base + k, zz)] = STONE; }
+    });
+    /* trees */
+    var trees = 0, tries = 0;
+    while (trees < 9 && tries++ < 300) {
+      x = 2 + Math.floor(rnd() * 28); z = 2 + Math.floor(rnd() * 28);
+      var ty = this.top(x, z); if (ty < 3 || b[this.idx(x, ty, z)] !== GRASS) continue;
+      if (x >= 8 && x <= 24 && z >= 13 && z <= 24) continue;
+      for (y = 1; y <= 3; y++) b[this.idx(x, ty + y, z)] = LOG;
+      for (var lx = -1; lx <= 1; lx++) for (var lz = -1; lz <= 1; lz++) for (var ly = 3; ly <= 4; ly++) { if (ly === 4 && Math.abs(lx) + Math.abs(lz) > 1) continue; if (lx === 0 && lz === 0 && ly === 3) continue; var xx = x + lx, zz = z + lz, yy = ty + ly; if (xx >= 0 && xx < W && zz >= 0 && zz < D && yy < H && !b[this.idx(xx, yy, zz)]) b[this.idx(xx, yy, zz)] = LEAF; }
+      trees++;
+    }
+    this.seedOre(rnd, 40);
+    this.dirty = true;
+  },
+  seedOre: function (rnd, count) {
+    rnd = rnd || Math.random; var b = this.b, placed = 0, tries = 0;
+    while (placed < count && tries++ < 4000) {
+      var x = Math.floor(rnd() * W), z = Math.floor(rnd() * D), y = 1 + Math.floor(rnd() * 7);
+      var i = this.idx(x, y, z); if (b[i] !== STONE) continue;
+      var exposed = false; [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, -1]].forEach(function (d) { var v = World.get(x + d[0], y + d[1], z + d[2]); if (v === AIR) exposed = true; });
+      if (!exposed) continue;
+      b[i] = ORE; placed++;
+    }
+    this.dirty = true;
+  },
+  countOre: function () { var n = 0; for (var i = 0; i < this.b.length; i++) if (this.b[i] === ORE) n++; return n; }
+};
+
+/* ===================== RENDER ===================== */
+var R = { angle: 0, azTarget: 0, az: 0, zoom: 22, target: new THREE.Vector3(16, 4, 18), hot: null };
+var scene, camera, renderer, atlasTex, terrain, water, frameMesh, missMesh, sunLight, hemi, spriteGroup, outlineMesh;
+var TILES = {}; /* type -> [top, side, bottom] tile index */
+function makeAtlas() {
+  var N = 20, c = document.createElement("canvas"); c.width = 16 * N; c.height = 16; var g = c.getContext("2d");
+  var rnd = mulberry(7);
+  function tile(i, base, spots, spotColor, amount, fn) {
+    g.fillStyle = base; g.fillRect(i * 16, 0, 16, 16);
+    for (var k = 0; k < amount; k++) { g.fillStyle = spotColor; g.fillRect(i * 16 + Math.floor(rnd() * 16), Math.floor(rnd() * 16), 1 + Math.floor(rnd() * 2), 1); }
+    if (fn) fn(i * 16);
+  }
+  tile(0, "#5fb24a", 0, "#4a9a3a", 40); tile(0, "#5fb24a", 0, "#78c95f", 24);
+  tile(1, "#8b5a2b", 0, "#6e4521", 36); g.fillStyle = "#5fb24a"; g.fillRect(16, 0, 16, 3); g.fillStyle = "#4a9a3a"; g.fillRect(16, 3, 16, 1);
+  tile(2, "#8b5a2b", 0, "#6e4521", 36);
+  tile(3, "#8d9399", 0, "#6f767c", 30); tile(3, "#8d9399", 0, "#a6acb2", 18);
+  tile(4, "#e6d39a", 0, "#d4bf80", 30);
+  tile(5, "#3f8fe0", 0, "#5aa6f0", 24);
+  tile(6, "#6b4423", 0, "#4e3017", 30); g.fillStyle = "#4e3017"; for (var yy = 0; yy < 16; yy += 4) g.fillRect(96, yy, 16, 1);
+  tile(7, "#8a5a2e", 0, "#c58a3c", 20, function (x0) { g.fillStyle = "#c58a3c"; g.beginPath(); g.arc(x0 + 8, 8, 5, 0, 7); g.fill(); g.fillStyle = "#8a5a2e"; g.beginPath(); g.arc(x0 + 8, 8, 2, 0, 7); g.fill(); });
+  tile(8, "#3e8f32", 0, "#2f6f26", 40); tile(8, "#3e8f32", 0, "#56b347", 24);
+  tile(9, "#c9a063", 0, "#a67d45", 24); g.fillStyle = "#8a6232"; for (yy = 0; yy < 16; yy += 4) g.fillRect(144, yy, 16, 1);
+  tile(10, "#8d9399", 0, "#6f767c", 24); g.fillStyle = "#4fc3f7"; [[3, 3], [10, 5], [6, 10], [12, 12]].forEach(function (p) { g.fillRect(160 + p[0], p[1], 3, 3); }); g.fillStyle = "#ffffff"; [[3, 3], [10, 5], [6, 10], [12, 12]].forEach(function (p) { g.fillRect(160 + p[0], p[1], 1, 1); });
+  tile(11, "#b85c3a", 0, "#9a4a2c", 20); g.fillStyle = "#e0c9a8"; for (yy = 0; yy < 16; yy += 4) { g.fillRect(176, yy, 16, 1); g.fillRect(176 + ((yy / 4) % 2 ? 8 : 0), yy, 1, 4); }
+  tile(12, "#c0392b", 0, "#a93226", 24); g.fillStyle = "#7d241a"; for (yy = 3; yy < 16; yy += 4) g.fillRect(192, yy, 16, 1); g.fillRect(200, 0, 1, 3); g.fillRect(196, 4, 1, 3); g.fillRect(204, 4, 1, 3); g.fillRect(200, 8, 1, 3); g.fillRect(196, 12, 1, 3); g.fillRect(204, 12, 1, 3);
+  tile(13, "#c58a3c", 0, "#8a5a2e", 10); g.fillStyle = "#6b4423"; g.fillRect(208, 4, 16, 2); g.fillRect(208, 10, 16, 2); g.fillRect(211, 0, 2, 16); g.fillRect(219, 0, 2, 16);
+  tile(14, "#bfe9ff", 0, "#ffffff", 10); g.fillStyle = "#7fc8ef"; g.fillRect(224, 0, 16, 1); g.fillRect(224, 0, 1, 16); g.fillRect(224, 15, 16, 1); g.fillRect(239, 0, 1, 16);
+  tile(15, "#5a3a1e", 0, "#3f2814", 30); g.fillStyle = "#6e4a26"; for (var xx = 1; xx < 16; xx += 3) g.fillRect(240 + xx, 0, 1, 16);
+  tile(16, "#b9ad92", 0, "#9d9178", 30); tile(16, "#b9ad92", 0, "#cfc3a8", 18);
+  tile(17, "#c9a063", 0, "#a67d45", 16);
+  TILES[GRASS] = [0, 1, 2]; TILES[DIRT] = [2, 2, 2]; TILES[STONE] = [3, 3, 3]; TILES[SAND] = [4, 4, 4]; TILES[WATER] = [5, 5, 5]; TILES[LOG] = [7, 6, 7]; TILES[LEAF] = [8, 8, 8];
+  TILES[PLANK] = [9, 9, 9]; TILES[ORE] = [10, 10, 10]; TILES[BRICK] = [12, 12, 12]; TILES[ROOF] = [11, 11, 11]; TILES[FENCE] = [13, 13, 13]; TILES[GLASS] = [14, 14, 14]; TILES[BED] = [15, 2, 2]; TILES[PATH] = [16, 16, 16];
+  var tex = new THREE.CanvasTexture(c); tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
+  return { tex: tex, n: N, canvas: c };
+}
+var FACES = [
+  { n: [1, 0, 0], v: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], s: 0.82 },
+  { n: [-1, 0, 0], v: [[0, 0, 1], [0, 1, 1], [0, 1, 0], [0, 0, 0]], s: 0.74 },
+  { n: [0, 1, 0], v: [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]], s: 1.0 },
+  { n: [0, -1, 0], v: [[0, 0, 1], [0, 0, 0], [1, 0, 0], [1, 0, 1]], s: 0.5 },
+  { n: [0, 0, 1], v: [[1, 0, 1], [1, 1, 1], [0, 1, 1], [0, 0, 1]], s: 0.8 },
+  { n: [0, 0, -1], v: [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0]], s: 0.68 }
+];
+function buildGeometry(filter, isOpen) {
+  var pos = [], nor = [], uv = [], col = [], idx = [], vi = 0, nT = atlasTex.n;
+  var b = World.b;
+  for (var y = 0; y < H; y++) for (var z = 0; z < D; z++) for (var x = 0; x < W; x++) {
+    var t = b[(y * D + z) * W + x]; if (!t || !filter(t)) continue;
+    var tiles = TILES[t] || [3, 3, 3];
+    for (var f = 0; f < 6; f++) {
+      var F = FACES[f]; var nb = World.get(x + F.n[0], y + F.n[1], z + F.n[2]);
+      if (!isOpen(nb, t)) continue;
+      var tile = f === 2 ? tiles[0] : (f === 3 ? tiles[2] : tiles[1]);
+      var u0 = tile / nT, u1 = (tile + 1) / nT;
+      var uvs = [[u0, 0], [u0, 1], [u1, 1], [u1, 0]];
+      if (f === 2 || f === 3) uvs = [[u0, 1], [u0, 0], [u1, 0], [u1, 1]];
+      for (var k = 0; k < 4; k++) { var v = F.v[k]; pos.push(x + v[0], y + v[1], z + v[2]); nor.push(F.n[0], F.n[1], F.n[2]); uv.push(uvs[k][0], uvs[k][1]); col.push(F.s, F.s, F.s); }
+      idx.push(vi, vi + 1, vi + 2, vi, vi + 2, vi + 3); vi += 4;
+    }
+  }
+  var g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  return g;
+}
+function rebuildTerrain() {
+  if (terrain) { terrain.geometry.dispose(); }
+  if (water) { water.geometry.dispose(); }
+  var gOpaque = buildGeometry(function (t) { return t !== WATER; }, function (nb, t) { return nb === AIR || nb === WATER || (nb === GLASS && t !== GLASS); });
+  var gWater = buildGeometry(function (t) { return t === WATER; }, function (nb) { return nb === AIR; });
+  if (!terrain) {
+    terrain = new THREE.Mesh(gOpaque, new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true })); scene.add(terrain);
+    water = new THREE.Mesh(gWater, new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true, transparent: true, opacity: 0.75 })); scene.add(water);
+  } else { terrain.geometry = gOpaque; water.geometry = gWater; }
+}
+function initRender() {
+  scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fd3ff);
+  renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  $("c3d").appendChild(renderer.domElement);
+  camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -200, 400);
+  atlasTex = makeAtlas();
+  hemi = new THREE.HemisphereLight(0xdff3ff, 0x6b4423, 0.9); scene.add(hemi);
+  sunLight = new THREE.DirectionalLight(0xffffff, 1.6); scene.add(sunLight);
+  spriteGroup = new THREE.Group(); scene.add(spriteGroup);
+  frameMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: 0x4caf50, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false })); scene.add(frameMesh);
+  missMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xe5484d, linewidth: 2 })); scene.add(missMesh);
+  outlineMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffffff })); scene.add(outlineMesh);
+  resize(); window.addEventListener("resize", resize);
+}
+function resize() {
+  var w = $("c3d").clientWidth || window.innerWidth, hh = $("c3d").clientHeight || window.innerHeight;
+  renderer.setSize(w, hh, false);
+  var k = R.zoom / hh; camera.left = -w / 2 * k; camera.right = w / 2 * k; camera.top = hh / 2 * k; camera.bottom = -hh / 2 * k; camera.updateProjectionMatrix();
+}
+function updateCamera() {
+  var az = (R.az + 45) * Math.PI / 180, el = 35.264 * Math.PI / 180;
+  var dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
+  camera.position.copy(R.target).addScaledVector(dir, 80); camera.lookAt(R.target); camera.updateMatrixWorld();
+}
+function setSun(t) {
+  /* t: 0 sunrise .. 1 sunset; sky, light and the HUD arc follow */
+  var a = Math.PI * Math.min(1, Math.max(0, t));
+  sunLight.position.set(Math.cos(a) * 40 + 16, Math.sin(a) * 50 + 8, 26); sunLight.target.position.set(16, 4, 16); sunLight.target.updateMatrixWorld();
+  var day = Math.sin(a); var dusk = Math.max(0, 1 - day * 4) * 0.5;
+  sunLight.intensity = 0.5 + day * 1.3; hemi.intensity = 0.45 + day * 0.5;
+  var c = new THREE.Color(0x8fd3ff).lerp(new THREE.Color(0xffb37a), dusk * 0.8); if (t >= 1) c = new THREE.Color(0x1a2550);
+  scene.background = c; document.body.style.background = "#" + c.getHexString();
+  var dot = $("sundot"); dot.setAttribute("cx", 6 + 84 * t); dot.setAttribute("cy", 36 - 34 * Math.sin(a));
+  $("daylbl").textContent = t >= 1 ? "ночь" : (t < 0.25 ? "утро" : (t < 0.6 ? "день" : (t < 0.85 ? "вечер" : "закат")));
+}
+/* --- sprites (pixel art drawn on canvas) --- */
+var spriteCache = {};
+function pixelCanvas(w, hh, fn) { var c = document.createElement("canvas"); c.width = w; c.height = hh; var g = c.getContext("2d"); g.imageSmoothingEnabled = false; fn(g); return c; }
+var SKINS = [["#3b6ea5", "#f1c27d", "#6b4423"], ["#a53b6e", "#f1c27d", "#e9e9e9"], ["#2e9d5c", "#d9a066", "#222"], ["#c0392b", "#f1c27d", "#8a5a2e"], ["#8e44ad", "#f1c27d", "#f1c40f"], ["#e67e22", "#d9a066", "#444"]];
+function drawVillager(g, skin, tool) {
+  var s = SKINS[skin % SKINS.length];
+  g.fillStyle = s[2]; g.fillRect(5, 1, 6, 3); g.fillRect(4, 2, 8, 2);
+  g.fillStyle = s[1]; g.fillRect(5, 4, 6, 5);
+  g.fillStyle = "#222"; g.fillRect(6, 6, 1, 1); g.fillRect(9, 6, 1, 1);
+  g.fillStyle = s[0]; g.fillRect(4, 9, 8, 8); g.fillRect(2, 10, 2, 5); g.fillRect(12, 10, 2, 5);
+  g.fillStyle = s[1]; g.fillRect(2, 15, 2, 2); g.fillRect(12, 15, 2, 2);
+  g.fillStyle = "#333"; g.fillRect(5, 17, 2, 6); g.fillRect(9, 17, 2, 6);
+  if (tool === "hammer") { g.fillStyle = "#6b4423"; g.fillRect(13, 6, 1, 8); g.fillStyle = "#9aa4ab"; g.fillRect(12, 4, 4, 3); }
+  if (tool === "basket") { g.fillStyle = "#c58a3c"; g.fillRect(12, 12, 4, 4); g.fillStyle = "#6b4423"; g.fillRect(13, 10, 2, 2); }
+  if (tool === "coin") { g.fillStyle = "#ffc83d"; g.fillRect(12, 9, 3, 3); }
+  if (tool === "rod") { g.fillStyle = "#6b4423"; g.fillRect(14, 2, 1, 14); }
+  if (tool === "broom") { g.fillStyle = "#8a5a2e"; g.fillRect(14, 6, 1, 12); g.fillStyle = "#e0c060"; g.fillRect(13, 18, 3, 4); }
+}
+function propCanvas(kind, label) {
+  return pixelCanvas(16, 24, function (g) {
+    if (kind === "villager") { drawVillager(g, 3, "hammer"); }
+    else if (kind === "flower") { g.fillStyle = "#2f6f26"; g.fillRect(7, 12, 2, 12); g.fillStyle = "#ffffff"; g.fillRect(5, 8, 6, 6); g.fillStyle = "#ffc83d"; g.fillRect(7, 10, 2, 2); g.fillStyle = "#2f6f26"; g.fillRect(3, 16, 4, 2); g.fillRect(9, 18, 4, 2); }
+    else if (kind === "lamp") { g.fillStyle = "#3a3a3a"; g.fillRect(7, 8, 2, 16); g.fillStyle = "#ffe08a"; g.fillRect(4, 2, 8, 7); g.fillStyle = "#3a3a3a"; g.fillRect(4, 1, 8, 1); g.fillRect(4, 9, 8, 1); }
+    else if (kind === "flag") { g.fillStyle = "#6b4423"; g.fillRect(3, 0, 2, 24); g.fillStyle = "#e5484d"; g.fillRect(5, 1, 10, 7); g.fillStyle = "#ffc83d"; g.fillRect(8, 3, 3, 3); }
+    else if (kind === "tree") { g.fillStyle = "#6b4423"; g.fillRect(7, 12, 2, 12); g.fillStyle = "#3e8f32"; g.fillRect(3, 2, 10, 11); g.fillStyle = "#56b347"; g.fillRect(5, 4, 4, 4); }
+    else if (kind === "well") { g.fillStyle = "#8d9399"; g.fillRect(2, 14, 12, 10); g.fillStyle = "#6b4423"; g.fillRect(3, 4, 2, 10); g.fillRect(11, 4, 2, 10); g.fillStyle = "#b85c3a"; g.fillRect(1, 2, 14, 3); g.fillStyle = "#3f8fe0"; g.fillRect(4, 16, 8, 2); }
+    else if (kind === "mill") { g.fillStyle = "#8a5a2e"; g.fillRect(5, 10, 6, 14); g.fillStyle = "#e0c9a8"; g.fillRect(7, 1, 2, 12); g.fillRect(2, 6, 12, 2); g.fillStyle = "#b85c3a"; g.fillRect(4, 8, 8, 3); }
+    else if (kind === "boat") { g.fillStyle = "#8a5a2e"; g.fillRect(1, 16, 14, 5); g.fillRect(3, 21, 10, 2); g.fillStyle = "#6b4423"; g.fillRect(7, 4, 2, 12); g.fillStyle = "#ffffff"; g.fillRect(9, 5, 5, 9); }
+    else if (kind === "bridge") { g.fillStyle = "#c9a063"; g.fillRect(0, 12, 16, 4); g.fillStyle = "#8a5a2e"; g.fillRect(1, 8, 2, 4); g.fillRect(13, 8, 2, 4); g.fillRect(7, 8, 2, 4); g.fillRect(1, 8, 14, 1); }
+    else if (kind === "shop") { g.fillStyle = "#c9a063"; g.fillRect(1, 8, 14, 16); g.fillStyle = "#b85c3a"; g.fillRect(0, 4, 16, 5); g.fillStyle = "#6b4423"; g.fillRect(6, 16, 4, 8); g.fillStyle = "#ffe08a"; g.fillRect(2, 11, 3, 3); g.fillRect(11, 11, 3, 3); }
+    else if (kind === "snowman") { g.fillStyle = "#ffffff"; g.fillRect(4, 12, 8, 12); g.fillRect(5, 4, 6, 8); g.fillStyle = "#222"; g.fillRect(6, 6, 1, 1); g.fillRect(9, 6, 1, 1); g.fillRect(4, 1, 8, 3); g.fillStyle = "#ff7f00"; g.fillRect(7, 8, 3, 1); }
+    else if (kind === "fence") { g.fillStyle = "#c9a063"; g.fillRect(0, 10, 16, 2); g.fillRect(0, 16, 16, 2); for (var i = 1; i < 16; i += 4) g.fillRect(i, 8, 2, 14); }
+    else if (kind === "paint") { g.fillStyle = "#9aa4ab"; g.fillRect(3, 10, 10, 12); g.fillStyle = "#e5484d"; g.fillRect(3, 10, 10, 3); g.fillStyle = "#555"; g.fillRect(2, 8, 12, 2); }
+    else if (kind === "sign") { g.fillStyle = "#6b4423"; g.fillRect(7, 10, 2, 14); g.fillStyle = "#d9b66a"; g.fillRect(1, 2, 14, 9); g.fillStyle = "#3f2814"; g.fillRect(2, 4, 12, 1); g.fillRect(2, 7, 9, 1); }
+    else if (kind === "cow") { g.fillStyle = "#ffffff"; g.fillRect(2, 8, 12, 9); g.fillStyle = "#222"; g.fillRect(3, 9, 3, 3); g.fillRect(9, 12, 3, 3); g.fillStyle = "#ffffff"; g.fillRect(11, 4, 4, 5); g.fillStyle = "#f1c27d"; g.fillRect(12, 7, 3, 2); g.fillStyle = "#333"; g.fillRect(3, 17, 2, 6); g.fillRect(11, 17, 2, 6); }
+    else { g.fillStyle = "#c58a3c"; g.fillRect(3, 6, 10, 14); g.fillStyle = "#6b4423"; g.fillRect(5, 9, 6, 2); g.fillRect(5, 13, 6, 2); }
+  });
+}
+function textCanvas(text, bg, fg) {
+  var c = document.createElement("canvas"); c.width = 256; c.height = 96; var g = c.getContext("2d");
+  g.fillStyle = bg || "#d9b66a"; g.fillRect(0, 0, 256, 64); g.fillStyle = "#3f2814"; g.fillRect(0, 0, 256, 4); g.fillRect(0, 60, 256, 4); g.fillRect(0, 0, 4, 64); g.fillRect(252, 0, 4, 64);
+  g.fillRect(120, 64, 16, 32);
+  g.fillStyle = fg || "#2a1d0e"; g.font = "bold " + (text.length > 14 ? 24 : 34) + "px 'Russo One', 'Nunito', sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(text, 128, 32);
+  return c;
+}
+function makeSprite(canvas, w, hh) {
+  var tex = new THREE.CanvasTexture(canvas); tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
+  var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, alphaTest: 0.2 })); sp.scale.set(w, hh, 1); sp.center.set(0.5, 0); return sp;
+}
+function refreshSprites() {
+  while (spriteGroup.children.length) { var ch = spriteGroup.children.pop(); if (ch.material.map) ch.material.map.dispose(); ch.material.dispose(); }
+  S.villagers.forEach(function (v) {
+    var tool = v.id === "fedor" ? "hammer" : v.id === "marfa" ? "basket" : v.id === "ilyas" ? "coin" : (v.tool || null);
+    var sp = makeSprite(pixelCanvas(16, 24, function (g) { drawVillager(g, v.skin, tool); }), 1, 1.5);
+    var y = World.top(v.x, v.z) + 1; sp.position.set(v.x + 0.5, y, v.z + 0.5); sp.userData = { villager: v.id }; spriteGroup.add(sp);
+  });
+  S.props.forEach(function (p) {
+    var sp = p.kind === "sign" && p.text ? makeSprite(textCanvas(p.text), 2.6, 1) : (p.kind === "museum" ? makeSprite(textCanvas(p.text, "#fff6dc"), 2, 0.75) : makeSprite(propCanvas(p.kind), 1, 1.5));
+    var y = World.top(p.x, p.z) + 1; sp.position.set(p.x + 0.5, y + (p.dy || 0), p.z + 0.5); sp.userData = { prop: p }; spriteGroup.add(sp);
+  });
+}
+/* --- frame & highlight geometry --- */
+function cellTopY(x, z) { return World.top(x, z) + 1; }
+function quadsGeometry(cells, isWall) {
+  var pos = [], idx = [], vi = 0;
+  cells.forEach(function (c) {
+    if (isWall) {
+      var x0 = c.x + 0.1, x1 = c.x + 0.9, z0 = c.z + 0.1, z1 = c.z + 0.9, y0 = c.y + 0.02, y1 = c.y + 0.98;
+      [[x0, y0, z0, x1, y0, z0, x1, y1, z0, x0, y1, z0], [x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1], [x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0], [x1, y0, z0, x1, y0, z1, x1, y1, z1, x1, y1, z0], [x0, y1, z0, x1, y1, z0, x1, y1, z1, x0, y1, z1]].forEach(function (q) { pos.push.apply(pos, q); idx.push(vi, vi + 1, vi + 2, vi, vi + 2, vi + 3); vi += 4; });
+    } else {
+      var y = (c.y != null ? c.y : cellTopY(c.x, c.z)) + 0.03;
+      pos.push(c.x + 0.06, y, c.z + 0.06, c.x + 0.94, y, c.z + 0.06, c.x + 0.94, y, c.z + 0.94, c.x + 0.06, y, c.z + 0.94);
+      idx.push(vi, vi + 1, vi + 2, vi, vi + 2, vi + 3); vi += 4;
+    }
+  });
+  var g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
+}
+function outlineGeometry(cells, isWall) {
+  var pos = [];
+  cells.forEach(function (c) {
+    var y = (c.y != null ? c.y : cellTopY(c.x, c.z));
+    var x0 = c.x + 0.05, x1 = c.x + 0.95, z0 = c.z + 0.05, z1 = c.z + 0.95;
+    if (isWall) { var y0 = y + 0.05, y1 = y + 0.95; [[x0, y0, z0], [x1, y0, z0], [x1, y0, z0], [x1, y1, z0], [x1, y1, z0], [x0, y1, z0], [x0, y1, z0], [x0, y0, z0], [x0, y0, z1], [x1, y0, z1], [x1, y0, z1], [x1, y1, z1], [x1, y1, z1], [x0, y1, z1], [x0, y1, z1], [x0, y0, z1], [x0, y0, z0], [x0, y0, z1], [x1, y0, z0], [x1, y0, z1], [x0, y1, z0], [x0, y1, z1], [x1, y1, z0], [x1, y1, z1]].forEach(function (p) { pos.push(p[0], p[1], p[2]); }); }
+    else { var yy = y + 0.06; pos.push(x0, yy, z0, x1, yy, z0, x1, yy, z0, x1, yy, z1, x1, yy, z1, x0, yy, z1, x0, yy, z1, x0, yy, z0); }
+  });
+  var g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); return g;
+}
+function setFrameCells(cells, color, isWall) { frameMesh.geometry.dispose(); frameMesh.geometry = quadsGeometry(cells, isWall); frameMesh.material.color.set(color); frameMesh.visible = cells.length > 0; }
+function setMissCells(cells, isWall) { missMesh.geometry.dispose(); missMesh.geometry = outlineGeometry(cells, isWall); missMesh.visible = cells.length > 0; }
+function setOutline(cells, isWall) { outlineMesh.geometry.dispose(); outlineMesh.geometry = outlineGeometry(cells, isWall); outlineMesh.visible = cells.length > 0; }
+function project(x, y, z) { var v = new THREE.Vector3(x, y, z).project(camera); var el = $("c3d"); return { x: (v.x + 1) / 2 * el.clientWidth, y: (1 - v.y) / 2 * el.clientHeight }; }
+/* --- picking --- */
+var raycaster = new THREE.Raycaster();
+function pickAt(cx, cy) {
+  var el = $("c3d"); var ndc = new THREE.Vector2(cx / el.clientWidth * 2 - 1, -(cy / el.clientHeight) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  var hits = raycaster.intersectObjects([terrain, water].concat(spriteGroup.children), false);
+  for (var i = 0; i < hits.length; i++) {
+    var hh = hits[i];
+    if (hh.object.isSprite) return { sprite: hh.object };
+    if (hh.object === water) continue;
+    var n = hh.face.normal; var p = hh.point;
+    var bx = Math.floor(p.x - n.x * 0.5), by = Math.floor(p.y - n.y * 0.5), bz = Math.floor(p.z - n.z * 0.5);
+    var px = Math.floor(p.x + n.x * 0.5), py = Math.floor(p.y + n.y * 0.5), pz = Math.floor(p.z + n.z * 0.5);
+    return { block: [bx, by, bz], place: [px, py, pz], normal: [n.x, n.y, n.z] };
+  }
+  /* fall back to the water plane for frames on the beach */
+  return null;
+}
+
+/* ===================== SOUND ===================== */
+var AC = null;
+function beep(freq, dur, type, vol) {
+  if (!S || !S.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    var o = AC.createOscillator(), g = AC.createGain(); o.type = type || "square"; o.frequency.value = freq;
+    g.gain.value = (vol || 0.05); g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + (dur || 0.1));
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + (dur || 0.1));
+  } catch (e) {}
+}
+var SFX = {
+  dig: function () { beep(180, 0.08, "square", 0.04); }, place: function () { beep(440, 0.07, "triangle", 0.05); },
+  ok: function () { beep(660, 0.1, "triangle", 0.06); setTimeout(function () { beep(880, 0.16, "triangle", 0.06); }, 90); },
+  bad: function () { beep(200, 0.2, "sawtooth", 0.03); }, coin: function () { beep(1200, 0.08, "sine", 0.05); setTimeout(function () { beep(1600, 0.1, "sine", 0.05); }, 60); },
+  tap: function () { beep(520, 0.04, "sine", 0.03); }
+};
+
+/* ===================== HUD HELPERS ===================== */
+var hintTimer = null;
+function hint(text, ms) { var el = $("hint"); if (!text) { el.classList.add("off"); return; } el.textContent = text; el.classList.remove("off"); clearTimeout(hintTimer); if (ms) hintTimer = setTimeout(function () { el.classList.add("off"); }, ms); }
+function toastAt(x, y, text, cls) { var t = h("div", { class: "toast " + (cls || ""), text: text }); var el = $("c3d"); x = Math.max(120, Math.min(el.clientWidth - 120, x)); y = Math.max(90, Math.min(el.clientHeight - 120, y)); t.style.left = x + "px"; t.style.top = y + "px"; $("app").appendChild(t); setTimeout(function () { t.remove(); }, 1900); }
+function toastWorld(wx, wy, wz, text, cls) { var p = project(wx, wy, wz); toastAt(p.x, p.y, text, cls); }
+function updateHud() { $("coins").textContent = S.coins; $("dayno").textContent = "День " + S.day; var open = S.quests.filter(function (q) { return q.status === "open"; }).length; var b = $("qbadge"); b.hidden = !open; b.textContent = open; }
+
+/* ===================== INPUT ===================== */
+var Tool = "pick";
+var Ptr = { list: {}, pinch: null, drag: null };
+function setTool(t) {
+  Tool = t;
+  document.querySelectorAll("#tools button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-tool") === t ? "true" : "false"); });
+  if (t === "frame") { Frame.show(); frameHint(); } else { Frame.hideUI(); }
+  if (t === "pick") hint("Нажми на блок, чтобы выкопать его. Тяни, чтобы двигать остров.", 4000);
+  if (t === "place") { if (!S.sel) S.sel = "b8"; hint("Нажми на землю, чтобы поставить: " + selName() + ". Выбери другое в рюкзаке.", 4000); }
+}
+function selName() { if (!S.sel) return ""; if (S.sel[0] === "b") return BLOCK_NAME[+S.sel.slice(1)] + " (" + (S.blocks[+S.sel.slice(1)] || 0) + ")"; var it = S.items[S.sel]; return (it ? it.name : S.sel) + " (" + (it ? it.n : 0) + ")"; }
+function bindInput() {
+  var el = renderer.domElement;
+  el.addEventListener("pointerdown", function (e) {
+    e.preventDefault(); el.setPointerCapture(e.pointerId);
+    Ptr.list[e.pointerId] = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: Date.now(), moved: false };
+    var ids = Object.keys(Ptr.list);
+    if (ids.length === 2) { var a = Ptr.list[ids[0]], b = Ptr.list[ids[1]]; Ptr.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom: R.zoom }; Frame.cancelDrag(); return; }
+    if (ids.length === 1 && Tool === "frame" && Frame.canDraw()) { var hit = pickAt(e.clientX, e.clientY); if (hit && hit.block) { Frame.beginDrag(hit.block[0], hit.block[2]); Ptr.drag = "frame"; return; } }
+    Ptr.drag = "pan";
+  });
+  el.addEventListener("pointermove", function (e) {
+    var p = Ptr.list[e.pointerId]; if (!p) return;
+    var dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (Math.hypot(e.clientX - p.sx, e.clientY - p.sy) > 8) p.moved = true;
+    var ids = Object.keys(Ptr.list);
+    if (ids.length >= 2 && Ptr.pinch) { var a = Ptr.list[ids[0]], b = Ptr.list[ids[1]]; var d = Math.hypot(a.x - b.x, a.y - b.y); setZoom(Ptr.pinch.zoom * Ptr.pinch.d / Math.max(20, d)); pan(dx / 2, dy / 2); return; }
+    if (Ptr.drag === "frame") { var hit = pickAt(e.clientX, e.clientY); if (hit && hit.block) Frame.dragTo(hit.block[0], hit.block[2]); return; }
+    if (Ptr.drag === "pan" && p.moved) pan(dx, dy);
+  });
+  function up(e) {
+    var p = Ptr.list[e.pointerId]; if (!p) return; delete Ptr.list[e.pointerId];
+    var wasPinch = !!Ptr.pinch; if (Object.keys(Ptr.list).length < 2) Ptr.pinch = null;
+    if (Ptr.drag === "frame") { Ptr.drag = null; Frame.endDrag(); return; }
+    Ptr.drag = null;
+    if (!wasPinch && !p.moved && Date.now() - p.t < 600 && e.type !== "pointercancel") tap(e.clientX, e.clientY);
+  }
+  el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+  el.addEventListener("wheel", function (e) { e.preventDefault(); setZoom(R.zoom * (e.deltaY > 0 ? 1.1 : 0.9)); }, { passive: false });
+  $("b-rotl").addEventListener("click", function () { R.azTarget -= 90; SFX.tap(); });
+  $("b-rotr").addEventListener("click", function () { R.azTarget += 90; SFX.tap(); });
+  $("b-zin").addEventListener("click", function () { setZoom(R.zoom * 0.8); });
+  $("b-zout").addEventListener("click", function () { setZoom(R.zoom * 1.25); });
+  $("b-pause").addEventListener("click", function () { Game.paused = !Game.paused; $("b-pause").setAttribute("aria-pressed", Game.paused); hint(Game.paused ? "Пауза. Солнце остановилось." : "", Game.paused ? 0 : 1); if (!Game.paused) hint(""); });
+  $("b-sound").addEventListener("click", function () { S.sound = !S.sound; $("b-sound").setAttribute("aria-pressed", S.sound); save(); if (S.sound) SFX.tap(); });
+  var gearT = null;
+  function gearDown(e) { e.preventDefault(); clearTimeout(gearT); gearT = setTimeout(function () { gearT = null; openParent(); }, 2000); }
+  function gearUp() { if (gearT) { clearTimeout(gearT); gearT = null; hint("Экран для взрослого: удерживай ⚙ две секунды.", 2500); } }
+  $("b-gear").addEventListener("pointerdown", gearDown); $("b-gear").addEventListener("pointerup", gearUp); $("b-gear").addEventListener("pointerleave", gearUp); $("b-gear").addEventListener("pointercancel", gearUp);
+  document.querySelectorAll("#tools button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var t = b.getAttribute("data-tool"); SFX.tap();
+      if (t === "craft") return openCraft();
+      if (t === "bag") return openBag();
+      if (t === "quests") return openQuests();
+      setTool(t);
+    });
+  });
+}
+function setZoom(z) { R.zoom = Math.max(8, Math.min(44, z)); resize(); }
+function pan(dx, dy) {
+  var el = $("c3d"), k = R.zoom / el.clientHeight;
+  var right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0); right.y = 0; right.normalize();
+  var up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1); up.y = 0; up.normalize();
+  R.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k / Math.sin(35.264 * Math.PI / 180));
+  R.target.x = Math.max(-4, Math.min(36, R.target.x)); R.target.z = Math.max(-4, Math.min(36, R.target.z));
+}
+function tap(cx, cy) {
+  if (Build.busy) return;
+  var hit = pickAt(cx, cy); if (!hit) return;
+  if (hit.sprite) { var ud = hit.sprite.userData; if (ud.villager) return openVillager(ud.villager); if (ud.prop && ud.prop.kind === "sign") { hint("«" + ud.prop.text + "»", 3000); } return; }
+  var b = hit.block;
+  if (Tool === "pick") return dig(b[0], b[1], b[2], cx, cy);
+  if (Tool === "place") return placeAt(hit, cx, cy);
+  if (Tool === "frame") { if (Frame.cutMode) Frame.cutAt(b[0], b[2]); else if (Frame.canDraw()) { Frame.beginDrag(b[0], b[2]); Frame.endDrag(); } }
+}
+function dig(x, y, z, cx, cy) {
+  var t = World.get(x, y, z); if (!t || t === WATER || y === 0) return;
+  World.set(x, y, z, AIR); rebuildTerrain(); SFX.dig();
+  var gain = null;
+  if (t === GRASS) gain = DIRT; else if (t === LEAF) gain = null; else if (t === ORE) gain = null; else gain = t;
+  if (gain) { S.blocks[gain] = (S.blocks[gain] || 0) + 1; toastAt(cx, cy, "+1 " + BLOCK_NAME[gain]); }
+  if (t === ORE) { var part = dropPart(); if (part.gap) { S.gaps.push(part.gap); toastAt(cx, cy, "слово с дыркой: " + gapForm(part.gap), "bad"); } else { S.parts.push(part.part); toastAt(cx, cy, "часть слова: " + part.part, "good"); } SFX.coin(); }
+  if (t === LEAF && Math.random() < 0.3) { S.items.seed = S.items.seed || { name: "саженец", kind: "tree", n: 0 }; S.items.seed.n++; toastAt(cx, cy, "+1 саженец"); }
+  refreshSprites(); save();
+}
+function placeAt(hit, cx, cy) {
+  var p = hit.place; if (p[1] >= H || p[1] < 1 || p[0] < 0 || p[0] >= W || p[2] < 0 || p[2] >= D) return;
+  if (!S.sel) S.sel = "b8";
+  if (S.sel[0] === "b") {
+    var bt = +S.sel.slice(1); if (!(S.blocks[bt] > 0)) { hint("Таких блоков нет в рюкзаке. Выкопай или купи.", 2500); SFX.bad(); return; }
+    if (World.get(p[0], p[1], p[2]) !== AIR) return;
+    S.blocks[bt]--; World.set(p[0], p[1], p[2], bt); rebuildTerrain(); SFX.place(); refreshSprites(); save(); hint(selName(), 1500);
+  } else {
+    var it = S.items[S.sel]; if (!it || !(it.n > 0)) { hint("Этого предмета больше нет.", 2000); return; }
+    if (hit.normal[1] < 0.5) { hint("Предметы ставят сверху на блок.", 2000); return; }
+    it.n--; S.props.push({ kind: it.kind, x: p[0], z: p[2] }); refreshSprites(); SFX.place(); save(); hint(selName(), 1500);
+  }
+}
+function gapForm(g) { var w = g.w; return w.slice(0, g.i) + "_" + w.slice(g.i + 1); }
+function dropPart() {
+  /* parts needed by open craft quests first, then anything from the recipe book */
+  var C = content(); var need = [];
+  S.quests.forEach(function (q) {
+    if (q.status !== "open" || q.kind !== "craft") return;
+    if (q.sub === "morph") { var have = S.parts.slice(); C.morph[q.ref].parts.forEach(function (p) { var i = have.indexOf(p); if (i >= 0) have.splice(i, 1); else need.push({ part: p }); }); }
+    if (q.sub === "check") { var cw = C.check[q.ref]; if (!S.gaps.some(function (g) { return g.w === cw[0]; }) && !q.fixed) need.push({ gap: { w: cw[0], i: cw[1], ref: q.ref } }); }
+  });
+  if (need.length && Math.random() < 0.8) return need[0];
+  var all = []; C.morph.forEach(function (m) { m.parts.forEach(function (p) { all.push({ part: p }); }); });
+  return pick(all);
+}
+
+/* ===================== FRAME (mechanic 1) ===================== */
+var Frame = {
+  on: false, start: null, end: null, hgt: 1, cut: null, cutMode: false, cells: [], rects: [], stage: 0, used: false,
+  q: null, bp: null, labels: [],
+  canDraw: function () { return !Build.busy && !Build.partial; },
+  show: function () { this.on = true; this.bp = Build.q ? Build.q.bp : null; this.render(); },
+  hideUI: function () { this.on = false; $("frameact").hidden = true; this.clearLabels(); if (!Build.partial) { setFrameCells([], 0x4caf50); this.start = null; this.end = null; this.cells = []; this.rects = []; this.stage = 0; this.cut = null; this.cutMode = false; } },
+  reset: function () { this.start = null; this.end = null; this.cells = []; this.rects = []; this.stage = 0; this.cut = null; this.cutMode = false; this.used = false; this.hgt = 1; setFrameCells([], 0x4caf50); setMissCells([]); this.render(); },
+  isWall: function () { return this.bp && this.bp.type === "wall"; },
+  beginDrag: function (x, z) { this.start = { x: x, z: z }; this.end = { x: x, z: z }; this.cut = null; this.compute(); this.render(); },
+  dragTo: function (x, z) { if (!this.start) return; if (this.end.x === x && this.end.z === z) return; this.end = { x: x, z: z }; this.compute(); this.render(); },
+  cancelDrag: function () { if (Ptr.drag === "frame") { Ptr.drag = null; } },
+  endDrag: function () { this.compute(); this.render(); frameHint(); },
+  dims: function () {
+    if (!this.start) return null;
+    var x0 = Math.min(this.start.x, this.end.x), x1 = Math.max(this.start.x, this.end.x), z0 = Math.min(this.start.z, this.end.z), z1 = Math.max(this.start.z, this.end.z);
+    if (this.isWall()) { if (x1 - x0 >= z1 - z0) { z0 = z1 = this.start.z; } else { x0 = x1 = this.start.x; } }
+    return { x0: x0, x1: x1, z0: z0, z1: z1, cols: x1 - x0 + 1, rows: z1 - z0 + 1 };
+  },
+  compute: function () {
+    var d = this.dims(); if (!d) { this.cells = []; return; }
+    var cells = [];
+    if (this.isWall()) { for (var x = d.x0; x <= d.x1; x++) for (var z = d.z0; z <= d.z1; z++) { var base = cellTopY(x, z); for (var k = 0; k < this.hgt; k++) cells.push({ x: x, z: z, y: base + k }); } }
+    else for (var zz = d.z0; zz <= d.z1; zz++) for (var xx = d.x0; xx <= d.x1; xx++) cells.push({ x: xx, z: zz, y: cellTopY(xx, zz) });
+    this.cells = cells;
+  },
+  valid: function () {
+    var d = this.dims(); if (!d) return false;
+    var bp = this.bp; if (!bp) return true;
+    var a = this.isWall() ? Math.max(d.cols, d.rows) : d.cols, b = this.isWall() ? this.hgt : d.rows;
+    if (bp.type === "div") return a === bp.rows || b === bp.rows;
+    var need = bp.type === "wall" ? [bp.len, bp.h] : [bp.r, bp.c];
+    return (a === need[0] && b === need[1]) || (a === need[1] && b === need[0]);
+  },
+  clearLabels: function () { this.labels.forEach(function (l) { l.remove(); }); this.labels = []; },
+  render: function () {
+    this.clearLabels(); var d = this.dims(); var all = this.rects.reduce(function (acc, r) { return acc.concat(r.cells); }, []);
+    if (d) all = all.concat(this.cells);
+    var ok = !d || this.valid();
+    setFrameCells(all, ok ? 0x4caf50 : 0xff9f1c, this.isWall());
+    if (!this.on) return;
+    var self = this;
+    if (d) {
+      var wall = this.isWall();
+      if (wall) {
+        var len = Math.max(d.cols, d.rows); var y = cellTopY(d.x0, d.z0);
+        this.label((d.x0 + d.x1 + 1) / 2, y - 0.2, (d.z0 + d.z1 + 1) / 2, String(len), "");
+        this.label(d.x0, y + this.hgt / 2 + 0.3, d.z0, String(this.hgt), "");
+      } else {
+        var cy = Math.max.apply(null, this.cells.map(function (c) { return c.y; })) + 0.6;
+        var p = this.partsOf(d);
+        p.forEach(function (r) { self.label((r.x0 + r.x1 + 1) / 2, cy, r.z1 + 1.2, String(r.x1 - r.x0 + 1), p.length > 1 ? "part" : ""); self.label(r.x0 - 0.3, cy, (r.z0 + r.z1 + 1) / 2, String(r.z1 - r.z0 + 1), p.length > 1 ? "part" : ""); });
+      }
+    }
+    this.renderActions();
+  },
+  partsOf: function (d) {
+    if (!this.cut) return [d];
+    if (this.cut.axis === "x") return [{ x0: d.x0, x1: this.cut.at - 1, z0: d.z0, z1: d.z1 }, { x0: this.cut.at, x1: d.x1, z0: d.z0, z1: d.z1 }];
+    return [{ x0: d.x0, x1: d.x1, z0: d.z0, z1: this.cut.at - 1 }, { x0: d.x0, x1: d.x1, z0: this.cut.at, z1: d.z1 }];
+  },
+  label: function (x, y, z, text, cls) { var p = project(x, y, z); var el = h("div", { class: "flabel " + cls, text: text }); el.style.left = p.x + "px"; el.style.top = p.y + "px"; $("app").appendChild(el); this.labels.push(el); el.dataset.w = [x, y, z].join(","); },
+  relabel: function () { this.labels.forEach(function (el) { var w = el.dataset.w.split(",").map(Number); var p = project(w[0], w[1], w[2]); el.style.left = p.x + "px"; el.style.top = p.y + "px"; }); },
+  cutAt: function (x, z) {
+    var d = this.dims(); if (!d) return;
+    if (x > d.x0 && x <= d.x1) this.cut = { axis: "x", at: x }; else if (z > d.z0 && z <= d.z1) this.cut = { axis: "z", at: z }; else { hint("Нажми на клетку внутри рамки, не с краю.", 2500); return; }
+    this.cutMode = false; this.used = true; this.render(); hint("Рамка разрезана: сосчитай две части и сложи.", 3500);
+  },
+  renderActions: function () {
+    var fa = $("frameact"); fa.innerHTML = ""; fa.hidden = !this.on;
+    if (!this.on) return;
+    var self = this, bp = this.bp, d = this.dims();
+    if (Build.partial) { fa.appendChild(h("button", { class: "btn gold big", text: "Взять ещё блоков", onclick: function () { Build.takeMore(); } })); fa.appendChild(h("button", { class: "btn", text: "Переделать", onclick: function () { Build.undo(); } })); return; }
+    if (bp && bp.type === "double") fa.appendChild(h("span", { class: "btn ghost", text: "Грядка " + (this.rects.length + 1) + " из 2" }));
+    if (this.isWall() && d) { fa.appendChild(h("button", { class: "btn sq", text: "−", onclick: function () { self.hgt = Math.max(1, self.hgt - 1); self.compute(); self.render(); } })); fa.appendChild(h("span", { class: "btn ghost", text: "высота " + this.hgt })); fa.appendChild(h("button", { class: "btn sq", text: "+", onclick: function () { self.hgt = Math.min(9, self.hgt + 1); self.compute(); self.render(); } })); }
+    if (d && !this.isWall() && bp && bp.type !== "double" && !S.cutHidden[bp.factId]) fa.appendChild(h("button", { class: "btn" + (this.cutMode ? " on" : "") + (this.cut ? " on" : ""), text: this.cut ? "Убрать разрез" : "Разрезать", onclick: function () { if (self.cut) { self.cut = null; self.render(); } else { self.cutMode = !self.cutMode; self.renderActions(); hint(self.cutMode ? "Нажми на клетку внутри рамки — разрез пройдёт перед ней." : "", self.cutMode ? 0 : 1); } } }));
+    if (d && bp && bp.type === "double" && this.rects.length < 1) fa.appendChild(h("button", { class: "btn primary", text: "Дальше: вторая грядка", disabled: !this.valid(), onclick: function () { self.rects.push({ cells: self.cells, d: d }); self.start = null; self.end = null; self.cells = []; self.render(); hint("Теперь нарисуй вторую грядку.", 3000); } }));
+    else if (d) fa.appendChild(h("button", { class: "btn primary big", text: bp && bp.type === "div" ? "Разложить блоки" : "Построить", disabled: !this.valid(), onclick: function () { Build.begin(); } }));
+    if (d || this.rects.length) fa.appendChild(h("button", { class: "btn", text: "Очистить", onclick: function () { self.reset(); frameHint(); } }));
+  }
+};
+function frameHint() {
+  var bp = Frame.bp;
+  if (Frame.cutMode) return;
+  if (!Frame.start && !Frame.rects.length) { hint(bp ? (bp.type === "wall" ? "Проведи линию по земле: это длина забора. Потом подними высоту." : "Проведи пальцем по земле, чтобы нарисовать рамку " + bpDims(bp) + ".") : "Проведи по земле — нарисуй рамку. Блоки берутся из рюкзака.", 0); return; }
+  if (bp && !Frame.valid()) { hint("Нужно " + bpDims(bp) + ". Поправь рамку.", 0); return; }
+  hint(bp && bp.type === "div" ? "Рядов столько, сколько надо. Теперь нажми «Разложить блоки»." : "Рамка готова. Нажми «Построить» и возьми блоки из сундука.", 0);
+}
+function bpDims(bp) { if (!bp) return ""; if (bp.type === "wall") return bp.len + " в длину и " + bp.h + " в высоту"; if (bp.type === "div") return bp.rows + " " + plural(bp.rows, "ряд", "ряда", "рядов") + " по сколько-то блоков"; return bp.r + " × " + bp.c; }
+
+/* ===================== BUILD (chest + placing) ===================== */
+var Build = {
+  q: null, busy: false, partial: false, cells: [], placed: [], taken: 0, attempts: 0, firstExact: null, chest: 0, block: PLANK, wall: false, timer: null,
+  begin: function () {
+    var bp = Frame.bp; var cells = Frame.rects.reduce(function (a, r) { return a.concat(r.cells); }, []).concat(Frame.cells);
+    if (!cells.length) return;
+    this.cells = cells; this.placed = []; this.taken = 0; this.attempts = 0; this.firstExact = null; this.wall = Frame.isWall();
+    this.block = bp ? bp.block : PLANK;
+    if (bp && bp.type === "div") { this.chest = bp.total; this.attempts = 1; this.firstExact = cells.length === bp.total; this.takeN(bp.total); return; }
+    this.chest = bp ? bp.chest : (S.blocks[this.block] || 0);
+    if (!bp && this.chest <= 0) { hint("В рюкзаке нет досок. Выкопай дерево или купи у торговца.", 3000); return; }
+    this.openChest();
+  },
+  openChest: function () {
+    var self = this, bp = Frame.bp; var need = this.cells.length - this.placed.length;
+    openNumber({
+      title: bp ? "Сундук мастера" : "Рюкзак", who: bp ? "fedor" : null,
+      text: (bp ? "В сундуке " + this.chest + " " + plural(this.chest, "блок", "блока", "блоков") + ". " : "В рюкзаке " + this.chest + " " + plural(this.chest, "доска", "доски", "досок") + ". ") + (this.placed.length ? "Сколько взять ещё?" : "Сколько блоков взять для стройки?"),
+      max: this.chest, button: "Взять",
+      onDone: function (n) { self.attempts++; if (self.firstExact === null) self.firstExact = n === need; self.takeN(n); }
+    });
+  },
+  takeN: function (n) {
+    var bp = Frame.bp; this.chest -= n; this.taken = n; if (!bp) S.blocks[this.block] = this.chest;
+    this.busy = true; this.partial = false; $("frameact").hidden = true; setMissCells([]);
+    Frame.clearLabels(); hint("Строим…", 0);
+    var self = this, i = 0;
+    var rest = this.cells.filter(function (c) { return !self.placed.some(function (p) { return p.x === c.x && p.z === c.z && p.y === c.y; }); });
+    function step() {
+      if (self.taken <= 0 || i >= rest.length) return self.finish(rest.slice(i));
+      var c = rest[i++]; var y = self.wall ? c.y : cellTopY(c.x, c.z);
+      if (World.get(c.x, y, c.z) === AIR) { World.set(c.x, y, c.z, self.block); self.placed.push({ x: c.x, y: c.y, z: c.z, py: y }); self.taken--; if (i % 2) SFX.place(); }
+      if (i % 3 === 0 || i >= rest.length || self.taken <= 0) { rebuildTerrain(); refreshSprites(); }
+      self.timer = setTimeout(step, rest.length > 60 ? 18 : 35);
+    }
+    step();
+  },
+  finish: function (missing) {
+    rebuildTerrain(); refreshSprites(); this.busy = false;
+    var bp = Frame.bp, surplus = this.taken; this.taken = 0;
+    var anchor = this.cells[0];
+    if (surplus > 0) { if (bp) this.chest += surplus; else S.blocks[this.block] = (S.blocks[this.block] || 0) + surplus; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1, anchor.z + 0.5, (bp && bp.type === "div" ? "осталось лишних: " : "лишние ") + surplus + (bp && bp.type === "div" ? "" : " вернулись в сундук"), "bad"); }
+    if (missing.length) {
+      this.partial = true; setMissCells(missing.map(function (c) { return { x: c.x, z: c.z, y: c.y }; }), this.wall);
+      hint(bp && bp.type === "div" ? "Блоки кончились, а клетки остались. Ряды слишком длинные: нажми «Переделать»." : "Блоков не хватило: пустые клетки обведены. Возьми ещё.", 0);
+      SFX.bad(); if (bp && bp.type === "div") { Frame.renderActions(); } else Frame.renderActions();
+      Frame.on = true; return;
+    }
+    if (bp && bp.type === "div" && surplus > 0) { this.partial = true; hint("Все ряды готовы, а блоки остались. Ряды слишком короткие: нажми «Переделать».", 0); Frame.on = true; Frame.renderActions(); return; }
+    this.complete();
+  },
+  takeMore: function () { if (!this.partial) return; this.openChest(); },
+  undo: function () {
+    var self = this; this.placed.forEach(function (p) { World.set(p.x, p.py, p.z, AIR); }); rebuildTerrain(); refreshSprites();
+    if (Frame.bp) this.chest = Frame.bp.type === "div" ? Frame.bp.total : Frame.bp.chest; else S.blocks[this.block] = (S.blocks[this.block] || 0) + this.placed.length;
+    this.placed = []; this.partial = false; setMissCells([]); Frame.reset(); frameHint(); if (Frame.bp && Frame.bp.type === "div") this.attempts++;
+  },
+  complete: function () {
+    var bp = Frame.bp, q = this.q; SFX.ok();
+    var anchor = this.cells[Math.floor(this.cells.length / 2)];
+    var exact = this.firstExact === true && (bp ? (bp.type !== "div" || this.attempts === 1) : true);
+    var fid = bp ? bp.factId : factIdOfFrame();
+    if (fid) {
+      recordResult("mult", fid, exact);
+      if (exact && !Frame.used) { var c = card(fid); if (c.cutFree.indexOf(todayKey()) < 0) c.cutFree.push(todayKey()); if (c.cutFree.length >= 2) S.cutHidden[fid] = true; }
+    }
+    var cells = this.cells.slice(), wall = this.wall;
+    this.partial = false; this.placed = []; Frame.reset();
+    if (q) {
+      q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; S.builds++; S.today.built.push(q.title);
+      toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1.5, anchor.z + 0.5, "+" + q.reward + " монет", "good"); SFX.coin();
+      this.q = null; Frame.bp = null;
+      var d = rectOf(cells);
+      if (bp.house) growHouse(d, q);
+      if (bp.type === "double") plantBeds(cells);
+      if (bp.type === "div") { S.props.push({ kind: "flag", x: d.x0, z: d.z0 }); }
+      setTimeout(function () { ensureQuests(); updateHud(); hint("Готово! " + q.v_name + " доволен. Загляни в «Задания».", 4000); }, 600);
+    } else { S.today.built.push("своя постройка " + rectOf(cells).cols + " × " + rectOf(cells).rows); hint("Построено!", 2500); }
+    refreshSprites(); save(); updateHud();
+  }
+};
+function factIdOfFrame() { var d = Frame.dims(); if (!d) return null; var a = Frame.isWall() ? Math.max(d.cols, d.rows) : d.cols, b = Frame.isWall() ? Frame.hgt : d.rows; if (a < 2 || b < 2 || a > 10 || b > 10) return null; return factId(a, b); }
+function rectOf(cells) { var xs = cells.map(function (c) { return c.x; }), zs = cells.map(function (c) { return c.z; }); var d = { x0: Math.min.apply(null, xs), x1: Math.max.apply(null, xs), z0: Math.min.apply(null, zs), z1: Math.max.apply(null, zs) }; d.cols = d.x1 - d.x0 + 1; d.rows = d.z1 - d.z0 + 1; return d; }
+function growHouse(d, q) {
+  /* the villager raises walls and a roof on the finished floor */
+  var steps = [];
+  var floorY = {}; for (var x = d.x0; x <= d.x1; x++) for (var z = d.z0; z <= d.z1; z++) floorY[x + "," + z] = World.top(x, z);
+  var baseY = Math.max.apply(null, Object.keys(floorY).map(function (k) { return floorY[k]; }));
+  var doorX = Math.floor((d.x0 + d.x1) / 2);
+  for (var lvl = 1; lvl <= 2; lvl++) for (x = d.x0; x <= d.x1; x++) for (z = d.z0; z <= d.z1; z++) {
+    var edge = x === d.x0 || x === d.x1 || z === d.z0 || z === d.z1; if (!edge) continue;
+    if (x === doorX && z === d.z1) continue;
+    var t = (lvl === 2 && (x + z) % 3 === 0) ? GLASS : BRICK; steps.push([x, baseY + lvl, z, t]);
+  }
+  for (x = d.x0; x <= d.x1; x++) for (z = d.z0; z <= d.z1; z++) steps.push([x, baseY + 3, z, ROOF]);
+  var i = 0; (function step() { for (var k = 0; k < 4 && i < steps.length; k++, i++) { var s = steps[i]; if (World.get(s[0], s[1], s[2]) === AIR) World.set(s[0], s[1], s[2], s[3]); } rebuildTerrain(); if (i < steps.length) setTimeout(step, 60); else { refreshSprites(); addSignQuest(q, doorX, d.z1 + 1); save(); } })();
+}
+function plantBeds(cells) { cells.forEach(function (c, i) { if (i % 3 === 0) S.props.push({ kind: "flower", x: c.x, z: c.z }); }); refreshSprites(); }
+
+/* ===================== NUMBER ENTRY ===================== */
+function openNumber(opt) {
+  var val = ""; var board = $("board"); board.innerHTML = "";
+  var readout = h("div", { class: "readout", text: "0" }); var stacks = h("div", { class: "stacks" });
+  function draw() { readout.textContent = val || "0"; stacks.innerHTML = ""; var n = +val || 0; var tens = Math.min(20, Math.floor(n / 10)), ones = n % 10; for (var i = 0; i < tens; i++) { var st = h("div", { class: "stack" }); for (var k = 0; k < 10; k++) st.appendChild(h("i")); stacks.appendChild(st); } if (ones) { var so = h("div", { class: "stack one" }); for (k = 0; k < ones; k++) so.appendChild(h("i")); stacks.appendChild(so); } if (n > 200) stacks.appendChild(h("span", { class: "muted", text: "… " + n })); }
+  function add(d) { if (val.length >= 3) return; val = (val + d).replace(/^0+(?=\d)/, ""); SFX.tap(); draw(); }
+  function bump(k) { var n = Math.max(0, Math.min(999, (+val || 0) + k)); val = String(n); SFX.tap(); draw(); }
+  var pad = h("div", { class: "keypad" }); ["7", "8", "9", "4", "5", "6", "1", "2", "3", "⌫", "0", "C"].forEach(function (k) { pad.appendChild(h("button", { class: "btn", text: k, onclick: function () { if (k === "⌫") { val = val.slice(0, -1); draw(); } else if (k === "C") { val = ""; draw(); } else add(k); } })); });
+  var stackBtns = h("div", { class: "row center" }, [h("button", { class: "btn", text: "−10", onclick: function () { bump(-10); } }), h("button", { class: "btn gold", text: "+10", onclick: function () { bump(10); } }), h("button", { class: "btn", text: "−1", onclick: function () { bump(-1); } }), h("button", { class: "btn gold", text: "+1", onclick: function () { bump(1); } })]);
+  board.appendChild(h("div", { class: "bhead" }, [opt.who ? villagerFace(opt.who) : null, h("h2", { text: opt.title })]));
+  if (opt.text) board.appendChild(h("p", { class: "bubble", text: opt.text }));
+  board.appendChild(h("div", { class: "entry" }, [h("div", { style: "display:grid;gap:10px" }, [readout, pad]), h("div", { style: "display:grid;gap:10px" }, [h("p", { class: "small muted", text: "Стопками: по десять и по одному" }), stackBtns, stacks])]));
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Отмена", onclick: function () { closeModal(); if (opt.onCancel) opt.onCancel(); } }), h("button", { class: "btn primary big", text: opt.button || "Готово", onclick: function () { var n = +val || 0; if (opt.max != null && n > opt.max) { hint("Столько нет: всего " + opt.max + ".", 2500); SFX.bad(); return; } closeModal(); opt.onDone(n); } })]));
+  draw(); showModal();
+}
+function showModal() { $("modal").hidden = false; Game.modal = true; }
+function closeModal() { $("modal").hidden = true; $("board").innerHTML = ""; Game.modal = false; }
+function villagerFace(id) {
+  var v = S.villagers.filter(function (x) { return x.id === id; })[0]; var skin = v ? v.skin : 0; var tool = id === "fedor" ? "hammer" : id === "marfa" ? "basket" : id === "ilyas" ? "coin" : null;
+  var c = pixelCanvas(16, 24, function (g) { drawVillager(g, skin, tool); }); c.className = "who"; return c;
+}
+
+/* ===================== QUESTS ===================== */
+var VNAME = { fedor: "Мастер Фёдор", marfa: "Бабушка Марфа", ilyas: "Торговец Ильяс" };
+var FLOOR_NAMES = ["Пол для мастерской", "Пол для пекарни", "Пол для школы", "Пол для сарая", "Пол для библиотеки", "Пол для гончарной", "Пол для кузницы", "Пол для амбара"];
+function openQuest(kind) { return S.quests.filter(function (q) { return q.status === "open" && q.kind === kind; })[0]; }
+function ensureQuests() {
+  if (!openQuest("build")) S.quests.push(makeBuildQuest());
+  if (!openQuest("craft")) S.quests.push(makeCraftQuest());
+  if (!openQuest("trade")) S.quests.push(makeTradeQuest());
+  S.quests = S.quests.filter(function (q) { return q.status === "open" || S.quests.indexOf(q) >= S.quests.length - 30; });
+  updateHud();
+}
+function makeBuildQuest() {
+  var f = pickFact(), n = S.builds, id = "q" + (++S.qseq);
+  var cycle = ["rect", "rect", "rect", "double", "wall", "rect", "div", "rect", "wall", "double"];
+  var type = cycle[n % cycle.length];
+  if (type === "div" && recentRate("m") < 0.75) type = "rect";
+  var bp = { type: type, factId: f.id, block: PLANK, chest: 100 }, title, text, reward = 20;
+  if (type === "rect") { bp.r = f.a; bp.c = f.b; bp.house = true; title = FLOOR_NAMES[n % FLOOR_NAMES.length] + " " + f.a + " × " + f.b; text = "Нужен " + FLOOR_NAMES[n % FLOOR_NAMES.length].toLowerCase() + ": " + f.a + " × " + f.b + ". В сундуке 100 блоков, возьми сколько нужно. Заплачу " + reward + " монет."; }
+  if (type === "double") { bp.r = f.a; bp.c = f.b; bp.block = BED; bp.chest = f.a * f.b * 2 > 100 ? 200 : 100; reward = 30; title = "Две грядки по " + f.a + " × " + f.b; text = "Для огорода нужны две грядки, каждая " + f.a + " × " + f.b + ". Возьми из сундука блоки сразу на обе. Заплачу " + reward + " монет."; }
+  if (type === "wall") { bp.len = Math.max(f.a, f.b); bp.h = Math.min(f.a, f.b); bp.block = FENCE; reward = 30; title = "Забор " + bp.len + " в длину и " + bp.h + " в высоту"; text = "Поставь забор: " + bp.len + " в длину и " + bp.h + " в высоту. В сундуке 100 блоков. Заплачу " + reward + " монет."; }
+  if (type === "div") { bp.total = f.a * f.b; bp.rows = f.a; bp.chest = bp.total; reward = 30; title = bp.total + " блоков в " + f.a + " " + plural(f.a, "ряд", "ряда", "рядов"); text = "В сундуке ровно " + bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + ". Разложи их на склад в " + f.a + " " + plural(f.a, "одинаковый ряд", "одинаковых ряда", "одинаковых рядов") + ", чтобы ни один не остался и ни одного не не хватило. Заплачу " + reward + " монет."; }
+  return { id: id, kind: "build", v: "fedor", v_name: VNAME.fedor, bp: bp, title: title, text: text, reward: reward, status: "open" };
+}
+function makeCraftQuest() {
+  var C = content(), id = "q" + (++S.qseq), n = S.crafts;
+  var sub = ["morph", "check", "dict", "morph", "dict", "check"][n % 6];
+  if (sub === "morph" && !C.morph.length) sub = "dict"; if (sub === "check" && !C.check.length) sub = "dict"; if (sub === "dict" && !C.dict.length) sub = "morph";
+  var q = { id: id, kind: "craft", v: "marfa", v_name: VNAME.marfa, sub: sub, reward: 15, status: "open" };
+  if (sub === "morph") { q.ref = pickWord(C.morph, "mo:"); var m = C.morph[q.ref]; q.title = "Собрать: " + m.item; q.text = "Собери на верстаке «" + m.item + "» (" + m.hint + "). Части слова лежат в руде, копай скалы киркой. Дам " + q.reward + " монет."; }
+  if (sub === "check") { q.ref = pickWord(C.check, "ch:"); var cw = C.check[q.ref]; q.title = "Починить слово: " + gapForm({ w: cw[0], i: cw[1] }); q.text = "В скалах есть слово с дыркой: «" + gapForm({ w: cw[0], i: cw[1] }) + "». Добудь его и почини молотом ударения на верстаке. Дам " + q.reward + " монет."; }
+  if (sub === "dict") { q.ref = pickWord(C.dict, "d:"); q.title = "Редкий чертёж"; q.text = "Я нашла редкий чертёж. Открой его на верстаке во вкладке «Чертежи»: посмотри, запомни и собери слово из букв. Дам " + q.reward + " монет."; }
+  return q;
+}
+function makeTradeQuest() {
+  var id = "q" + (++S.qseq), n = S.trades, C = content();
+  var lvl = n < 2 ? 0 : (n < 5 ? 1 : (n % 3 === 2 ? 3 : 2)); if (lvl >= 2 && recentRate("c") < 0.7) lvl = 1;
+  var g = pick(C.goods); var price = lvl === 0 ? Math.max(3, Math.min(20, g.base - 10 + Math.floor(Math.random() * 10))) : g.base + Math.floor(Math.random() * 9) - 4;
+  var q = { id: id, kind: "trade", v: "ilyas", v_name: VNAME.ilyas, lvl: lvl, good: g.id, price: price, qty: 1, status: "open", reward: 0 };
+  if (lvl === 3) { q.qty = 2 + Math.floor(Math.random() * 3); q.budget = q.price * q.qty + (Math.random() < 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 15)); }
+  var gname = g.name;
+  q.title = "Купить: " + gname + (q.qty > 1 ? " × " + q.qty : "");
+  q.text = lvl === 0 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 1 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 2 ? gname + " стоит " + price + ". Заплатишь крупной купюрой, а сдачу посчитаем вместе." : "Нужно " + q.qty + " " + plural(q.qty, "штука", "штуки", "штук") + ": " + gname + " по " + price + ". У тебя на это " + q.budget + " монет. Хватит ли?";
+  return q;
+}
+function addSignQuest(buildQ, x, z) {
+  var C = content(); if (!C.tsya.length) return;
+  var ref = pickWord(C.tsya, "t:");
+  S.quests.push({ id: "q" + (++S.qseq), kind: "sign", v: "fedor", v_name: VNAME.fedor, ref: ref, at: { x: Math.max(0, Math.min(W - 1, x)), z: Math.max(0, Math.min(D - 1, z)) }, title: "Табличка: " + buildQ.title.replace(/^Пол для /, ""), text: "Дом готов! Поставь у двери табличку с правильной надписью.", reward: 10, status: "open" });
+  updateHud(); hint("Новое задание: табличка для дома.", 3000);
+}
+
+/* ===================== QUEST PANELS ===================== */
+function openQuests() {
+  var board = $("board"); board.innerHTML = "";
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Задания жителей" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  var list = h("div", { class: "list" });
+  var open = S.quests.filter(function (q) { return q.status === "open"; });
+  if (!open.length) list.appendChild(h("p", { class: "muted", text: "Пока заданий нет." }));
+  open.forEach(function (q) {
+    var active = Build.q === q;
+    var card = h("div", { class: "card" + (active ? " active" : "") }, [
+      h("h3", {}, [villagerFace(q.v), q.title, active ? h("span", { class: "pill go", text: "в работе" }) : null]),
+      h("p", { text: q.text }),
+      h("div", { class: "row end" }, [q.reward ? h("span", { class: "pill", text: "+" + q.reward + " монет" }) : null, h("button", { class: "btn primary", text: q.kind === "build" ? (active ? "Продолжить" : "Взяться") : q.kind === "craft" ? "К верстаку" : q.kind === "trade" ? "К торговцу" : "Поставить табличку", onclick: function () { takeQuest(q); } })])
+    ]);
+    list.appendChild(card);
+  });
+  board.appendChild(list);
+  var done = S.quests.filter(function (q) { return q.status === "done"; }).slice(-5).reverse();
+  if (done.length) { board.appendChild(h("h3", { text: "Сделано" })); board.appendChild(h("div", { class: "list" }, done.map(function (q) { return h("div", { class: "card", text: "✓ " + q.title }); }))); }
+  showModal();
+}
+function takeQuest(q) {
+  closeModal();
+  if (q.kind === "build") { if (Build.partial && Build.q !== q) { hint("Сначала закончи начатую стройку.", 3000); return; } Build.q = q; Frame.bp = q.bp; Frame.reset(); setTool("frame"); }
+  if (q.kind === "craft") openCraft(q.sub);
+  if (q.kind === "trade") openTrade(q);
+  if (q.kind === "sign") openSign(q);
+}
+function openVillager(id) {
+  var q = S.quests.filter(function (x) { return x.status === "open" && x.v === id; })[0];
+  var board = $("board"); board.innerHTML = "";
+  board.appendChild(h("div", { class: "bhead" }, [villagerFace(id), h("h2", { text: VNAME[id] || id }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  if (q) { board.appendChild(h("p", { class: "bubble", text: q.text })); board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: q.kind === "build" ? "Берусь!" : q.kind === "craft" ? "К верстаку" : q.kind === "trade" ? "Торговать" : "Поставить табличку", onclick: function () { takeQuest(q); } })])); }
+  else board.appendChild(h("p", { class: "bubble", text: id === "fedor" ? "Хороший день для стройки!" : id === "marfa" ? "Слова — как бусины: собирай по одной." : id === "ilyas" ? "Приходи, когда будут монеты." : "Привет!" }));
+  showModal();
+}
+
+/* ===================== BACKPACK ===================== */
+function openBag() {
+  var board = $("board"); board.innerHTML = "";
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Рюкзак" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  board.appendChild(h("p", { class: "small muted", text: "Выбери, что ставить инструментом «Блок»." }));
+  var grid = h("div", { class: "recipes" });
+  Object.keys(S.blocks).forEach(function (k) { var n = S.blocks[k]; if (!n) return; var id = "b" + k; var tile = TILES[+k] ? TILES[+k][0] : 3; var c = document.createElement("canvas"); c.width = 16; c.height = 16; c.getContext("2d").drawImage(atlasTex.canvas, tile * 16, 0, 16, 16, 0, 0, 16, 16); grid.appendChild(h("button", { class: "recipe" + (S.sel === id ? " active" : ""), style: S.sel === id ? "border-color:var(--gold);background:#fff3c4" : "", onclick: function () { S.sel = id; setTool("place"); closeModal(); save(); } }, [c, h("b", { text: BLOCK_NAME[k] }), h("span", { class: "pill", text: n + " шт." })])); });
+  Object.keys(S.items).forEach(function (k) { var it = S.items[k]; if (!it.n) return; grid.appendChild(h("button", { class: "recipe", style: S.sel === k ? "border-color:var(--gold);background:#fff3c4" : "", onclick: function () { S.sel = k; setTool("place"); closeModal(); save(); } }, [propCanvas(it.kind), h("b", { text: it.name }), h("span", { class: "pill", text: it.n + " шт." })])); });
+  if (!grid.children.length) grid.appendChild(h("p", { class: "muted", text: "Пусто. Копай киркой или покупай у торговца." }));
+  board.appendChild(grid);
+  if (S.parts.length || S.gaps.length) {
+    board.appendChild(h("h3", { text: "Части слов" }));
+    board.appendChild(h("div", { class: "tiles" }, S.parts.map(function (p) { return h("span", { class: "tile part", text: p }); }).concat(S.gaps.map(function (g) { return h("span", { class: "tile gap", text: gapForm(g) }); }))));
+  }
+  board.appendChild(h("p", { class: "small muted", text: "Монеты: " + S.coins }));
+  showModal();
+}
+
+/* ===================== CRAFT (mechanic 2) ===================== */
+function openCraft(tab) {
+  tab = tab || "morph";
+  var C = content(), board = $("board"); board.innerHTML = ""; board.className = "board wide";
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Верстак" }), h("button", { class: "btn close", text: "Закрыть", onclick: function () { closeModal(); board.className = "board"; } })]));
+  var tabs = h("div", { class: "tabs" });
+  [["morph", "Рецепты"], ["check", "Молот ударения"], ["dict", "Чертежи"]].forEach(function (t) { tabs.appendChild(h("button", { class: "btn" + (t[0] === tab ? " on" : ""), text: t[1], onclick: function () { openCraft(t[0]); } })); });
+  board.appendChild(tabs);
+  var body = h("div", { style: "display:grid;gap:12px" }); board.appendChild(body);
+  if (tab === "morph") craftMorph(body);
+  if (tab === "check") craftCheck(body);
+  if (tab === "dict") craftDict(body);
+  showModal();
+}
+function craftMorph(body) {
+  var C = content(), q = openQuest("craft");
+  body.appendChild(h("p", { class: "small muted", text: "Рецепт — это слово из частей. Части добываются из руды в скалах. Нажимай части по порядку." }));
+  var grid = h("div", { class: "recipes" });
+  var list = C.morph.map(function (m, i) { return { m: m, i: i }; });
+  if (q && q.sub === "morph") list.sort(function (a, b) { return (a.i === q.ref ? -1 : 0) - (b.i === q.ref ? -1 : 0); });
+  list.forEach(function (o) {
+    var m = o.m, done = S.cards["mo:" + o.i] && S.cards["mo:" + o.i].ok > 0; var isQ = q && q.sub === "morph" && q.ref === o.i;
+    grid.appendChild(h("button", { class: "recipe" + (done ? " done" : ""), style: isQ ? "border-color:var(--grass)" : "", onclick: function () { craftMorphOne(o.i); } }, [propCanvas(m.kind), h("b", { text: m.item }), h("span", { class: "small muted", text: m.parts.length + " " + plural(m.parts.length, "часть", "части", "частей") }), isQ ? h("span", { class: "pill go", text: "задание" }) : null]));
+  });
+  body.appendChild(grid);
+}
+function craftMorphOne(i) {
+  var C = content(), m = C.morph[i], body = $("board"); body.innerHTML = "";
+  var chosen = [];
+  body.appendChild(h("div", { class: "bhead" }, [propCanvas(m.kind), h("h2", { text: m.item }), h("button", { class: "btn close", text: "Назад", onclick: function () { openCraft("morph"); } })]));
+  body.appendChild(h("p", { class: "bubble", text: m.hint + ". Из каких частей это слово?" }));
+  var slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted", text: "" });
+  var avail = S.parts.slice();
+  function draw() {
+    slots.innerHTML = ""; for (var k = 0; k < m.parts.length; k++) slots.appendChild(h("div", { class: "slot" + (chosen[k] ? " filled" : ""), text: chosen[k] ? chosen[k].p : "" }));
+    tiles.innerHTML = ""; avail.forEach(function (p, idx) { var used = chosen.some(function (c) { return c.idx === idx; }); tiles.appendChild(h("button", { class: "tile part" + (used ? " used" : ""), text: p, onclick: function () { if (chosen.length >= m.parts.length) return; chosen.push({ p: p, idx: idx }); SFX.tap(); draw(); } })); });
+    if (!avail.length) tiles.appendChild(h("p", { class: "muted", text: "В рюкзаке нет частей слов. Копай руду (светлые блоки с голубыми точками) в скалах." }));
+  }
+  draw();
+  body.appendChild(slots); body.appendChild(tiles); body.appendChild(msg);
+  body.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Убрать часть", onclick: function () { chosen.pop(); draw(); } }), h("button", { class: "btn primary big", text: "Склеить", onclick: function () {
+    if (chosen.length < m.parts.length) { msg.textContent = "Не хватает частей: " + (m.parts.length - chosen.length) + "."; return; }
+    var ok = chosen.every(function (c, k) { return c.p === m.parts[k]; });
+    recordResult("morph", "mo:" + i, ok);
+    if (!ok) { SFX.bad(); msg.textContent = "Части не склеились: в этом порядке слово не получается. Попробуй иначе."; chosen = []; draw(); save(); return; }
+    chosen.forEach(function (c) { var at = S.parts.indexOf(c.p); if (at >= 0) S.parts.splice(at, 1); });
+    SFX.ok(); craftReward(m.item, m.kind, "mo:" + i, "morph", i); closeModal(); $("board").className = "board";
+  } })]));
+}
+function craftReward(word, kind, cardId, sub, ref) {
+  S.today.words.push(word); S.crafts++;
+  var spot = freeSpot();
+  if (kind === "villager") { S.villagers.push({ id: "v" + Date.now(), name: word, x: spot.x, z: spot.z, skin: 3 + (S.villagers.length % 3), tool: word === "рыбак" ? "rod" : word === "дворник" ? "broom" : word === "грибник" ? "basket" : null }); }
+  else if (kind === "museum") S.props.push({ kind: "museum", text: word, x: spot.x, z: spot.z });
+  else S.props.push({ kind: kind, x: spot.x, z: spot.z });
+  var q = openQuest("craft"); if (q && q.sub === sub && q.ref === ref) { q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; SFX.coin(); hint("Готово: «" + word + "». +" + q.reward + " монет.", 4000); } else hint("Готово: «" + word + "» появился в городе.", 3500);
+  refreshSprites(); ensureQuests(); save(); updateHud();
+}
+function freeSpot() {
+  var taken = {}; S.props.forEach(function (p) { taken[p.x + "," + p.z] = 1; }); S.villagers.forEach(function (v) { taken[v.x + "," + v.z] = 1; });
+  for (var r = 1; r < 14; r++) for (var dx = -r; dx <= r; dx++) for (var dz = -r; dz <= r; dz++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue; var x = 16 + dx, z = 18 + dz; if (x < 1 || z < 1 || x >= W - 1 || z >= D - 1) continue; var y = World.top(x, z); if (y < 3 || World.get(x, y, z) === WATER) continue; if (World.get(x, y + 1, z) !== AIR) continue; var t = World.get(x, y, z); if (t !== GRASS && t !== SAND && t !== PATH && t !== DIRT) continue; if (taken[x + "," + z]) continue; return { x: x, z: z }; }
+  return { x: 16, z: 18 };
+}
+function craftCheck(body) {
+  var C = content();
+  body.appendChild(h("p", { class: "small muted", text: "В слове с дыркой гласную не слышно. Молот ударения ищет слово из той же семьи, где эта гласная под ударением, и она переходит в дырку." }));
+  if (!S.gaps.length) { body.appendChild(h("p", { class: "bubble", text: "Слов с дыркой в рюкзаке нет. Копай руду в скалах." })); return; }
+  var grid = h("div", { class: "recipes" });
+  S.gaps.forEach(function (g, gi) { grid.appendChild(h("button", { class: "recipe", onclick: function () { hammerOne(gi); } }, [h("span", { class: "tile gap", text: gapForm(g) }), h("b", { text: "починить" })])); });
+  body.appendChild(grid);
+}
+function hammerOne(gi) {
+  var C = content(), g = S.gaps[gi], cw = C.check[g.ref] || C.check.filter(function (c) { return c[0] === g.w; })[0]; if (!cw) return;
+  var body = $("board"); body.innerHTML = "";
+  body.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Молот ударения" }), h("button", { class: "btn close", text: "Назад", onclick: function () { openCraft("check"); } })]));
+  var slots = h("div", { class: "slots" });
+  function drawWord(lit) { slots.innerHTML = ""; for (var k = 0; k < cw[0].length; k++) { var isGap = k === cw[1]; slots.appendChild(h("div", { class: "slot" + (isGap ? (lit ? " lit filled" : " hole") : " filled"), text: isGap ? (lit ? cw[0][k] : "") : cw[0][k] })); } }
+  drawWord(false);
+  body.appendChild(slots);
+  body.appendChild(h("p", { class: "bubble", text: "Выбери слово той же семьи, в котором эта гласная стоит под ударением." }));
+  var opts = shuffle([{ w: cw[2], ok: true }].concat(cw[3].map(function (w) { return { w: w, ok: false }; })));
+  var tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted" });
+  var tries = 0;
+  opts.forEach(function (o) { tiles.appendChild(h("button", { class: "tile", text: o.w, onclick: function () {
+    tries++;
+    if (o.ok) { recordResult("check", "ch:" + g.ref, tries === 1); SFX.ok(); drawWord(true); msg.textContent = "Под ударением слышно ясно: " + cw[2] + ". Гласная перешла в слово."; tiles.innerHTML = ""; S.gaps.splice(gi, 1); setTimeout(function () { craftReward(cw[0], "museum", "ch:" + g.ref, "check", g.ref); $("board").className = "board"; closeModal(); }, 1600); }
+    else { SFX.bad(); msg.textContent = "В слове «" + o.w + "» ударение падает на другую букву, и дырку оно не закрывает."; }
+  } })); });
+  body.appendChild(tiles); body.appendChild(msg);
+}
+function craftDict(body) {
+  var C = content(), q = openQuest("craft");
+  body.appendChild(h("p", { class: "small muted", text: "Редкий чертёж показывает слово на 3 секунды. Запомни, потом собери из букв по порядку." }));
+  var grid = h("div", { class: "recipes" });
+  var list = C.dict.map(function (d, i) { return { d: d, i: i }; });
+  if (q && q.sub === "dict") list.sort(function (a, b) { return (a.i === q.ref ? -1 : 0) - (b.i === q.ref ? -1 : 0); });
+  list.forEach(function (o) { var done = S.cards["d:" + o.i] && S.cards["d:" + o.i].ok > 0; var isQ = q && q.sub === "dict" && q.ref === o.i; grid.appendChild(h("button", { class: "recipe" + (done ? " done" : ""), style: isQ ? "border-color:var(--grass)" : "", onclick: function () { dictOne(o.i); } }, [propCanvas("sign"), h("b", { text: done ? o.d[0] : "чертёж № " + (o.i + 1) }), isQ ? h("span", { class: "pill go", text: "задание" }) : null])); });
+  body.appendChild(grid);
+}
+function dictOne(i) {
+  var C = content(), d = C.dict[i], word = d[0], syl = d[1], body = $("board"); body.innerHTML = "";
+  var bySyl = false, chosen = [], attempt = 0, letters = [];
+  body.appendChild(h("div", { class: "bhead" }, [propCanvas("sign"), h("h2", { text: "Редкий чертёж" }), h("button", { class: "btn close", text: "Назад", onclick: function () { openCraft("dict"); } })]));
+  var big = h("div", { class: "bigword" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted" }), actions = h("div", { class: "row end" });
+  body.appendChild(big); body.appendChild(slots); body.appendChild(tiles); body.appendChild(msg); body.appendChild(actions);
+  function showWord() {
+    chosen = []; slots.innerHTML = ""; tiles.innerHTML = ""; actions.innerHTML = "";
+    big.innerHTML = ""; if (bySyl) syl.split("-").forEach(function (s, k) { big.appendChild(h("span", { class: k % 2 ? "syl" : "", text: s })); }); else big.textContent = word;
+    actions.appendChild(h("button", { class: "btn", text: bySyl ? "целиком" : "по слогам", onclick: function () { bySyl = !bySyl; showWord(); } }));
+    msg.textContent = "Смотри и запоминай…";
+    clearTimeout(dictTimer); dictTimer = setTimeout(hideWord, 3000);
+  }
+  var dictTimer = null;
+  function hideWord() {
+    big.textContent = "• • •"; msg.textContent = "Теперь собери слово из букв.";
+    letters = shuffle(word.split("").map(function (ch, k) { return { ch: ch, k: k }; }));
+    draw();
+    actions.innerHTML = ""; actions.appendChild(h("button", { class: "btn", text: "Убрать букву", onclick: function () { chosen.pop(); draw(); } })); actions.appendChild(h("button", { class: "btn primary big", text: "Готово", onclick: check }));
+  }
+  function draw() {
+    slots.innerHTML = ""; for (var k = 0; k < word.length; k++) slots.appendChild(h("div", { class: "slot" + (chosen[k] ? " filled" : ""), text: chosen[k] ? chosen[k].ch : "" }));
+    tiles.innerHTML = ""; letters.forEach(function (l) { var used = chosen.some(function (c) { return c.k === l.k; }); tiles.appendChild(h("button", { class: "tile" + (used ? " used" : ""), text: l.ch, onclick: function () { if (chosen.length >= word.length) return; chosen.push(l); SFX.tap(); draw(); } })); });
+  }
+  function check() {
+    attempt++;
+    var holes = 0; slots.innerHTML = "";
+    for (var k = 0; k < word.length; k++) { var ok = chosen[k] && chosen[k].ch === word[k]; if (!ok) holes++; slots.appendChild(h("div", { class: "slot " + (ok ? "filled" : "hole"), text: ok ? word[k] : "" })); }
+    if (!holes) { recordResult("dict", "d:" + i, attempt === 1); SFX.ok(); msg.textContent = "Слово собрано без дырок!"; tiles.innerHTML = ""; actions.innerHTML = ""; setTimeout(function () { craftReward(word, "museum", "d:" + i, "dict", i); $("board").className = "board"; closeModal(); }, 1200); return; }
+    SFX.bad(); msg.textContent = "Предмет собрался с " + holes + " " + plural(holes, "дыркой", "дырками", "дырками") + ": они подсвечены. Посмотри слово ещё раз и собери заново.";
+    tiles.innerHTML = ""; actions.innerHTML = ""; actions.appendChild(h("button", { class: "btn primary", text: "Посмотреть ещё раз", onclick: showWord }));
+    if (attempt >= 3) recordResult("dict", "d:" + i, false);
+  }
+  showWord();
+}
+
+/* ===================== SIGNS (-тся / -ться) ===================== */
+function openSign(q) {
+  var C = content(), t = C.tsya[q.ref]; var board = $("board"); board.innerHTML = "";
+  var verb = t[1], stem = verb.replace(/(ться|тся)$/, ""), full = t[0].replace("{" + verb + "}", verb);
+  var step = 1, chosenQ = null;
+  board.appendChild(h("div", { class: "bhead" }, [villagerFace("fedor"), h("h2", { text: "Табличка" }), h("button", { class: "btn close", text: "Потом", onclick: closeModal })]));
+  var sign = h("div", { class: "sign" }); var qline = h("p", { class: "q" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted" });
+  function drawSign(ending) { sign.innerHTML = ""; var parts = t[0].split("{" + verb + "}"); sign.appendChild(document.createTextNode(parts[0])); sign.appendChild(h("span", { text: stem })); sign.appendChild(h("span", { class: ending ? "" : "gap", text: ending || "" })); sign.appendChild(document.createTextNode(parts[1] || "")); }
+  drawSign(null);
+  board.appendChild(sign); board.appendChild(qline); board.appendChild(tiles); board.appendChild(msg);
+  function ask() {
+    if (step === 1) {
+      qline.textContent = "Шаг 1. Какой вопрос подходит к этому слову?"; tiles.innerHTML = "";
+      shuffle([t[2], t[3]]).forEach(function (qq) { tiles.appendChild(h("button", { class: "tile", text: qq, onclick: function () {
+        if (qq !== t[2]) { SFX.bad(); msg.textContent = "Прочитай предложение ещё раз: этот вопрос к слову не подходит."; q.tries = (q.tries || 0) + 1; return; }
+        chosenQ = qq; step = 2; msg.textContent = ""; ask();
+      } })); });
+    } else {
+      var soft = /ть\?$/.test(chosenQ);
+      qline.innerHTML = ""; qline.appendChild(document.createTextNode("Шаг 2. Вопрос «" + chosenQ.replace(/ть\?$/, "") )); qline.appendChild(h("em", { text: soft ? "ть?" : "" })); qline.appendChild(document.createTextNode((soft ? "»" : "ет?»".replace("ет?", chosenQ.slice(-3))) + " Какое окончание?"));
+      tiles.innerHTML = "";
+      shuffle(["-тся", "-ться"]).forEach(function (e) { tiles.appendChild(h("button", { class: "tile", text: e, onclick: function () {
+        var right = (e === "-ться") === soft;
+        if (!right) { SFX.bad(); msg.textContent = soft ? "В вопросе есть ь — значит, и в слове он нужен." : "В вопросе нет ь — значит, и в слове его нет."; q.tries = (q.tries || 0) + 1; return; }
+        drawSign(e.slice(1)); SFX.ok(); recordResult("tsya", "t:" + q.ref, !(q.tries > 0)); tiles.innerHTML = ""; qline.textContent = ""; msg.textContent = "Табличка готова!";
+        q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; S.today.words.push(verb);
+        S.props.push({ kind: "sign", text: full, x: q.at.x, z: q.at.z }); refreshSprites(); save(); updateHud();
+        setTimeout(closeModal, 1200);
+      } })); });
+    }
+  }
+  ask(); showModal();
+}
+
+/* ===================== TRADE (mechanic 3) ===================== */
+function openTrade(q) {
+  var C = content(), board = $("board"); board.innerHTML = "";
+  var g = C.goods.filter(function (x) { return x.id === q.good; })[0];
+  board.appendChild(h("div", { class: "bhead" }, [villagerFace("ilyas"), h("h2", { text: "Лавка Ильяса" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  var bubble = h("p", { class: "bubble", text: q.text }); board.appendChild(bubble);
+  board.appendChild(h("p", { class: "small muted", text: "У тебя " + S.coins + " монет." }));
+  var total = q.price * q.qty;
+  if (q.lvl === 3 && !q.answered) {
+    board.appendChild(h("div", { class: "row center" }, [h("button", { class: "btn big", text: "Хватит", onclick: function () { budgetAnswer(q, true); } }), h("button", { class: "btn big", text: "Не хватит", onclick: function () { budgetAnswer(q, false); } })]));
+    showModal(); return;
+  }
+  if (S.coins < total) { board.appendChild(h("p", { class: "bubble", text: "Монет пока не хватает: нужно " + total + ". Выполни задания мастера, и приходи." })); showModal(); return; }
+  if (q.lvl === 2) { board.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Дай крупную купюру, а сдачу посчитаем вместе." })); payWithBill(board, q, total, g); showModal(); return; }
+  payExact(board, q, total, g);
+  showModal();
+}
+function budgetAnswer(q, yes) {
+  var total = q.price * q.qty, enough = q.budget >= total;
+  var board = $("board");
+  var ok = yes === enough; recordResult("money", "bud:" + q.id, ok);
+  if (!ok) { SFX.bad(); board.appendChild(h("p", { class: "bubble", text: "Давай проверим по монетам: " + Array.apply(null, { length: q.qty }).map(function (_, i) { return q.price * (i + 1); }).join(", ") + ". Всего " + total + ", а у тебя на это " + q.budget + ". " + (enough ? "Хватает, ещё " + (q.budget - total) + " останется." : "Не хватает " + (total - q.budget) + ".") })); }
+  else { SFX.ok(); board.appendChild(h("p", { class: "bubble", text: "Верно! " + q.qty + " по " + q.price + " — это " + total + ". " + (enough ? "Хватает." : "Не хватает " + (total - q.budget) + ".") })); }
+  q.answered = true; q.text = "Продаю " + content().goods.filter(function (x) { return x.id === q.good; })[0].name + " × " + q.qty + " за " + total + ". Заплати без сдачи.";
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: "Дальше", onclick: function () { openTrade(q); } })]));
+  save();
+}
+function coinButtons(onCoin) {
+  var row = h("div", { class: "coins" });
+  [1, 2, 5, 10, 50, 100].forEach(function (v) { row.appendChild(h("button", { class: "coin" + (v >= 50 ? " bill" : ""), text: v, onclick: function () { onCoin(v); } })); });
+  return row;
+}
+function payExact(board, q, total, g) {
+  var laid = [], counter = h("div", { class: "counter" }), msg = h("p", { class: "muted" }), tries = 0;
+  function draw() { counter.innerHTML = ""; laid.forEach(function (v, i) { counter.appendChild(h("button", { class: "coin" + (v >= 50 ? " bill" : ""), text: v, onclick: function () { laid.splice(i, 1); draw(); } })); }); if (!laid.length) counter.appendChild(h("span", { class: "muted small", text: "Выкладывай монеты сюда. Нажми на монету, чтобы убрать." })); }
+  draw();
+  board.appendChild(h("p", { class: "small muted", text: "Цена: " + total }));
+  board.appendChild(coinButtons(function (v) { var sum = laid.reduce(function (a, b) { return a + b; }, 0); if (sum + v > S.coins) { msg.textContent = "Столько монет у тебя нет."; return; } laid.push(v); SFX.tap(); draw(); }));
+  board.appendChild(counter); board.appendChild(msg);
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Отдать", onclick: function () {
+    var sum = laid.reduce(function (a, b) { return a + b; }, 0); tries++;
+    if (sum === total) { recordResult("money", "pay:" + q.id, tries === 1); SFX.coin(); finishTrade(q, total, g); return; }
+    SFX.bad(); var seq = []; var acc = 0; laid.forEach(function (v) { acc += v; seq.push(acc); });
+    msg.textContent = "Считаю: " + seq.join(", ") + ". Тут " + sum + ". " + (sum > total ? "Лишние " + (sum - total) + "." : "Не хватает " + (total - sum) + ".");
+  } })]));
+}
+function payWithBill(board, q, total, g) {
+  var bill = total > 50 ? 100 : 50, tries = 0, msg = h("p", { class: "muted" });
+  board.appendChild(h("div", { class: "coins" }, [h("button", { class: "coin bill", text: bill, onclick: function () { SFX.tap(); step2(); } })]));
+  board.appendChild(msg);
+  function step2() {
+    board.querySelectorAll(".coins").forEach(function (e) { e.remove(); });
+    msg.textContent = "Ты дал " + bill + ", цена " + total + ". Сколько сдачи?";
+    var ro = h("div", { class: "readout", text: "0" }), val = "";
+    var pad = h("div", { class: "keypad" }); ["7", "8", "9", "4", "5", "6", "1", "2", "3", "⌫", "0", "C"].forEach(function (k) { pad.appendChild(h("button", { class: "btn", text: k, onclick: function () { if (k === "⌫") val = val.slice(0, -1); else if (k === "C") val = ""; else if (val.length < 3) val = (val + k).replace(/^0+(?=\d)/, ""); ro.textContent = val || "0"; } })); });
+    board.appendChild(h("div", { class: "entry" }, [h("div", { style: "display:grid;gap:10px" }, [ro, pad]), h("div", { class: "muted small", text: "Подсказка: считай от цены вверх до купюры." })]));
+    board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Проверить", onclick: function () {
+      tries++; var n = +val || 0;
+      if (n === bill - total) { recordResult("money", "chg:" + q.id, tries === 1); SFX.coin(); finishTrade(q, total, g); return; }
+      SFX.bad(); var steps = []; var acc = total; while (acc < bill) { var step = acc % 10 ? 10 - acc % 10 : Math.min(10, bill - acc); acc += step; steps.push(step + " → " + acc); }
+      msg.textContent = "Посчитаем вместе от " + total + ": " + steps.join(", ") + ". Сложи шаги и попробуй снова.";
+    } })]));
+  }
+}
+function finishTrade(q, total, g) {
+  S.coins -= total; S.today.coinsOut += total; q.status = "done"; S.trades++;
+  if (g.kind === "block") S.blocks[g.block] = (S.blocks[g.block] || 0) + q.qty * (g.block === BRICK ? 5 : 3);
+  else { var it = S.items[g.id] || (S.items[g.id] = { name: g.name, kind: g.kind, n: 0 }); it.n += q.qty; }
+  closeModal(); hint("Купил: " + g.name + (q.qty > 1 ? " × " + q.qty : "") + ". Поставь это инструментом «Блок».", 4000);
+  ensureQuests(); save(); updateHud();
+}
+
+/* ===================== DAY CYCLE ===================== */
+var DAY_SECONDS = 12 * 60;
+var Game = { paused: false, modal: false, night: false, last: 0, running: false };
+function tick(now) {
+  requestAnimationFrame(tick);
+  var dt = Math.min(0.1, (now - Game.last) / 1000 || 0); Game.last = now;
+  if (!Game.running) return;
+  if (!Game.paused && !Game.modal && !Game.night && !Build.busy) {
+    S.t += dt / DAY_SECONDS;
+    if (S.t >= 1) { S.t = 1; nightFall(); }
+    if (Math.floor(now / 1000) % 15 === 0 && now - savedAt > 15000) { savedAt = now; save(); }
+  }
+  setSun(S.t);
+  var d = R.azTarget - R.az; if (Math.abs(d) > 0.01) R.az += d * Math.min(1, dt * 8); else R.az = R.azTarget;
+  updateCamera(); Frame.relabel();
+  renderer.render(scene, camera);
+}
+function nightFall() {
+  if (Game.night) return; Game.night = true; $("night").hidden = false; $("b-more").hidden = S.extra;
+  $("nighttext").textContent = S.extra ? "Совсем темно. Пора спать: завтра жители принесут новые чертежи." : "Солнце село. Жители идут спать, и строить уже темно.";
+  save(true);
+}
+function moreTime() { S.extra = true; S.t = 0.86; Game.night = false; $("night").hidden = true; }
+function endDay() {
+  $("night").hidden = true; Game.night = false; Game.modal = true;
+  var dueM = allFacts().filter(function (id) { var c = S.cards[id]; return c && c.due && c.due <= todayKey(1); }).length;
+  var dueW = Object.keys(S.cards).filter(function (id) { var c = S.cards[id]; return id[0] !== "m" && c.due && c.due <= todayKey(1); }).length;
+  var board = $("board"); board.innerHTML = "";
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Итоги дня " + S.day })]));
+  var built = S.today.built, words = S.today.words;
+  board.appendChild(h("div", { class: "grid2" }, [
+    h("div", { class: "card" }, [h("h3", { text: "Построено" }), built.length ? h("ul", { style: "margin:0;padding-left:1.2em" }, built.map(function (b) { return h("li", { text: b }); })) : h("p", { class: "muted", text: "Сегодня без построек." })]),
+    h("div", { class: "card" }, [h("h3", { text: "Слова" }), words.length ? h("p", { text: words.join(", ") }) : h("p", { class: "muted", text: "Сегодня без новых слов." })]),
+    h("div", { class: "card" }, [h("h3", { text: "Монеты" }), h("p", { text: "Заработано " + S.today.coinsIn + ", потрачено " + S.today.coinsOut + ". В кошельке " + S.coins + "." })]),
+    h("div", { class: "card" }, [h("h3", { text: "Вернётся завтра" }), h("p", { text: (dueM ? dueM + " " + plural(dueM, "пример", "примера", "примеров") : "примеры по плану") + " и " + (dueW ? dueW + " " + plural(dueW, "слово", "слова", "слов") : "новые слова") + ". Жители принесут новые чертежи." })])
+  ]));
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Спать", onclick: function () { newDay(); closeModal(); } })]));
+  $("modal").hidden = false;
+  S.log.push({ day: S.day, date: S.today.date, built: built.length, words: words.length, coinsIn: S.today.coinsIn }); if (S.log.length > 60) S.log.shift();
+}
+function newDay() {
+  S.day++; S.t = 0; S.extra = false; S.today = { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() };
+  if (World.countOre() < 20) World.seedOre(null, 24);
+  S.quests.forEach(function (q) { if (q.status === "open" && q.kind === "build" && Build.q !== q && Math.random() < 0.5) q.status = "skip"; });
+  Build.q = null; Frame.bp = null; Frame.reset();
+  ensureQuests(); rebuildTerrain(); refreshSprites(); updateHud(); save(true);
+  hint("Новый день! Загляни в «Задания».", 4000);
+}
+
+/* ===================== PARENT SCREEN ===================== */
+function openParent() {
+  var board = $("board"); board.innerHTML = ""; board.className = "board wide";
+  var close = function () { closeModal(); board.className = "board"; };
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Для взрослого" }), h("button", { class: "btn close", text: "Закрыть", onclick: close })]));
+  var types = [["mult", "Умножение (стройка)"], ["dict", "Словарные слова"], ["check", "Безударные гласные"], ["morph", "Состав слова"], ["tsya", "-тся / -ться"], ["money", "Деньги"]];
+  var tbl = h("table", {}, [h("thead", {}, [h("tr", {}, [h("th", { text: "Тип" }), h("th", { text: "Попыток" }), h("th", { text: "Точность" }), h("th", { text: "" })])])]);
+  var tb = h("tbody"); types.forEach(function (t) { var st = S.stats[t[0]] || { n: 0, ok: 0 }; var pct = st.n ? Math.round(st.ok / st.n * 100) : null; tb.appendChild(h("tr", {}, [h("td", { text: t[1] }), h("td", { text: st.n }), h("td", { text: pct === null ? "—" : pct + " %" }), h("td", {}, [h("div", { class: "meter", style: "width:120px" }, [h("i", { style: "width:" + (pct || 0) + "%" })])])])); });
+  tbl.appendChild(tb); board.appendChild(h("div", { class: "tablewrap" }, [tbl]));
+  var hard = Object.keys(S.cards).map(function (id) { var c = S.cards[id]; return { id: id, c: c, acc: c.n ? c.ok / c.n : 1 }; }).filter(function (o) { return o.c.n >= 2 && o.acc < 0.6; }).sort(function (a, b) { return a.acc - b.acc; }).slice(0, 12);
+  board.appendChild(h("h3", { text: "Трудные примеры и слова" }));
+  board.appendChild(hard.length ? h("p", { text: hard.map(function (o) { return cardLabel(o.id) + " (" + o.c.ok + " из " + o.c.n + ")"; }).join("; ") }) : h("p", { class: "muted", text: "Пока ничего не выделяется: нужно хотя бы две попытки по карточке." }));
+  var due = Object.keys(S.cards).filter(function (id) { return S.cards[id].due && S.cards[id].due <= todayKey(); }).length;
+  board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " примеров." }));
+  board.appendChild(h("h3", { text: "Свой список слов" }));
+  board.appendChild(h("p", { class: "small muted", text: "Формат как в задании: dict — [слово, слоги]; check — [слово, номер буквы с нуля, проверочное с ударением, [два слова без ударения на этой гласной]]; morph — {parts, item, kind, hint}; tsya — [предложение с {глаголом}, глагол, верный вопрос, неверный вопрос]. Поля можно задавать не все: остальные возьмутся из встроенного списка." }));
+  var ta = h("textarea", { id: "customjson" }); ta.value = S.custom ? JSON.stringify(S.custom, null, 1) : JSON.stringify({ dict: [["корова", "ко-ро-ва"]], check: [["вода", 1, "во́ды", ["водяно́й", "водопа́д"]]], tsya: [["Здесь можно {купаться}", "купаться", "что делать?", "что делает?"]] }, null, 1);
+  board.appendChild(ta);
+  var msg = h("p", { class: "muted" });
+  board.appendChild(h("div", { class: "row end" }, [
+    h("button", { class: "btn", text: "Встроенный список", onclick: function () { S.custom = null; save(true); msg.textContent = "Снова используется встроенный список."; } }),
+    h("button", { class: "btn primary", text: "Применить список", onclick: function () { try { var o = JSON.parse(ta.value); var merged = {}; ["dict", "check", "morph", "tsya", "goods"].forEach(function (k) { merged[k] = Array.isArray(o[k]) && o[k].length ? o[k] : CONTENT[k]; }); merged.check.forEach(function (c) { if (typeof c[1] !== "number" || !c[2] || !Array.isArray(c[3])) throw new Error("check"); }); S.custom = merged; save(true); msg.textContent = "Список применён: " + merged.dict.length + " словарных, " + merged.check.length + " с проверкой, " + merged.morph.length + " рецептов, " + merged.tsya.length + " табличек."; } catch (e) { msg.textContent = "Не удалось прочитать JSON: " + e.message; } } })
+  ]));
+  board.appendChild(msg);
+  var confirmRow = h("div", { class: "row end" });
+  confirmRow.appendChild(h("button", { class: "btn", text: "Сбросить весь прогресс", onclick: function () { confirmRow.innerHTML = ""; confirmRow.appendChild(h("span", { class: "muted", text: "Точно? Остров и карточки будут удалены." })); confirmRow.appendChild(h("button", { class: "btn", text: "Нет", onclick: function () { openParent(); } })); confirmRow.appendChild(h("button", { class: "btn", text: "Да, сбросить", style: "background:var(--bad);color:#fff", onclick: function () { try { localStorage.removeItem(LS); } catch (e) {} S = freshState(); if (dbRef) dbRef.set({ json: JSON.stringify(S), savedAt: Date.now() }).catch(function () {}); location.reload(); } })); } }));
+  board.appendChild(confirmRow);
+  showModal();
+}
+function cardLabel(id) {
+  var C = content(); var m = id.match(/^m:(\d+)x(\d+)$/); if (m) return m[1] + " × " + m[2];
+  if (id.slice(0, 2) === "d:") return (C.dict[+id.slice(2)] || [id])[0];
+  if (id.slice(0, 3) === "ch:") return (C.check[+id.slice(3)] || [id])[0];
+  if (id.slice(0, 3) === "mo:") return (C.morph[+id.slice(3)] || { item: id }).item;
+  if (id.slice(0, 2) === "t:") return (C.tsya[+id.slice(2)] || [id, id])[1];
+  return id;
+}
+
+/* ===================== BOOT ===================== */
+function drawStartArt() {
+  var c = $("startart"), g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  g.fillStyle = "#3f8fe0"; g.fillRect(0, 44, 96, 20);
+  for (var x = 8; x < 88; x += 8) { var hh = 20 + Math.round(Math.sin(x / 9) * 8); g.fillStyle = "#8b5a2b"; g.fillRect(x, 64 - hh, 8, hh); g.fillStyle = "#5fb24a"; g.fillRect(x, 64 - hh, 8, 4); }
+  g.fillStyle = "#6b4423"; g.fillRect(40, 20, 4, 14); g.fillStyle = "#3e8f32"; g.fillRect(34, 10, 16, 12);
+  g.fillStyle = "#c9a063"; g.fillRect(56, 26, 20, 10); g.fillStyle = "#b85c3a"; g.fillRect(54, 20, 24, 6);
+  drawVillager(g, 0, "hammer");
+}
+function applyState(saved) {
+  S = saved || freshState();
+  if (S.world) World.decode(S.world); else World.generate(20261009);
+  if (!S.world) S.world = World.encode();
+  if (S.today && S.today.date !== todayKey() && S.t > 0 && S.t < 1) { /* a new calendar day while the game day was unfinished: keep it, due dates follow the calendar */ }
+  if (!S.quests.length) ensureQuests();
+  $("b-sound").setAttribute("aria-pressed", S.sound);
+  rebuildTerrain(); refreshSprites(); updateHud(); setSun(S.t);
+}
+function boot() {
+  initRender(); bindInput(); drawStartArt();
+  applyState(load());
+  Game.last = performance.now(); requestAnimationFrame(tick);
+  $("b-play").addEventListener("click", function () {
+    $("start").hidden = true; Game.running = true; S.started = true;
+    try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    if (S.t >= 1) nightFall(); else hint(S.day === 1 && !S.builds ? "Это Блокоград. Нажми на Мастера Фёдора (человечек с молотком) или открой «Задания»." : "С возвращением! Открой «Задания».", 6000);
+    save();
+  });
+  $("b-sleep").addEventListener("click", endDay);
+  $("b-more").addEventListener("click", moreTime);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) save(true); });
+  window.addEventListener("pagehide", function () { save(true); });
+  /* mirror progress to the artifact store when the page runs inside claude.ai */
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("db").then(function (db) {
+        if (!db) return;
+        var ref = db.doc("blokograd/save");
+        ref.get().then(function (snap) {
+          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && o.v === 1) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
+          dbRef = ref; save();
+        }, function () { dbRef = ref; });
+      }, function () {});
+    }
+  } catch (e) {}
+}
+boot();
+window.BLOKOGRAD = { state: function () { return S; }, World: World, Frame: Frame, Build: Build, pickAt: pickAt, setTool: setTool, takeQuest: takeQuest, openQuest: openQuest, openCraft: openCraft, hammerOne: hammerOne, project: project, save: save, content: content, Game: Game, nightFall: nightFall, cellTopY: cellTopY };
+})();
+</script>
+<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function () {});</script>
+</body>
+</html>
