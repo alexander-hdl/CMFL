@@ -4,7 +4,7 @@
 
 | Файл | В духе | Что тренирует |
 |---|---|---|
-| [`fable-blokograd.md`](fable-blokograd.md) | Minecraft | Умножение и площадь (стройка рамкой), состав слова, безударные и словарные слова (верстак), деньги (торговля) |
+| [`fable-blokograd.md`](fable-blokograd.md) (готово: [`plan/blokograd.html`](../plan/blokograd.html)) | Minecraft | Умножение и площадь (стройка рамкой), состав слова, безударные и словарные слова (верстак), деньги (торговля) |
 | [`fable-oborona-tablicy.md`](fable-oborona-tablicy.md) | Clash Royale, Kingdom Rush | Таблица умножения и деления, пары множителей, разрезание трудных примеров, двузначное на однозначное |
 | [`fable-ferma.md`](fable-ferma.md) | Stardew Valley, Harvest Moon | Часы и длительность, деньги и сдача, деление с остатком, масса, задачи в 2 действия, внимательное чтение |
 
