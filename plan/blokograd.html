@@ -29,6 +29,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; overflow: hidden; }
 body { background: var(--sky); color: var(--ink); font-family: var(--f-body); font-size: 18px; line-height: 1.35; font-weight: 600; -webkit-text-size-adjust: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -359,7 +360,7 @@ var CONTENT = {
     { parts: ["гриб", "ник"], item: "грибник", kind: "villager", hint: "житель с корзиной грибов" },
     { parts: ["колод", "ец"], item: "колодец", kind: "well", hint: "из него берут воду" },
     { parts: ["фонар", "ик"], item: "фонарик", kind: "lamp", hint: "маленький фонарь" },
-    { parts: ["кораб", "лик"], item: "кораблик", kind: "boat", hint: "маленький корабль" },
+    { parts: ["корабл", "ик"], item: "кораблик", kind: "boat", hint: "маленький корабль" },
     { parts: ["мост", "ик"], item: "мостик", kind: "bridge", hint: "маленький мост" },
     { parts: ["рыб", "ак"], item: "рыбак", kind: "villager", hint: "житель с удочкой" },
     { parts: ["двор", "ник"], item: "дворник", kind: "villager", hint: "житель с метлой" },
@@ -388,7 +389,7 @@ var CONTENT = {
   ],
   goods: [
     { id: "lamp", name: "фонарь", base: 25, kind: "lamp" },
-    { id: "oil", name: "масло для фонарей", base: 5, kind: "oil", pack: 1 },
+    { id: "oil", name: "масло для фонарей", base: 5, kind: "oil" },
     { id: "flag", name: "флаг", base: 17, kind: "flag" },
     { id: "paint", name: "ведро краски", base: 40, kind: "paint" },
     { id: "seed", name: "саженец", base: 12, kind: "tree" },
@@ -413,28 +414,29 @@ function freshState() {
     quests: [], qseq: 0, builds: 0, crafts: 0, trades: 0,
     props: [{ kind: "ship", x: 48, z: 93 }], villagers: defaultVillagers(),
     today: { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() },
-    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}
+    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}, build: null, leafCount: 0, oreSeq: 0
   };
 }
 function defaultVillagers() {
   return [
-    { id: "fedor", name: "Мастер Фёдор", x: 46, z: 51, skin: 0, lore: "Строит всё в Блокограде. Даёт чертежи и платит за мосты." },
-    { id: "marfa", name: "Бабушка Марфа", x: 52, z: 47, skin: 1, lore: "Знает все слова на свете и их части." },
-    { id: "ilyas", name: "Торговец Ильяс", x: 44, z: 47, skin: 2, lore: "Продаёт и покупает. Любит, когда платят без сдачи." },
-    { id: "grisha", gen: "Гриши", name: "Рудокоп Гриша", x: 48, z: 13, skin: 6, lore: "Живёт на Скалах. Платит за склады руды." },
-    { id: "petr", gen: "Петра", name: "Лесоруб Пётр", x: 83, z: 48, skin: 7, lore: "Живёт в Лесу. Платит за штабели досок." },
-    { id: "vera", gen: "Веры", name: "Тётя Вера", x: 13, z: 48, skin: 8, lore: "Живёт на Лугах. Платит за клумбы и грядки." },
-    { id: "marat", gen: "Марата", name: "Капитан Марат", x: 48, z: 83, skin: 4, lore: "Живёт на Песках. Возит на корабле к Снегам." },
-    { id: "zima", gen: "Зимы", name: "Бабушка Зима", x: 84, z: 85, skin: 5, lore: "Живёт на Снегах. Платит за снежные стены." }
+    { id: "fedor", name: "Мастер Фёдор", dat: "Мастеру Фёдору", x: 46, z: 51, skin: 0, lore: "Строит всё в Блокограде. Даёт чертежи и платит за мосты." },
+    { id: "marfa", name: "Бабушка Марфа", dat: "Бабушке Марфе", fem: true, x: 52, z: 47, skin: 1, lore: "Знает все слова на свете и их части." },
+    { id: "ilyas", name: "Торговец Ильяс", dat: "Торговцу Ильясу", x: 44, z: 47, skin: 2, lore: "Продаёт и покупает. Любит, когда платят без сдачи." },
+    { id: "grisha", gen: "Гриши", dat: "Рудокопу Грише", name: "Рудокоп Гриша", x: 48, z: 13, skin: 6, lore: "Живёт на Скалах. Платит за склады руды." },
+    { id: "petr", gen: "Петра", dat: "Лесорубу Петру", name: "Лесоруб Пётр", x: 83, z: 48, skin: 7, lore: "Живёт в Лесу. Платит за штабели досок." },
+    { id: "vera", gen: "Веры", dat: "Тёте Вере", fem: true, name: "Тётя Вера", x: 13, z: 48, skin: 8, lore: "Живёт на Лугах. Платит за клумбы и грядки." },
+    { id: "marat", gen: "Марата", dat: "Капитану Марату", name: "Капитан Марат", x: 48, z: 83, skin: 4, lore: "Живёт на Песках. Возит на корабле к Снегам." },
+    { id: "zima", gen: "Зимы", dat: "Бабушке Зиме", fem: true, name: "Бабушка Зима", x: 84, z: 85, skin: 5, lore: "Живёт на Снегах. Платит за снежные стены." }
   ];
 }
 function load() {
   try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && (o.v === 1 || o.v === 2)) return o; } } catch (e) {}
   return null;
 }
-var saveTimer = null, dbRef = null, dbWriting = false, savedAt = 0;
+var saveTimer = null, dbRef = null, dbWriting = false, savedAt = 0, noSave = false;
 function save(now) {
-  if (!S) return;
+  if (!S || noSave) return;
+  S.build = Build.snapshot();
   if (World.dirty) { S.world = World.encode(); World.dirty = false; }
   S.savedAt = Date.now();
   try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {}
@@ -455,7 +457,7 @@ function recordResult(type, id, correct) {
   else { c.iv = -1; c.due = todayKey(1); }
   c.last = todayKey();
   var st = S.stats[type] || (S.stats[type] = { n: 0, ok: 0 }); st.n++; if (correct) st.ok++;
-  var r = S.recent[type[0] === "m" ? "m" : (type === "money" ? "c" : "w")]; r.push(correct ? 1 : 0); if (r.length > 10) r.shift();
+  var r = S.recent[type === "mult" ? "m" : (type === "money" ? "c" : "w")]; r.push(correct ? 1 : 0); if (r.length > 10) r.shift();
 }
 function recentRate(key) { var r = S.recent[key]; if (r.length < 4) return 0.8; return r.reduce(function (a, b) { return a + b; }, 0) / r.length; }
 function accuracy(id) { var c = S.cards[id]; return c && c.n ? c.ok / c.n : null; }
@@ -1025,7 +1027,7 @@ var Mobs = {
   }
 };
 function houseHoles() { var out = []; (S.houses || []).forEach(function (hs) { (hs.holes || []).forEach(function (hole) { if (World.get(hole.x, hole.y, hole.z) === AIR) out.push(hole); }); }); return out; }
-function refreshHoleOutline() { var holes = houseHoles(); setOutline(holes.map(function (hh) { return { x: hh.x, z: hh.z, y: hh.y }; }), true); }
+function refreshHoleOutline() { var holes = houseHoles(); if (!holes.length && Frame.bp && Frame.bp.type === "bridge") { setOutline(Frame.bp.cells, false); return; } setOutline(holes.map(function (hh) { return { x: hh.x, z: hh.z, y: hh.y }; }), true); }
 function checkRepairs() {
   var left = 0;
   (S.houses || []).forEach(function (hs) { if (!hs.holes) return; hs.holes = hs.holes.filter(function (hole) { return World.get(hole.x, hole.y, hole.z) === AIR; }); left += hs.holes.length; });
@@ -1038,6 +1040,7 @@ function checkRepairs() {
 var Tool = "pick";
 var Ptr = { list: {}, pinch: null, drag: null };
 function setTool(t) {
+  if (Build.busy) { hint("Подожди, идёт стройка.", 2000); return; }
   Tool = t;
   document.querySelectorAll("#tools button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-tool") === t ? "true" : "false"); });
   if (t === "frame") { Frame.show(); frameHint(); } else { Frame.hideUI(); }
@@ -1151,7 +1154,7 @@ function tap(cx, cy) {
 function approachVillager(id) {
   var v = S.villagers.filter(function (x) { return x.id === id; })[0]; if (!v) return;
   if (Player.near(v.x, v.z, 3)) return openVillager(id);
-  if (Player.walkOrExplain(v.x, v.z, function () { openVillager(id); })) hint("Иду к " + (v.name || "жителю") + "…", 1500);
+  if (Player.walkOrExplain(v.x, v.z, function () { openVillager(id); })) hint("Иду к " + (v.dat || v.name || "жителю") + "…", 1500);
 }
 function approachShip(p) { if (Player.near(p.x, p.z, 3)) return openShip(); if (Player.walkOrExplain(p.x, p.z, openShip)) hint("Иду к кораблю…", 1500); }
 function dig(x, y, z, cx, cy) {
@@ -1161,7 +1164,7 @@ function dig(x, y, z, cx, cy) {
   if (t === GRASS || t === SNOW) gain = DIRT; else if (t === LEAF || t === ORE || t === ICE) gain = null; else gain = t;
   if (gain) { S.blocks[gain] = (S.blocks[gain] || 0) + 1; toastAt(cx, cy, "+1 " + BLOCK_NAME[gain]); }
   if (t === ORE) { var part = dropPart(); if (part.gap) { S.gaps.push(part.gap); toastAt(cx, cy, "слово с дыркой: " + gapForm(part.gap), "bad"); } else { S.parts.push(part.part); toastAt(cx, cy, "часть слова: " + part.part, "good"); } SFX.coin(); }
-  if (t === LEAF && Math.random() < 0.3) { S.items.seed = S.items.seed || { name: "саженец", kind: "tree", n: 0 }; S.items.seed.n++; toastAt(cx, cy, "+1 саженец"); }
+  if (t === LEAF) { S.leafCount = (S.leafCount || 0) + 1; if (S.leafCount % 3 === 0) { S.items.seed = S.items.seed || { name: "саженец", kind: "tree", n: 0 }; S.items.seed.n++; toastAt(cx, cy, "+1 саженец"); } else toastAt(cx, cy, "листья (саженец за каждые 3)"); }
   checkRepairs(); refreshSprites(); save();
 }
 function placeAt(hit, cx, cy) {
@@ -1183,12 +1186,12 @@ function dropPart() {
   var C = content(); var need = [];
   S.quests.forEach(function (q) {
     if (q.status !== "open" || q.kind !== "craft") return;
-    if (q.sub === "morph") { var have = S.parts.slice(); C.morph[q.ref].parts.forEach(function (p) { var i = have.indexOf(p); if (i >= 0) have.splice(i, 1); else need.push({ part: p }); }); }
-    if (q.sub === "check") { var cw = C.check[q.ref]; if (!S.gaps.some(function (g) { return g.w === cw[0]; }) && !q.fixed) need.push({ gap: { w: cw[0], i: cw[1], ref: q.ref } }); }
+    if (q.sub === "morph" && C.morph[q.ref]) { var have = S.parts.slice(); C.morph[q.ref].parts.forEach(function (p) { var i = have.indexOf(p); if (i >= 0) have.splice(i, 1); else need.push({ part: p }); }); }
+    if (q.sub === "check" && C.check[q.ref]) { var cw = C.check[q.ref]; if (!S.gaps.some(function (g) { return g.w === cw[0]; }) && !q.fixed) need.push({ gap: { w: cw[0], i: cw[1], ref: q.ref } }); }
   });
-  if (need.length && Math.random() < 0.8) return need[0];
+  if (need.length) return need[0];
   var all = []; C.morph.forEach(function (m) { m.parts.forEach(function (p) { all.push({ part: p }); }); });
-  return pick(all);
+  S.oreSeq = (S.oreSeq || 0) + 1; return all[S.oreSeq % all.length];
 }
 
 /* ===================== FRAME (mechanic 1) ===================== */
@@ -1221,10 +1224,10 @@ var Frame = {
   valid: function () {
     var d = this.dims(); if (!d) return false;
     var bp = this.bp;
-    if (!bp) { return this.cells.every(function (c) { return Player.canAct(c.x, c.z) && !World.isWater(c.x, c.z); }); }
+    if (!bp) { return this.cells.every(function (c) { return cellOpen(c.x, c.z) && !World.isWater(c.x, c.z); }); }
     var a = this.isWall() ? Math.max(d.cols, d.rows) : d.cols, b = this.isWall() ? this.hgt : d.rows;
     if (bp.type === "bridge") { return d.x0 === bp.x0 && d.x1 === bp.x1 && d.z0 === bp.z0 && d.z1 === bp.z1; }
-    if (!this.cells.every(function (c) { return Player.canAct(c.x, c.z) && !World.isWater(c.x, c.z); })) return false;
+    if (!this.cells.every(function (c) { return cellOpen(c.x, c.z) && !World.isWater(c.x, c.z); })) return false;
     if (bp.type === "div") return a === bp.rows || b === bp.rows;
     var need = bp.type === "wall" ? [bp.len, bp.h] : [bp.r, bp.c];
     return (a === need[0] && b === need[1]) || (a === need[1] && b === need[0]);
@@ -1267,7 +1270,7 @@ var Frame = {
     var fa = $("frameact"); fa.innerHTML = ""; fa.hidden = !this.on;
     if (!this.on) return;
     var self = this, bp = this.bp, d = this.dims();
-    if (Build.partial) { fa.appendChild(h("button", { class: "btn gold big", text: "Взять ещё блоков", onclick: function () { Build.takeMore(); } })); fa.appendChild(h("button", { class: "btn", text: "Переделать", onclick: function () { Build.undo(); } })); return; }
+    if (Build.partial) { if (!(bp && bp.type === "div")) fa.appendChild(h("button", { class: "btn gold big", text: "Взять ещё блоков", onclick: function () { Build.takeMore(); } })); fa.appendChild(h("button", { class: "btn", text: "Переделать", onclick: function () { Build.undo(); } })); return; }
     if (bp && bp.type === "double") fa.appendChild(h("span", { class: "btn ghost", text: "Грядка " + (this.rects.length + 1) + " из 2" }));
     if (this.isWall() && d) { fa.appendChild(h("button", { class: "btn sq", text: "−", onclick: function () { self.hgt = Math.max(1, self.hgt - 1); self.compute(); self.render(); } })); fa.appendChild(h("span", { class: "btn ghost", text: "высота " + this.hgt })); fa.appendChild(h("button", { class: "btn sq", text: "+", onclick: function () { self.hgt = Math.min(9, self.hgt + 1); self.compute(); self.render(); } })); }
     if (d && !this.isWall() && bp && bp.type !== "double" && !S.cutHidden[bp.factId]) fa.appendChild(h("button", { class: "btn" + (this.cutMode ? " on" : "") + (this.cut ? " on" : ""), text: this.cut ? "Убрать разрез" : "Разрезать", onclick: function () { if (self.cut) { self.cut = null; self.render(); } else { self.cutMode = !self.cutMode; self.renderActions(); hint(self.cutMode ? "Нажми на клетку внутри рамки — разрез пройдёт перед ней." : "", self.cutMode ? 0 : 1); } } }));
@@ -1276,11 +1279,12 @@ var Frame = {
     if (d || this.rects.length) fa.appendChild(h("button", { class: "btn", text: "Очистить", onclick: function () { self.reset(); frameHint(); } }));
   }
 };
+function cellOpen(x, z) { var I = islandAt(x, z); return !I || !!S.visited[I.id]; }
 function frameHint() {
   var bp = Frame.bp;
   if (Frame.cutMode) return;
   if (!Frame.start && !Frame.rects.length) { hint(bp ? (bp.type === "wall" ? "Проведи линию по земле: это длина забора. Потом подними высоту." : bp.type === "bridge" ? "Проведи рамку по воде вдоль белого контура: мост " + bp.len + " в длину и " + bp.width + " в ширину." : "Проведи пальцем по земле, чтобы нарисовать рамку " + bpDims(bp) + ".") : "Проведи по земле — нарисуй рамку. Блоки берутся из рюкзака.", 0); return; }
-  if (bp && !Frame.valid()) { hint(bp.type === "bridge" ? "Рамка должна лечь точно на белый контур моста." : "Нужно " + bpDims(bp) + ". Поправь рамку: строить можно на открытых островах и не на воде.", 0); return; }
+  if (bp && !Frame.valid()) { hint(bp.type === "bridge" ? "Рамка должна лечь точно на белый контур моста." : "Нужно " + bpDims(bp) + ". Поправь рамку. Строить можно на суше открытого острова.", 0); return; }
   if (!bp && !Frame.valid()) { hint("Строить можно на суше открытого острова.", 0); return; }
   hint(bp && bp.type === "div" ? "Рядов столько, сколько надо. Теперь нажми «Разложить блоки»." : "Рамка готова. Нажми «Построить» и возьми блоки из сундука.", 0);
 }
@@ -1289,31 +1293,39 @@ function bpDims(bp) { if (!bp) return ""; if (bp.type === "wall") return bp.len 
 /* ===================== BUILD (chest + placing) ===================== */
 var Build = {
   q: null, busy: false, partial: false, cells: [], placed: [], taken: 0, attempts: 0, firstExact: null, chest: 0, block: PLANK, wall: false, timer: null,
+  snapshot: function () { if (!this.q) return null; return { qid: this.q.id, partial: this.partial, placed: this.placed, cells: this.cells, chest: this.chest, block: this.block, wall: this.wall, attempts: this.attempts, firstExact: this.firstExact, rects: Frame.rects, hgt: Frame.hgt }; },
+  restore: function (snap) {
+    if (!snap) return; var q = S.quests.filter(function (x) { return x.id === snap.qid && x.status === "open"; })[0]; if (!q) return;
+    this.q = q; Frame.bp = q.bp; this.partial = !!snap.partial; this.placed = snap.placed || []; this.cells = snap.cells || []; this.chest = snap.chest || 0; this.block = snap.block || PLANK; this.wall = !!snap.wall; this.attempts = snap.attempts || 0; this.firstExact = snap.firstExact;
+    Frame.rects = snap.rects || []; Frame.hgt = snap.hgt || 1;
+    if (this.partial) { var self = this; var missing = this.cells.filter(function (c) { return !self.placed.some(function (p) { return p.x === c.x && p.z === c.z && p.y === c.y; }); }); setMissCells(missing, this.wall); }
+  },
   begin: function () {
     var bp = Frame.bp; var cells = Frame.rects.reduce(function (a, r) { return a.concat(r.cells); }, []).concat(Frame.cells);
     if (!cells.length) return;
     this.cells = cells; this.placed = []; this.taken = 0; this.attempts = 0; this.firstExact = null; this.wall = Frame.isWall();
-    this.block = bp ? bp.block : PLANK;
+    this.block = bp ? bp.block : PLANK; if (bp && bp.type === "bridge") this.block = PIER;
     if (bp && bp.type === "div") { this.chest = bp.total; this.attempts = 1; this.firstExact = cells.length === bp.total; this.takeN(bp.total); return; }
     if (bp) { if (bp.chestLeft == null) bp.chestLeft = bp.chest; this.chest = bp.chestLeft; } else this.chest = S.blocks[this.block] || 0;
     if (!bp && this.chest <= 0) { hint("В рюкзаке нет досок. Распили брёвна на верстаке или купи у торговца.", 3500); return; }
     this.openChest();
   },
+  bagBlock: function () { return this.block === PIER ? PLANK : this.block; },
   openChest: function () {
     var self = this, bp = Frame.bp; var need = this.cells.length - this.placed.length;
-    var own = S.blocks[this.block] || 0;
+    var own = S.blocks[this.bagBlock()] || 0;
     openNumber({
       title: bp ? "Сундук мастера" : "Рюкзак", who: bp ? bp.v || "fedor" : null,
       text: (bp ? "В сундуке " + this.chest + " " + plural(this.chest, "блок", "блока", "блоков") + ". " : "В рюкзаке " + this.chest + " " + plural(this.chest, "доска", "доски", "досок") + ". ") + (this.placed.length ? "Сколько взять ещё?" : "Сколько блоков взять для стройки?"),
       max: this.chest, button: "Взять",
-      extra: bp && own > 0 ? { label: "Добавить из рюкзака (" + BLOCK_NAME[this.block] + ": " + own + ")", onclick: function () { self.topUp(); } } : null,
+      extra: bp && own > 0 ? { label: "Добавить из рюкзака (" + BLOCK_NAME[this.bagBlock()] + ": " + own + ")", onclick: function () { self.topUp(); } } : null,
       onDone: function (n) { self.attempts++; if (self.firstExact === null) self.firstExact = n === need; self.takeN(n); }
     });
   },
   topUp: function () {
-    var self = this, own = S.blocks[this.block] || 0;
-    openNumber({ title: "Пополнить сундук", who: null, text: "В рюкзаке " + own + " " + plural(own, "блок", "блока", "блоков") + " (" + BLOCK_NAME[this.block] + "). Сколько переложить в сундук мастера?", max: own, button: "Переложить",
-      onDone: function (n) { S.blocks[self.block] = own - n; self.chest += n; if (Frame.bp) Frame.bp.chestLeft = self.chest; save(); self.openChest(); }, onCancel: function () { self.openChest(); } });
+    var self = this, own = S.blocks[this.bagBlock()] || 0;
+    openNumber({ title: "Пополнить сундук", who: null, text: "В рюкзаке " + own + " " + plural(own, "блок", "блока", "блоков") + " (" + BLOCK_NAME[this.bagBlock()] + "). Сколько переложить в сундук мастера?", max: own, button: "Переложить",
+      onDone: function (n) { S.blocks[self.bagBlock()] = own - n; self.chest += n; if (Frame.bp) { Frame.bp.chestLeft = self.chest; Frame.bp.fromBag = (Frame.bp.fromBag || 0) + n; } save(); self.openChest(); }, onCancel: function () { self.openChest(); } });
   },
   takeN: function (n) {
     var bp = Frame.bp; this.chest -= n; this.taken = n; if (!bp) S.blocks[this.block] = this.chest; else bp.chestLeft = this.chest;
@@ -1334,16 +1346,16 @@ var Build = {
     rebuildTerrain(); refreshSprites(); this.busy = false;
     var bp = Frame.bp, surplus = this.taken; this.taken = 0;
     var anchor = this.cells[0];
-    if (surplus > 0) { if (bp) { this.chest += surplus; bp.chestLeft = this.chest; } else S.blocks[this.block] = (S.blocks[this.block] || 0) + surplus; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1, anchor.z + 0.5, (bp && bp.type === "div" ? "осталось лишних: " : "лишние ") + surplus + (bp && bp.type === "div" ? "" : " вернулись в сундук"), "bad"); }
+    if (surplus > 0) { if (bp) { this.chest += surplus; bp.chestLeft = this.chest; } else S.blocks[this.block] = (S.blocks[this.block] || 0) + surplus; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1, anchor.z + 0.5, (bp && bp.type === "div" ? "осталось лишних: " + surplus : (surplus === 1 ? "лишний 1 вернулся" : "лишние " + surplus + " вернулись") + (bp ? " в сундук" : " в рюкзак")), "bad"); }
     if (missing.length) {
       this.partial = true; setMissCells(missing.map(function (c) { return { x: c.x, z: c.z, y: c.y }; }), this.wall);
       hint(bp && bp.type === "div" ? "Блоки кончились, а клетки остались. Ряды слишком длинные: нажми «Переделать»." : (this.chest <= 0 && bp ? "Блоков не хватило, и сундук пуст. Добавь блоки из рюкзака: нажми «Взять ещё блоков»." : "Блоков не хватило: пустые клетки обведены. Возьми ещё."), 0);
-      SFX.bad(); Frame.renderActions(); Frame.on = true; return;
+      SFX.bad(); Frame.on = true; Frame.renderActions(); save(); return;
     }
-    if (bp && bp.type === "div" && surplus > 0) { this.partial = true; hint("Все ряды готовы, а блоки остались. Ряды слишком короткие: нажми «Переделать».", 0); Frame.on = true; Frame.renderActions(); return; }
+    if (bp && bp.type === "div" && surplus > 0) { this.partial = true; hint("Все ряды готовы, а блоки остались. Ряды слишком короткие: нажми «Переделать».", 0); Frame.on = true; Frame.renderActions(); save(); return; }
     this.complete();
   },
-  takeMore: function () { if (!this.partial) return; if (Frame.bp && this.chest <= 0 && (S.blocks[this.block] || 0) <= 0) { hint("Сундук пуст, и в рюкзаке нет таких блоков. Купи их у торговца или добудь.", 4000); return; } this.openChest(); },
+  takeMore: function () { if (!this.partial) return; if (Frame.bp && Frame.bp.type === "div") return; if (Frame.bp && this.chest <= 0 && (S.blocks[this.block] || 0) <= 0) { hint("Сундук пуст, и в рюкзаке нет таких блоков. Купи их у торговца или добудь.", 4000); return; } this.openChest(); },
   undo: function () {
     this.placed.forEach(function (p) { World.set(p.x, p.py, p.z, AIR); }); rebuildTerrain(); refreshSprites();
     if (Frame.bp) { this.chest = Frame.bp.type === "div" ? Frame.bp.total : (this.chest + this.placed.length); Frame.bp.chestLeft = this.chest; } else S.blocks[this.block] = (S.blocks[this.block] || 0) + this.placed.length;
@@ -1353,7 +1365,7 @@ var Build = {
     var bp = Frame.bp, q = this.q; SFX.ok();
     var anchor = this.cells[Math.floor(this.cells.length / 2)];
     var exact = this.firstExact === true && (bp ? (bp.type !== "div" || this.attempts === 1) : true);
-    var fid = bp ? bp.factId : factIdOfFrame();
+    var fid = bp ? bp.factId : null;
     if (fid) {
       recordResult("mult", fid, exact);
       if (exact && !Frame.used) { var c = card(fid); if (c.cutFree.indexOf(todayKey()) < 0) c.cutFree.push(todayKey()); if (c.cutFree.length >= 2) S.cutHidden[fid] = true; }
@@ -1362,15 +1374,18 @@ var Build = {
     this.partial = false; this.placed = []; Frame.reset();
     if (q) {
       q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; if (q.kind === "build") S.builds++; else if (q.kind === "job") S.jobs = (S.jobs || 0) + 1; S.today.built.push(q.title);
-      toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1.5, anchor.z + 0.5, "+" + q.reward + " монет", "good"); SFX.coin();
-      this.q = null; Frame.bp = null; setOutline([]);
+      toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1.5, anchor.z + 0.5, "+" + q.reward + " " + plural(q.reward, "монета", "монеты", "монет"), "good"); SFX.coin();
+      if (bp.fromBag) { var back = Math.min(bp.chestLeft || 0, bp.fromBag); if (back > 0) { S.blocks[this.bagBlock()] = (S.blocks[this.bagBlock()] || 0) + back; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 2.5, anchor.z + 0.5, "свои " + back + " " + plural(back, "блок", "блока", "блоков") + " вернулись в рюкзак", "good"); } }
+      this.q = null; Frame.bp = null; setOutline([]); S.build = null;
       var d = rectOf(cells);
       if (bp.house) growHouse(d, q);
       if (bp.type === "double") plantBeds(cells);
       if (bp.type === "div" && q.kind === "build") { S.props.push({ kind: "flag", x: d.x0, z: d.z0 }); }
-      if (bp.type === "bridge") { var I = islandById(bp.island); hint("Мост на «" + I.name + "» готов! Человечек может идти туда.", 5000); S.props.push({ kind: "flag", x: bp.flagX, z: bp.flagZ }); }
-      if (q.kind === "job") { setTimeout(function () { ensureQuests(); updateHud(); hint("Работа сделана! " + q.v_name + " заплатил " + q.reward + ".", 4000); }, 600); }
-      else setTimeout(function () { ensureQuests(); updateHud(); hint("Готово! " + q.v_name + " доволен. Загляни в «Задания».", 4000); }, 600);
+      if (bp.type === "bridge") { var I = islandById(bp.island); S.props.push({ kind: "flag", x: bp.flagX, z: bp.flagZ }); setMode("hero"); hint("Мост на «" + I.name + "» готов! Нажми на тот берег, и человечек пойдёт туда.", 6000); }
+      var vv = S.villagers.filter(function (x) { return x.id === q.v; })[0], fem = !!(vv && vv.fem);
+      if (q.kind === "job") { setTimeout(function () { ensureQuests(); updateHud(); hint("Работа сделана! " + q.v_name + (fem ? " заплатила " : " заплатил ") + q.reward + ".", 4000); }, 600); }
+      else if (bp.type !== "bridge") setTimeout(function () { ensureQuests(); updateHud(); hint("Готово! " + q.v_name + (fem ? " довольна." : " доволен.") + " Загляни в «Задания».", 4000); }, 600);
+      else setTimeout(function () { ensureQuests(); updateHud(); }, 600);
     } else { S.today.built.push("своя постройка " + rectOf(cells).cols + " × " + rectOf(cells).rows); hint("Построено!", 2500); }
     refreshSprites(); save(); updateHud();
   }
@@ -1388,7 +1403,8 @@ function growHouse(d, q) {
     var t = (lvl === 2 && (x + z) % 3 === 0) ? GLASS : BRICK; steps.push([x, baseY + lvl, z, t]);
   }
   for (x = d.x0; x <= d.x1; x++) for (z = d.z0; z <= d.z1; z++) steps.push([x, baseY + 3, z, ROOF]);
-  S.houses = S.houses || []; S.houses.push({ x0: d.x0, x1: d.x1, z0: d.z0, z1: d.z1, y: baseY, name: q.title, holes: [] });
+  if (S.player.x >= d.x0 && S.player.x < d.x1 + 1 && S.player.z >= d.z0 && S.player.z < d.z1 + 1) { S.player.x = doorX + 0.5; S.player.z = d.z1 + 1.5; Player.stop(); updatePlayerSprite(); }
+  S.houses = S.houses || []; S.houses.push({ x0: d.x0, x1: d.x1, z0: d.z0, z1: d.z1, y: baseY, name: q.house || q.title, holes: [] });
   var i = 0; (function step() { for (var k = 0; k < 4 && i < steps.length; k++, i++) { var s = steps[i]; if (World.get(s[0], s[1], s[2]) === AIR) World.set(s[0], s[1], s[2], s[3]); } rebuildTerrain(); if (i < steps.length) setTimeout(step, 60); else { refreshSprites(); addSignQuest(q, doorX, d.z1 + 1); save(); } })();
 }
 function plantBeds(cells) { cells.forEach(function (c, i) { if (i % 3 === 0) S.props.push({ kind: "flower", x: c.x, z: c.z }); }); refreshSprites(); }
@@ -1422,6 +1438,7 @@ function villagerFace(id) {
 /* ===================== QUESTS ===================== */
 var VNAME = { fedor: "Мастер Фёдор", marfa: "Бабушка Марфа", ilyas: "Торговец Ильяс", grisha: "Рудокоп Гриша", petr: "Лесоруб Пётр", vera: "Тётя Вера", marat: "Капитан Марат", zima: "Бабушка Зима" };
 var FLOOR_NAMES = ["Пол для мастерской", "Пол для пекарни", "Пол для школы", "Пол для сарая", "Пол для библиотеки", "Пол для гончарной", "Пол для кузницы", "Пол для амбара"];
+var HOUSE_NAMES = ["Мастерская", "Пекарня", "Школа", "Сарай", "Библиотека", "Гончарная", "Кузница", "Амбар"];
 var BRIDGE_ORDER = ["rock", "forest", "west", "sand"];
 function vname(id) { var v = S.villagers.filter(function (x) { return x.id === id; })[0]; return v ? v.name : (VNAME[id] || id); }
 function openQuest(kind) { return S.quests.filter(function (q) { return q.status === "open" && q.kind === kind; })[0]; }
@@ -1440,13 +1457,14 @@ function makeBuildQuest() {
   if (type === "div" && recentRate("m") < 0.75) type = "rect";
   var short = n >= 3 && n % 3 === 2;
   var bp = { type: type, factId: f.id, block: PLANK, v: "fedor", island: "home" }, title, text, reward = 20;
+  var house = HOUSE_NAMES[n % HOUSE_NAMES.length];
   if (type === "rect") { bp.r = f.a; bp.c = f.b; bp.house = true; bp.chest = chestFor(f.a * f.b, short); title = FLOOR_NAMES[n % FLOOR_NAMES.length] + " " + f.a + " × " + f.b; text = "Нужен " + FLOOR_NAMES[n % FLOOR_NAMES.length].toLowerCase() + ": " + f.a + " × " + f.b + ". "; }
   if (type === "double") { bp.r = f.a; bp.c = f.b; bp.block = BED; bp.chest = chestFor(f.a * f.b * 2, short); reward = 30; title = "Две грядки по " + f.a + " × " + f.b; text = "Для огорода нужны две грядки, каждая " + f.a + " × " + f.b + ". Возьми из сундука блоки сразу на обе. "; }
   if (type === "wall") { bp.len = Math.max(f.a, f.b); bp.h = Math.min(f.a, f.b); bp.block = FENCE; bp.chest = chestFor(bp.len * bp.h, short); reward = 30; title = "Забор " + bp.len + " в длину и " + bp.h + " в высоту"; text = "Поставь забор: " + bp.len + " в длину и " + bp.h + " в высоту. "; }
-  if (type === "div") { bp.total = f.a * f.b; bp.rows = f.a; bp.chest = bp.total; reward = 30; title = bp.total + " блоков в " + f.a + " " + plural(f.a, "ряд", "ряда", "рядов"); text = "В сундуке ровно " + bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + ". Разложи их на склад в " + f.a + " " + plural(f.a, "одинаковый ряд", "одинаковых ряда", "одинаковых рядов") + ", чтобы ни один не остался и ни одного не не хватило. "; }
+  if (type === "div") { bp.total = f.a * f.b; bp.rows = f.a; bp.chest = bp.total; reward = 30; title = bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + " в " + f.a + " " + plural(f.a, "ряд", "ряда", "рядов"); text = "В сундуке ровно " + bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + ". Разложи их на склад в " + f.a + " " + plural(f.a, "одинаковый ряд", "одинаковых ряда", "одинаковых рядов") + ", чтобы ничего не осталось и всего хватило. "; }
   if (type !== "div") text += (short ? "В сундуке только " + bp.chest + " " + plural(bp.chest, "блок", "блока", "блоков") + ", остальные добавь из своего рюкзака (доски: распили брёвна или купи). " : "В сундуке " + bp.chest + " " + plural(bp.chest, "блок", "блока", "блоков") + ", возьми сколько нужно. ");
   text += "Заплачу " + reward + " монет.";
-  return { id: id, kind: "build", v: "fedor", v_name: VNAME.fedor, bp: bp, title: title, text: text, reward: reward, status: "open", island: "home" };
+  return { id: id, kind: "build", v: "fedor", v_name: VNAME.fedor, bp: bp, title: title, text: text, reward: reward, status: "open", island: "home", house: house };
 }
 function makeBridgeQuest() {
   if (S.builds < 2) return null;
@@ -1471,7 +1489,7 @@ function makeCraftQuest() {
   return q;
 }
 function makeTradeQuest() {
-  var id = "q" + (++S.qseq), n = S.trades, C = content();
+  var id = "q" + (++S.qseq), n = S.trades, C = { goods: goodsList() };
   var lvl = n < 2 ? 0 : (n < 5 ? 1 : (n % 3 === 2 ? 3 : 2)); if (lvl >= 2 && recentRate("c") < 0.7) lvl = 1;
   var g = pick(C.goods); var price = lvl === 0 ? Math.max(3, Math.min(20, g.base - 10 + Math.floor(Math.random() * 10))) : g.base + Math.floor(Math.random() * 9) - 4;
   if (price < 2) price = 2;
@@ -1479,13 +1497,13 @@ function makeTradeQuest() {
   if (lvl === 3) { q.qty = 2 + Math.floor(Math.random() * 3); q.budget = q.price * q.qty + (Math.random() < 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 15)); }
   var gname = g.name;
   q.title = "Купить: " + gname + (q.qty > 1 ? " × " + q.qty : "");
-  q.text = lvl <= 1 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 2 ? gname + " стоит " + price + ". Заплатишь крупной купюрой, а сдачу посчитаем вместе." : "Нужно " + q.qty + " " + plural(q.qty, "штука", "штуки", "штук") + ": " + gname + " по " + price + ". У тебя на это " + q.budget + " монет. Хватит ли?";
+  q.text = lvl <= 1 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 2 ? gname + " стоит " + price + ". Заплатишь крупной купюрой, а сдачу посчитаем вместе." : "Нужно " + q.qty + " " + plural(q.qty, "штука", "штуки", "штук") + ": " + gname + " по " + price + ". У тебя на это " + q.budget + " " + plural(q.budget, "монета", "монеты", "монет") + ". Хватит ли?";
   return q;
 }
 function addSignQuest(buildQ, x, z) {
   var C = content(); if (!C.tsya.length) return;
   var ref = pickWord(C.tsya, "t:");
-  S.quests.push({ id: "q" + (++S.qseq), kind: "sign", v: "fedor", v_name: VNAME.fedor, ref: ref, at: { x: Math.max(0, Math.min(W - 1, x)), z: Math.max(0, Math.min(D - 1, z)) }, title: "Табличка: " + buildQ.title.replace(/^Пол для /, ""), text: "Дом готов! Поставь у двери табличку с правильной надписью.", reward: 10, status: "open", island: "home" });
+  S.quests.push({ id: "q" + (++S.qseq), kind: "sign", v: "fedor", v_name: VNAME.fedor, ref: ref, at: { x: Math.max(0, Math.min(W - 1, x)), z: Math.max(0, Math.min(D - 1, z)) }, title: "Табличка: " + (buildQ.house || buildQ.title), text: "Дом готов! Поставь у двери табличку с правильной надписью.", reward: 10, status: "open", island: "home" });
   updateHud(); hint("Новое задание: табличка для дома.", 3000);
 }
 /* jobs: paid frame tasks from the island villagers, one per villager per day */
@@ -1513,7 +1531,7 @@ function addRepairQuests() {
     if (!hs.holes.length) return;
     if (S.quests.some(function (q) { return q.status === "open" && q.kind === "repair"; })) return;
     var bricks = hs.holes.filter(function (hole) { return hole.t === BRICK; }).length, glass = hs.holes.length - bricks;
-    S.quests.push({ id: "q" + (++S.qseq), kind: "repair", v: "fedor", v_name: VNAME.fedor, title: "Починить дом: " + hs.name.replace(/^Пол для /, ""), text: "Ночью гремлины откусили от дома " + hs.holes.length + " " + plural(hs.holes.length, "блок", "блока", "блоков") + (bricks ? ": кирпич × " + bricks : "") + (glass ? (bricks ? ", " : ": ") + "стекло × " + glass : "") + ". Дырки обведены белым. Поставь блоки инструментом «Блок»; кирпич и стекло продаёт Ильяс. Чтобы гремлины не приходили, поставь у дома фонарь и купи масла.", reward: 10, status: "open", island: "home" });
+    S.quests.push({ id: "q" + (++S.qseq), kind: "repair", v: "fedor", v_name: VNAME.fedor, title: "Починить дом: " + hs.name, text: "Ночью гремлины откусили от дома " + hs.holes.length + " " + plural(hs.holes.length, "блок", "блока", "блоков") + (bricks ? ": кирпич × " + bricks : "") + (glass ? (bricks ? ", " : ": ") + "стекло × " + glass : "") + ". Дырки обведены белым. Поставь блоки инструментом «Блок»; кирпич и стекло продаёт Ильяс. Чтобы гремлины не приходили, поставь у дома фонарь и купи масла.", reward: 10, status: "open", island: "home" });
   });
   refreshHoleOutline(); updateHud();
 }
@@ -1531,7 +1549,7 @@ function openQuests() {
     var card = h("div", { class: "card" + (active ? " active" : "") }, [
       h("h3", {}, [villagerFace(q.v), q.title, active ? h("span", { class: "pill go", text: "в работе" }) : null]),
       h("p", { text: q.text }),
-      h("div", { class: "row end" }, [I && I.id !== "home" ? h("span", { class: "pill", text: "остров: " + I.name }) : null, q.reward ? h("span", { class: "pill", text: "+" + q.reward + " монет" }) : null, h("button", { class: "btn primary", text: questButtonLabel(q, active), onclick: function () { takeQuest(q); } })])
+      h("div", { class: "row end" }, [I && I.id !== "home" ? h("span", { class: "pill", text: "остров: " + I.name }) : null, q.reward ? h("span", { class: "pill", text: "+" + q.reward + " " + plural(q.reward, "монета", "монеты", "монет") }) : null, h("button", { class: "btn primary", text: questButtonLabel(q, active), onclick: function () { takeQuest(q); } })])
     ]);
     list.appendChild(card);
   });
@@ -1542,6 +1560,7 @@ function openQuests() {
 }
 function takeQuest(q) {
   closeModal();
+  if (Build.busy) { hint("Подожди, идёт стройка.", 2000); return; }
   if (q.kind === "build" || q.kind === "bridge" || q.kind === "job") {
     if (Build.partial && Build.q !== q) { hint("Сначала закончи начатую стройку.", 3000); return; }
     if (q.kind === "job" && !S.visited[q.island]) { hint("Эта работа на острове «" + islandById(q.island).name + "»: сначала доберись туда.", 3500); return; }
@@ -1556,7 +1575,7 @@ function takeQuest(q) {
 function openVillager(id) {
   var v = S.villagers.filter(function (x) { return x.id === id; })[0];
   if (id === "ilyas") return openShop(openQuest("trade"));
-  if (id === "marat") return openShip();
+  if (id === "marat") return openShip(true);
   var qs = S.quests.filter(function (x) { return x.status === "open" && x.v === id; });
   var board = $("board"); board.innerHTML = "";
   board.appendChild(h("div", { class: "bhead" }, [villagerFace(id), h("h2", { text: vname(id) }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
@@ -1579,18 +1598,27 @@ function openVillager(id) {
 
 /* ===================== SHIP (voyages) ===================== */
 var ROUTES = { "sand>snow": { from: "sand", to: "snow", hours: 4, speed: 9, land: { x: 92, z: 83 } }, "snow>sand": { from: "snow", to: "sand", hours: 4, speed: 9, land: { x: 48, z: 91 } } };
-function openShip() {
+function shipJobBlock(board) {
+  var qs = S.quests.filter(function (x) { return x.status === "open" && x.v === "marat" && x.kind === "job"; });
+  if (qs.length) { qs.forEach(function (q) { board.appendChild(h("p", { class: "bubble", text: q.text })); board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: questButtonLabel(q, Build.q === q), onclick: function () { takeQuest(q); } })])); }); return; }
+  if ((S.jobDay || {}).marat === S.day) return;
+  var jq = makeJobQuest("marat"); if (!jq) return;
+  board.appendChild(h("p", { class: "bubble", text: jq.text }));
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Берусь за работу", onclick: function () { S.jobDay = S.jobDay || {}; S.jobDay.marat = S.day; S.quests.push(jq); updateHud(); save(); takeQuest(jq); } })]));
+}
+function openShip(viaVillager) {
   var here = islandAt(Math.floor(S.player.x), Math.floor(S.player.z)); var hereId = here ? here.id : null;
   var board = $("board"); board.innerHTML = "";
   board.appendChild(h("div", { class: "bhead" }, [villagerFace("marat"), h("h2", { text: "Капитан Марат" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
   var routes = Object.keys(ROUTES).filter(function (k) { return ROUTES[k].from === hereId; });
+  if (hereId === "sand" && S.visited.sand) shipJobBlock(board);
   if (!routes.length) { board.appendChild(h("p", { class: "bubble", text: "Корабль стоит у причала на «Песках». Приходи туда, и поплывём к «Снегам»." })); showModal(); return; }
   var key = routes[0], rt = ROUTES[key], dest = islandById(rt.to);
   board.appendChild(h("p", { class: "bubble", text: "Плывём на «" + dest.name + "»? Сначала заполним судовой журнал: без него в море нельзя." }));
-  var f = { a: rt.hours, b: rt.speed }; var variant = (S.voyages || 0) % 2;
-  var q = variant === 0 ? { text: "За час корабль проходит " + rt.speed + " миль. Плыть " + rt.hours + " " + plural(rt.hours, "час", "часа", "часов") + ". Сколько миль до острова «" + dest.name + "»?", ans: rt.hours * rt.speed, show: Array.apply(null, { length: rt.hours }).map(function (_, i) { return rt.speed * (i + 1); }), unit: "миль" }
-    : { text: "В пути " + rt.hours + " " + plural(rt.hours, "час", "часа", "часов") + ". Каждому из " + (rt.hours + 2) + " матросов по " + (rt.speed - 3) + " сухаря на всё плавание. Сколько сухарей взять?", ans: (rt.hours + 2) * (rt.speed - 3), show: Array.apply(null, { length: rt.hours + 2 }).map(function (_, i) { return (rt.speed - 3) * (i + 1); }), unit: "сухарей", fid: factId(rt.hours + 2, rt.speed - 3) };
-  q.fid = q.fid || factId(rt.hours, rt.speed);
+  var f = pickFact(); var hours = Math.min(f.a, f.b), speed = Math.max(f.a, f.b); var variant = (S.voyages || 0) % 2;
+  var q = variant === 0 ? { text: "Сегодня ветер такой, что за час корабль проходит " + speed + " " + plural(speed, "милю", "мили", "миль") + ". Плыть " + hours + " " + plural(hours, "час", "часа", "часов") + ". Сколько миль запишем в журнал?", ans: hours * speed, show: Array.apply(null, { length: hours }).map(function (_, i) { return speed * (i + 1); }), unit: "миль" }
+    : { text: "В команде " + hours + " " + plural(hours, "матрос", "матроса", "матросов") + ", каждому по " + speed + " " + plural(speed, "сухарю", "сухаря", "сухарей") + " на плавание. Сколько сухарей взять?", ans: hours * speed, show: Array.apply(null, { length: hours }).map(function (_, i) { return speed * (i + 1); }), unit: "сухарей" };
+  q.fid = f.id;
   var ro = h("div", { class: "readout", text: "0" }), val = "", msg = h("p", { class: "muted" }), tries = 0;
   var pad = h("div", { class: "keypad" }); ["7", "8", "9", "4", "5", "6", "1", "2", "3", "⌫", "0", "C"].forEach(function (k) { pad.appendChild(h("button", { class: "btn", text: k, onclick: function () { if (k === "⌫") val = val.slice(0, -1); else if (k === "C") val = ""; else if (val.length < 3) val = (val + k).replace(/^0+(?=\d)/, ""); ro.textContent = val || "0"; } })); });
   board.appendChild(h("div", { class: "sign", text: "Судовой журнал" }));
@@ -1630,7 +1658,7 @@ function openBag() {
   if (!grid.children.length) grid.appendChild(h("p", { class: "muted", text: "Пусто. Копай киркой или покупай у торговца." }));
   board.appendChild(grid);
   var logs = S.blocks[LOG] || 0;
-  if (logs > 0) board.appendChild(h("div", { class: "row" }, [h("span", { text: "Брёвна: " + logs + ". Одно бревно — это 4 доски." }), h("button", { class: "btn", text: "Распилить все брёвна", onclick: function () { var n = S.blocks[LOG] || 0; S.blocks[LOG] = 0; S.blocks[PLANK] = (S.blocks[PLANK] || 0) + n * 4; SFX.ok(); hint(n + " " + plural(n, "бревно", "бревна", "брёвен") + " по 4 доски = " + (n * 4) + " досок.", 4000); save(); openBag(); } })]));
+  if (logs > 0) board.appendChild(h("div", { class: "row" }, [h("span", { text: "Брёвна: " + logs + ". Одно бревно — это 4 доски." }), h("button", { class: "btn", text: "Распилить все брёвна", onclick: function () { var n = S.blocks[LOG] || 0; S.blocks[LOG] = 0; S.blocks[PLANK] = (S.blocks[PLANK] || 0) + n * 4; SFX.ok(); hint(n + " " + plural(n, "бревно", "бревна", "брёвен") + " по 4 доски = " + (n * 4) + " " + plural(n * 4, "доска", "доски", "досок") + ".", 4000); save(); openBag(); } })]));
   if (S.parts.length || S.gaps.length) {
     board.appendChild(h("h3", { text: "Части слов" }));
     board.appendChild(h("div", { class: "tiles" }, S.parts.map(function (p) { return h("span", { class: "tile part", text: p }); }).concat(S.gaps.map(function (g) { return h("span", { class: "tile gap", text: gapForm(g) }); }))));
@@ -1670,7 +1698,7 @@ function craftMorphOne(i) {
   var chosen = [];
   body.appendChild(h("div", { class: "bhead" }, [propCanvas(m.kind), h("h2", { text: m.item }), h("button", { class: "btn close", text: "Назад", onclick: function () { openCraft("morph"); } })]));
   body.appendChild(h("p", { class: "bubble", text: m.hint + ". Из каких частей это слово?" }));
-  var slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted", text: "" });
+  var slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted", text: "" }), tries = 0;
   var avail = S.parts.slice();
   function draw() {
     slots.innerHTML = ""; for (var k = 0; k < m.parts.length; k++) slots.appendChild(h("div", { class: "slot" + (chosen[k] ? " filled" : ""), text: chosen[k] ? chosen[k].p : "" }));
@@ -1682,8 +1710,9 @@ function craftMorphOne(i) {
   body.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Убрать часть", onclick: function () { chosen.pop(); draw(); } }), h("button", { class: "btn primary big", text: "Склеить", onclick: function () {
     if (chosen.length < m.parts.length) { msg.textContent = "Не хватает частей: " + (m.parts.length - chosen.length) + "."; return; }
     var ok = chosen.every(function (c, k) { return c.p === m.parts[k]; });
-    recordResult("morph", "mo:" + i, ok);
+    tries++;
     if (!ok) { SFX.bad(); msg.textContent = "Части не склеились: в этом порядке слово не получается. Попробуй иначе."; chosen = []; draw(); save(); return; }
+    recordResult("morph", "mo:" + i, tries === 1);
     chosen.forEach(function (c) { var at = S.parts.indexOf(c.p); if (at >= 0) S.parts.splice(at, 1); });
     SFX.ok(); craftReward(m.item, m.kind, "mo:" + i, "morph", i); closeModal();
   } })]));
@@ -1769,7 +1798,6 @@ function dictOne(i) {
     if (!holes) { recordResult("dict", "d:" + i, attempt === 1); SFX.ok(); msg.textContent = "Слово собрано без дырок!"; tiles.innerHTML = ""; actions.innerHTML = ""; setTimeout(function () { craftReward(word, "museum", "d:" + i, "dict", i); closeModal(); }, 1200); return; }
     SFX.bad(); msg.textContent = "Предмет собрался с " + holes + " " + plural(holes, "дыркой", "дырками", "дырками") + ": они подсвечены. Посмотри слово ещё раз и собери заново.";
     tiles.innerHTML = ""; actions.innerHTML = ""; actions.appendChild(h("button", { class: "btn primary", text: "Посмотреть ещё раз", onclick: showWord }));
-    if (attempt >= 3) recordResult("dict", "d:" + i, false);
   }
   showWord();
 }
@@ -1793,7 +1821,7 @@ function openSign(q) {
       } })); });
     } else {
       var soft = /ть\?$/.test(chosenQ);
-      qline.innerHTML = ""; qline.appendChild(document.createTextNode("Шаг 2. Вопрос «" + chosenQ.replace(/ть\?$/, ""))); qline.appendChild(h("em", { text: soft ? "ть?" : "" })); qline.appendChild(document.createTextNode((soft ? "»" : "ет?»".replace("ет?", chosenQ.slice(-3))) + " Какое окончание?"));
+      qline.innerHTML = ""; qline.appendChild(document.createTextNode("Шаг 2. Вопрос «" + (soft ? chosenQ.replace(/ть\?$/, "") : chosenQ))); if (soft) qline.appendChild(h("em", { text: "ть?" })); qline.appendChild(document.createTextNode("» Какое окончание?"));
       tiles.innerHTML = "";
       shuffle(["-тся", "-ться"]).forEach(function (e) { tiles.appendChild(h("button", { class: "tile", text: e, onclick: function () {
         var right = (e === "-ться") === soft;
@@ -1809,8 +1837,8 @@ function openSign(q) {
 }
 
 /* ===================== SHOP (mechanic 3) ===================== */
-var SELL_PRICES = { 3: 2, 2: 1, 6: 4, 4: 1, 16: 1, 7: 1 };
-function goodsList() { return content().goods; }
+var SELL_PRICES = { 3: 2, 2: 1, 6: 4, 4: 1 };
+function goodsList() { return CONTENT.goods; }
 function payMode() { var n = S.trades; if (n < 3) return "exact"; return n % 2 ? "change" : "exact"; }
 function openShop(q, tab) {
   tab = tab || (q ? "quest" : "buy");
@@ -1819,7 +1847,7 @@ function openShop(q, tab) {
   var tabs = h("div", { class: "tabs" });
   [["quest", "Задание"], ["buy", "Купить"], ["sell", "Продать"]].forEach(function (t) { if (t[0] === "quest" && !q) return; tabs.appendChild(h("button", { class: "btn" + (t[0] === tab ? " on" : ""), text: t[1], onclick: function () { openShop(q, t[0]); } })); });
   board.appendChild(tabs);
-  board.appendChild(h("p", { class: "small muted", text: "У тебя " + S.coins + " монет." }));
+  board.appendChild(h("p", { class: "small muted", text: "У тебя " + S.coins + " " + plural(S.coins, "монета", "монеты", "монет") + "." }));
   if (tab === "quest") shopQuest(board, q);
   if (tab === "buy") shopBuy(board);
   if (tab === "sell") shopSell(board);
@@ -1855,12 +1883,12 @@ function buyFlow(g) {
     var total = g.base * qty; pay.innerHTML = "";
     if (S.coins < total) { pay.appendChild(h("p", { class: "bubble", text: "Монет не хватает: нужно " + total + ", у тебя " + S.coins + "." })); return; }
     var mode = payMode(); var cid = "buy:" + g.id + ":" + qty;
-    if (mode === "change" && total > 10) { pay.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Дай крупную купюру, а сдачу посчитаем вместе." })); payWithBill(pay, total, function (ok) { recordResult("money", cid, ok); finishTrade(null, total, g, qty); }); }
+    if (mode === "change" && total > 10 && total < 100) { pay.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Дай крупную купюру, а сдачу посчитаем вместе." })); payWithBill(pay, total, function (ok) { recordResult("money", cid, ok); finishTrade(null, total, g, qty); }); }
     else { pay.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Заплати без сдачи." })); payExact(pay, total, function (ok) { recordResult("money", cid, ok); finishTrade(null, total, g, qty); }); }
   } })]));
 }
 function shopSell(board) {
-  board.appendChild(h("p", { class: "bubble", text: "Покупаю камень, землю, песок, брёвна и листья. Скажи, сколько отдаёшь, и посчитай, сколько я должен." }));
+  board.appendChild(h("p", { class: "bubble", text: "Покупаю камень, землю, песок и брёвна. Скажи, сколько отдаёшь, и посчитай, сколько я должен." }));
   var grid = h("div", { class: "shop" });
   Object.keys(SELL_PRICES).forEach(function (k) {
     var have = S.blocks[k] || 0, price = SELL_PRICES[k];
@@ -1878,7 +1906,7 @@ function sellFlow(bt) {
         openNumber({ title: "Сколько я должен?", who: "ilyas", text: (msgText ? msgText + " " : "") + n + " " + plural(n, "штука", "штуки", "штук") + " по " + price + ". Сколько монет я тебе должен?", button: "Столько", onCancel: function () { openShop(openQuest("trade"), "sell"); },
           onDone: function (ans) {
             tries++;
-            if (ans === total) { recordResult("money", "sell:" + bt + ":" + n, tries === 1); S.blocks[bt] = have - n; S.coins += total; S.today.coinsIn += total; S.trades++; SFX.coin(); save(); updateHud(); hint("Продано: +" + total + " монет.", 3000); openShop(openQuest("trade"), "sell"); return; }
+            if (ans === total) { recordResult("money", "sell:" + bt + ":" + n, tries === 1); S.blocks[bt] = have - n; S.coins += total; S.today.coinsIn += total; S.trades++; SFX.coin(); save(); updateHud(); hint("Продано: +" + total + " " + plural(total, "монета", "монеты", "монет") + ".", 3000); openShop(openQuest("trade"), "sell"); return; }
             SFX.bad(); var seq = []; for (var i = 1; i <= n; i++) seq.push(price * i); ask("Считаю по штуке: " + seq.join(", ") + ".");
           } });
       }
@@ -1916,6 +1944,7 @@ function payExact(board, total, done) {
 }
 function payWithBill(board, total, done) {
   var bill = total > 50 ? 100 : 50, tries = 0, msg = h("p", { class: "muted" });
+  if (bill <= total) { payExact(board, total, done); return; }
   if (S.coins < bill) { board.appendChild(h("p", { class: "bubble", text: "Крупной купюры у тебя нет, заплати без сдачи." })); payExact(board, total, done); return; }
   board.appendChild(h("div", { class: "coins" }, [h("button", { class: "coin bill", text: bill, onclick: function () { SFX.tap(); step2(); } })]));
   board.appendChild(msg);
@@ -1992,8 +2021,8 @@ function newDay() {
   S.day++; S.t = 0; S.extra = false; S.today = { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() };
   Mobs.clear();
   if (World.countOre() < 30) World.seedOre(null, 30);
-  S.quests.forEach(function (q) { if (q.status === "open" && (q.kind === "build" || q.kind === "job") && Build.q !== q && Math.random() < 0.5) q.status = "skip"; });
-  Build.q = null; Frame.bp = null; Frame.reset(); setOutline([]);
+  S.quests.forEach(function (q) { if (q.status === "open" && (q.kind === "build" || q.kind === "job") && Build.q !== q && q.bp && q.bp.chestLeft == null && Math.random() < 0.5) q.status = "skip"; });
+  if (!Build.partial) { Build.q = null; Frame.bp = null; Frame.reset(); setOutline([]); }
   addRepairQuests(); ensureQuests(); rebuildTerrain(); refreshSprites(); updateHud(); save(true);
   hint("Новый день! Загляни в «Задания» или сходи к жителям на островах.", 4000);
 }
@@ -2011,14 +2040,14 @@ function openParent() {
   board.appendChild(hard.length ? h("p", { text: hard.map(function (o) { return cardLabel(o.id) + " (" + o.c.ok + " из " + o.c.n + ")"; }).join("; ") }) : h("p", { class: "muted", text: "Пока ничего не выделяется: нужно хотя бы две попытки по карточке." }));
   var due = Object.keys(S.cards).filter(function (id) { return S.cards[id].due && S.cards[id].due <= todayKey(); }).length;
   var visited = ISLANDS.filter(function (I) { return S.visited[I.id]; }).map(function (I) { return I.name; }).join(", ");
-  board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Открытые острова: " + visited + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " примеров." }));
+  board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Открытые острова: " + visited + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " " + plural(Object.keys(S.cutHidden).length, "примера", "примеров", "примеров") + "." }));
   board.appendChild(h("h3", { text: "Сохранение" }));
   board.appendChild(h("p", { class: "small muted", text: "Прогресс хранится в этом браузере. Чтобы перенести на другое устройство: «Скопировать» здесь, «Вставить» там." }));
   var saveTa = h("textarea", { id: "savejson", style: "min-height:80px" }); saveTa.value = "";
   var saveMsg = h("p", { class: "muted" });
   board.appendChild(h("div", { class: "row" }, [
     h("button", { class: "btn", text: "Скопировать сохранение", onclick: function () { save(true); var txt = JSON.stringify(S); saveTa.value = txt; try { navigator.clipboard.writeText(txt).then(function () { saveMsg.textContent = "Скопировано в буфер обмена (" + Math.round(txt.length / 1024) + " КБ)."; }, function () { saveTa.select(); saveMsg.textContent = "Выделено в поле ниже: скопируй вручную."; }); } catch (e) { saveTa.select(); saveMsg.textContent = "Выделено в поле ниже: скопируй вручную."; } } }),
-    h("button", { class: "btn", text: "Вставить сохранение из поля", onclick: function () { try { var o = JSON.parse(saveTa.value); if (!o || (o.v !== 1 && o.v !== 2)) throw new Error("не похоже на сохранение"); try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} if (dbRef) dbRef.set({ json: JSON.stringify(o), savedAt: Date.now() }).catch(function () {}); saveMsg.textContent = "Загружено, перезапускаю…"; setTimeout(function () { location.reload(); }, 600); } catch (e) { saveMsg.textContent = "Не удалось прочитать: " + e.message; } } })
+    h("button", { class: "btn", text: "Вставить сохранение из поля", onclick: function () { try { var o = JSON.parse(saveTa.value); if (!o || (o.v !== 1 && o.v !== 2)) throw new Error("не похоже на сохранение"); noSave = true; o.savedAt = Date.now(); try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} if (dbRef) dbRef.set({ json: JSON.stringify(o), savedAt: o.savedAt }).catch(function () {}); saveMsg.textContent = "Загружено, перезапускаю…"; setTimeout(function () { location.reload(); }, 600); } catch (e) { saveMsg.textContent = "Не удалось прочитать: " + e.message; } } })
   ]));
   board.appendChild(saveTa); board.appendChild(saveMsg);
   board.appendChild(h("h3", { text: "Свой список слов" }));
@@ -2027,15 +2056,16 @@ function openParent() {
   board.appendChild(ta);
   var msg = h("p", { class: "muted" });
   board.appendChild(h("div", { class: "row end" }, [
-    h("button", { class: "btn", text: "Встроенный список", onclick: function () { S.custom = null; save(true); msg.textContent = "Снова используется встроенный список."; } }),
-    h("button", { class: "btn primary", text: "Применить список", onclick: function () { try { var o = JSON.parse(ta.value); var merged = {}; ["dict", "check", "morph", "tsya", "goods"].forEach(function (k) { merged[k] = Array.isArray(o[k]) && o[k].length ? o[k] : CONTENT[k]; }); merged.check.forEach(function (c) { if (typeof c[1] !== "number" || !c[2] || !Array.isArray(c[3])) throw new Error("check"); }); S.custom = merged; save(true); msg.textContent = "Список применён: " + merged.dict.length + " словарных, " + merged.check.length + " с проверкой, " + merged.morph.length + " рецептов, " + merged.tsya.length + " табличек."; } catch (e) { msg.textContent = "Не удалось прочитать JSON: " + e.message; } } })
+    h("button", { class: "btn", text: "Встроенный список", onclick: function () { S.custom = null; resetWordQuests(); save(true); msg.textContent = "Снова используется встроенный список."; } }),
+    h("button", { class: "btn primary", text: "Применить список", onclick: function () { try { var o = JSON.parse(ta.value); var merged = {}; ["dict", "check", "morph", "tsya", "goods"].forEach(function (k) { merged[k] = Array.isArray(o[k]) && o[k].length ? o[k] : CONTENT[k]; }); merged.check.forEach(function (c) { if (typeof c[1] !== "number" || !c[2] || !Array.isArray(c[3])) throw new Error("check"); }); S.custom = merged; resetWordQuests(); save(true); msg.textContent = "Список применён: " + merged.dict.length + " словарных, " + merged.check.length + " с проверкой, " + merged.morph.length + " рецептов, " + merged.tsya.length + " табличек."; } catch (e) { msg.textContent = "Не удалось прочитать JSON: " + e.message; } } })
   ]));
   board.appendChild(msg);
   var confirmRow = h("div", { class: "row end" });
-  confirmRow.appendChild(h("button", { class: "btn", text: "Сбросить весь прогресс", onclick: function () { confirmRow.innerHTML = ""; confirmRow.appendChild(h("span", { class: "muted", text: "Точно? Острова и карточки будут удалены." })); confirmRow.appendChild(h("button", { class: "btn", text: "Нет", onclick: function () { openParent(); } })); confirmRow.appendChild(h("button", { class: "btn", text: "Да, сбросить", style: "background:var(--bad);color:#fff", onclick: function () { try { localStorage.removeItem(LS); } catch (e) {} S = freshState(); if (dbRef) dbRef.set({ json: JSON.stringify(S), savedAt: Date.now() }).catch(function () {}); location.reload(); } })); } }));
+  confirmRow.appendChild(h("button", { class: "btn", text: "Сбросить весь прогресс", onclick: function () { confirmRow.innerHTML = ""; confirmRow.appendChild(h("span", { class: "muted", text: "Точно? Острова и карточки будут удалены." })); confirmRow.appendChild(h("button", { class: "btn", text: "Нет", onclick: function () { openParent(); } })); confirmRow.appendChild(h("button", { class: "btn", text: "Да, сбросить", style: "background:var(--bad);color:#fff", onclick: function () { noSave = true; try { localStorage.removeItem(LS); } catch (e) {} S = freshState(); if (dbRef) dbRef.set({ json: JSON.stringify(S), savedAt: Date.now() }).catch(function () {}); location.reload(); } })); } }));
   board.appendChild(confirmRow);
   showModal();
 }
+function resetWordQuests() { S.quests.forEach(function (q) { if (q.status === "open" && (q.kind === "craft" || q.kind === "sign")) q.status = "skip"; }); S.gaps = []; S.parts = []; ensureQuests(); }
 function cardLabel(id) {
   var C = content(); var m = id.match(/^m:(\d+)x(\d+)$/); if (m) return m[1] + " × " + m[2];
   if (id.slice(0, 2) === "d:") return (C.dict[+id.slice(2)] || [id])[0];
@@ -2058,7 +2088,8 @@ function migrate(o) {
   /* version 1 had one 32×32 island; keep the learning progress, start a fresh archipelago */
   if (o.v === 2) return o;
   var f = freshState();
-  ["day", "coins", "cards", "stats", "recent", "log", "custom", "sound", "cutHidden", "crafts", "trades", "parts", "gaps", "items"].forEach(function (k) { if (o[k] !== undefined) f[k] = o[k]; });
+  ["day", "coins", "cards", "stats", "recent", "log", "custom", "sound", "cutHidden", "crafts", "trades", "items"].forEach(function (k) { if (o[k] !== undefined) f[k] = o[k]; });
+  if (f.custom) delete f.custom.goods;
   f.blocks[8] = Math.max(40, (o.blocks && o.blocks[8]) || 0); f.migrated = true;
   return f;
 }
@@ -2070,6 +2101,7 @@ function applyState(saved) {
   var ok = S.world ? World.decode(S.world) : false;
   if (!ok) { World.generate(20261009); S.world = World.encode(); } else World.computeBridges();
   if (!S.quests.length) ensureQuests();
+  Build.restore(S.build);
   $("b-sound").setAttribute("aria-pressed", S.sound);
   R.target.x = S.player.x; R.target.z = S.player.z;
   rebuildTerrain(true); refreshSprites(); refreshHoleOutline(); updateHud(); setSun(S.t);
@@ -2096,7 +2128,7 @@ function boot() {
         if (!db) return;
         var ref = db.doc("blokograd/save");
         ref.get().then(function (snap) {
-          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && (o.v === 1 || o.v === 2)) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
+          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && (o.v === 1 || o.v === 2) && !Game.running) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
           dbRef = ref; save();
         }, function () { dbRef = ref; });
       }, function () {});
