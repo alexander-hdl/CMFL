@@ -45,7 +45,7 @@ export function register({ test, assert, eq }) {
   test("Ревью: после конца волны побеждённый враг и звёздочки не застывают", async ({ page }) => {
     await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(1, 0); OT.setWave([24]); OT.placeTower("A0", 4); OT.placeTower("B0", 6); OT.link("A0", "B0"); OT.manual(true); OT.startWave(); });
     await run(page, () => OT.runWave());
-    eq(await run(page, () => OT.state().phase), "levelEnd");
+    eq(await run(page, () => OT.state().phase), "waveEnd");   // этап 2: на уровне три волны, после первой — waveEnd
     await run(page, () => OT.manual(false));             // дальше идёт настоящий цикл rAF, как у игрока
     await page.waitForTimeout(1200);
     const st = await run(page, () => ({ notes: OT.drawn().notes.length, fx: OT.state().fx, alive: OT.state().enemies.filter((e) => e.alive).length, enemyDrawn: OT.state().enemies.map((e) => e.outcome) }));
@@ -68,9 +68,13 @@ export function register({ test, assert, eq }) {
       OT.startWave();
       const st = OT.runWave();
       const s = JSON.stringify(st);
-      return { same: JSON.stringify(JSON.parse(s)) === s, hearts: st.hearts, phase: st.phase, castle: OT.events().filter((e) => e.type === "enemy_reached_castle").map((e) => e.hearts) };
+      const out = { same: JSON.stringify(JSON.parse(s)) === s, hearts: st.hearts, phase1: st.phase, castle: OT.events().filter((e) => e.type === "enemy_reached_castle").map((e) => e.hearts) };
+      for (let w = 0; w < 2; w++) { OT.step(3); OT.startWave(); OT.runWave(); }   // при 0 сердец волны идут дальше, до level_end
+      out.phase = OT.state().phase;
+      return out;
     });
     assert(r.same, "state() не сериализуется без потерь");
+    eq(r.phase1, "waveEnd");
     eq(r.phase, "levelEnd");
     eq(r.hearts, 0, "12 врагов дошли до крепости: сердца не ниже 0");
     eq(r.castle, [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0], "сердца по событиям");
@@ -180,7 +184,7 @@ export function register({ test, assert, eq }) {
       await shot(`review-${w}x${h}-boss`);
       await run(page, () => OT.runWave());
       await shot(`review-${w}x${h}-end`);
-      eq(await run(page, () => OT.state().phase), "levelEnd");
+      eq(await run(page, () => OT.state().phase), "waveEnd");
     });
   }
 }
