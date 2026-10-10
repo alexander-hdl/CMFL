@@ -31,6 +31,8 @@ PAGES = [
     ("trenazhery.html", "trenazhery.html", "Тренировочная арена", "Арена", "#0e1d27", "arena"),
     ("plan-9-let.html", "plan.html", "План: планшет и диктанты", "План", "#f6f7f3", "plan"),
     ("komiksy.html", "komiksy.html", "Студия комиксов", "Комиксы", "#eef0f4", "comics"),
+    ("ferma.html", "ferma.html", "Ферма у реки", "Ферма", "#2f4a2a", "ferma"),
+    ("oborona.html", "oborona.html", "Оборона таблицы", "Оборона", "#0e1d27", "oborona"),
 ]
 
 # Texts shown where a feature needs claude.ai; each must exist in the source.
@@ -130,9 +132,11 @@ footer a { color: var(--accent); }
 <body>
 <main>
   <h1>Учебный уголок</h1>
-  <p class="lead">Тренажёры для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
+  <p class="lead">Тренажёры и две учебные игры для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
   <div class="cards">
     <a class="card" href="trenazhery.html"><img src="icons/arena-192.png" alt=""><div><b>Тренировочная арена</b><span>Для сына: «Тренировка дня», счёт, чтение, слова, игры вместе</span></div></a>
+    <a class="card" href="ferma.html"><img src="icons/ferma-192.png" alt=""><div><b>Ферма у реки</b><span>Для сына: часы, деньги и сдача, посев и урожай, записки соседей</span></div></a>
+    <a class="card" href="oborona.html"><img src="icons/oborona-192.png" alt=""><div><b>Оборона таблицы</b><span>Для сына: таблица умножения как оружие против волн врагов</span></div></a>
     <a class="card" href="plan.html"><img src="icons/plan-192.png" alt=""><div><b>План для родителей</b><span>6 недель, распорядок, диктанты, планшет, дневник открытий</span></div></a>
     <a class="card" href="komiksy.html"><img src="icons/comics-192.png" alt=""><div><b>Студия комиксов</b><span>Для пера XP-PEN: рисовать и писать реплики</span></div></a>
   </div>
@@ -186,7 +190,7 @@ self.addEventListener("fetch", (e) => {
 
 README = """# Автономная версия (GitHub Pages)
 
-Эта папка — готовый сайт: тренажёры, план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
+Эта папка — готовый сайт: тренажёры, две учебные игры («Ферма у реки» и «Оборона таблицы»), план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
 
 ## Как включить сайт
 

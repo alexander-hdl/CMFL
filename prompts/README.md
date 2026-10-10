@@ -2,11 +2,11 @@
 
 Готовые задания, чтобы Fable сделал браузерную игру, похожую на любимую, но с учебными механиками вместо обычных. Каждый файл самодостаточен: скопируйте блок «Задание» и отправьте Fable одним сообщением.
 
-| Файл | В духе | Что тренирует |
-|---|---|---|
-| [`fable-blokograd.md`](fable-blokograd.md) | Minecraft | Умножение и площадь (стройка рамкой), состав слова, безударные и словарные слова (верстак), деньги (торговля) |
-| [`fable-oborona-tablicy.md`](fable-oborona-tablicy.md) | Clash Royale, Kingdom Rush | Таблица умножения и деления, пары множителей, разрезание трудных примеров, двузначное на однозначное |
-| [`fable-ferma.md`](fable-ferma.md) | Stardew Valley, Harvest Moon | Часы и длительность, деньги и сдача, деление с остатком, масса, задачи в 2 действия, внимательное чтение |
+| Файл | В духе | Что тренирует | Готовая игра |
+|---|---|---|---|
+| [`fable-blokograd.md`](fable-blokograd.md) | Minecraft | Умножение и площадь (стройка рамкой), состав слова, безударные и словарные слова (верстак), деньги (торговля) | ещё не сделан |
+| [`fable-oborona-tablicy.md`](fable-oborona-tablicy.md) | Clash Royale, Kingdom Rush | Таблица умножения и деления, пары множителей, разрезание трудных примеров, двузначное на однозначное | [`../plan/oborona.html`](../plan/oborona.html), на сайте: [https://alexander-hdl.github.io/CMFL/oborona.html](https://alexander-hdl.github.io/CMFL/oborona.html) |
+| [`fable-ferma.md`](fable-ferma.md) | Stardew Valley, Harvest Moon | Часы и длительность, деньги и сдача, деление с остатком, масса, задачи в 2 действия, внимательное чтение | [`../plan/ferma.html`](../plan/ferma.html), на сайте: [https://alexander-hdl.github.io/CMFL/ferma.html](https://alexander-hdl.github.io/CMFL/ferma.html) |
 
 ## Общие принципы для всех игр
 
