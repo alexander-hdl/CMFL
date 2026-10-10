@@ -15,8 +15,10 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--frame); overflow: hidden; }
-body { font-family: var(--f-body); font-weight: 700; color: var(--ink); -webkit-text-size-adjust: 100%; user-select: none; -webkit-user-select: none; }
-button { font: inherit; color: inherit; cursor: pointer; }
+/* Планшет: двойное касание не увеличивает, долгое нажатие не открывает меню, выделения текста нет; на карте жесты браузера выключены. */
+body { font-family: var(--f-body); font-weight: 700; color: var(--ink); -webkit-text-size-adjust: 100%; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+#app, #stage, #app * { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 :focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
 h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 400; line-height: 1.15; }
 h1 { font-size: 44px; } h2 { font-size: 28px; } h3 { font-size: 20px; margin-top: 10px; }
@@ -27,20 +29,21 @@ p { margin: 6px 0; }
 #cv { position: absolute; left: 0; top: 0; width: 1024px; height: 768px; display: block; image-rendering: pixelated; touch-action: none; }
 
 /* кнопки */
-.btn { min-width: 60px; min-height: 60px; padding: 8px 20px; border: 4px solid var(--line); border-radius: 18px; background: var(--paper); font-weight: 800; font-size: 1em; line-height: 1.1; text-align: center; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12); }
+.btn { min-width: 64px; min-height: 64px; padding: 8px 20px; border: 4px solid var(--line); border-radius: 18px; background: var(--paper); font-weight: 800; font-size: 1em; line-height: 1.1; text-align: center; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12); }
 .btn.gold { background: var(--gold); border-color: var(--gold-dark); box-shadow: 0 4px 0 var(--gold-dark); }
 .btn.sel { border-color: var(--good); background: #e3f4e6; }
 .btn:disabled { background: #e8e1d2; color: #7d7364; box-shadow: none; cursor: default; border-color: #d3cab8; }
 .btn small { font-size: 16px; font-weight: 700; line-height: 1.1; }
-.btn.sq { padding: 0; width: 60px; font-size: 32px; }
+.btn.sq { padding: 0; width: 64px; font-size: 32px; }
 
 /* верхняя полоса */
-#hud { position: absolute; left: 0; top: 0; width: 1024px; height: 96px; display: flex; align-items: center; gap: 12px; padding: 0 12px; background: var(--hud); color: var(--hud-ink); z-index: 3; }
-#clockBtn { width: 88px; height: 88px; padding: 0; border: 0; border-radius: 50%; background: none; flex: none; }
+#hud { position: absolute; left: 0; top: 0; width: 1024px; height: 96px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 130px; background: var(--hud); color: var(--hud-ink); z-index: 3; }
+#clockBtn { position: absolute; left: 8px; top: 0; width: 112px; height: 112px; padding: 0; border: 0; border-radius: 50%; background: none; z-index: 4; }
 #clock { display: block; }
-.chip { height: 60px; padding: 0 16px; display: flex; align-items: center; border-radius: 14px; background: rgba(255, 248, 232, 0.14); font-weight: 800; white-space: nowrap; }
-#moneyChip { font-family: var(--f-display); font-weight: 400; font-size: 28px; color: var(--gold); }
-.hudbtn { min-width: 60px; height: 60px; padding: 0 18px; border-radius: 14px; border: 3px solid rgba(255, 248, 232, 0.5); background: transparent; color: var(--hud-ink); font-weight: 800; position: relative; overflow: hidden; }
+.chip { height: 64px; padding: 0 12px; display: flex; align-items: center; border-radius: 14px; background: rgba(255, 248, 232, 0.14); font-weight: 800; white-space: nowrap; font-size: 20px; }
+#moneyChip { font-family: var(--f-display); font-weight: 400; font-size: 26px; color: var(--gold); }
+.hudbtn { min-width: 64px; height: 64px; padding: 0 14px; border-radius: 14px; border: 3px solid rgba(255, 248, 232, 0.5); background: transparent; color: var(--hud-ink); font-weight: 800; position: relative; overflow: hidden; }
+#tasksBtn { border-color: var(--gold); color: var(--gold); }
 #adultBtn { margin-left: auto; opacity: 0.7; }
 .hbar { position: absolute; left: 0; bottom: 0; height: 8px; width: 0; background: var(--gold); }
 #peekBubble { position: absolute; left: 8px; top: 98px; padding: 8px 16px; border: 4px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); font-weight: 800; z-index: 4; }
@@ -54,6 +57,11 @@ p { margin: 6px 0; }
 #ctx { position: absolute; width: 300px; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
 #ctx .title { background: var(--paper); border: 4px solid var(--line); border-radius: 14px; padding: 8px 12px; font-weight: 800; font-size: 19px; line-height: 1.25; }
 #ctx .btn { width: 300px; min-height: 64px; }
+#rotate { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); max-width: 90vw; padding: 14px 22px; border: 4px solid var(--gold-dark); border-radius: 18px; background: var(--paper); color: var(--ink); font-size: 22px; text-align: center; z-index: 20; pointer-events: none; display: flex; align-items: center; gap: 16px; }
+#rotate[hidden], #smallHint[hidden] { display: none; }
+#rotate .rot { flex: none; width: 34px; height: 54px; border: 5px solid var(--ink); border-radius: 8px; transform: rotate(90deg); background: var(--gold); }
+#smallHint { position: absolute; left: 250px; bottom: 6px; width: 520px; height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 8px 0 18px; border: 4px solid var(--gold-dark); border-radius: 16px; background: var(--paper); z-index: 7; font-size: 20px; }
+#smallHint .btn { min-height: 64px; padding: 4px 16px; }
 
 /* диалоги и экраны */
 #dlg { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center; background: rgba(26, 42, 90, 0.45); }
@@ -62,6 +70,7 @@ p { margin: 6px 0; }
 .card.narrow { width: 640px; }
 .reply { margin: 10px 0 0; padding: 8px 14px; border-radius: 10px; background: var(--note); border-left: 8px solid var(--gold); font-weight: 800; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; align-items: stretch; }
+.card { touch-action: pan-y; }
 .planrow { display: flex; gap: 20px; align-items: center; }
 .sign { padding: 12px 18px; margin: 10px 0; border-radius: 10px; background: var(--wood); border: 4px solid #6f4424; color: #fff8e8; font-family: var(--f-display); font-size: 24px; line-height: 1.3; text-align: center; }
 .shelf { display: flex; gap: 12px; margin-top: 10px; }
@@ -71,13 +80,27 @@ p { margin: 6px 0; }
 .money { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; min-height: 68px; padding: 6px; border-radius: 12px; background: rgba(0, 0, 0, 0.05); }
 .coin, .note { border: 4px solid rgba(0, 0, 0, 0.28); font-family: var(--f-display); font-weight: 400; font-size: 20px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2); }
 .coin { width: 64px; height: 64px; border-radius: 50%; }
-.note { width: 112px; height: 60px; border-radius: 8px; }
+.note { width: 112px; height: 64px; border-radius: 8px; }
 .coin.c1 { background: #d9dde3; } .coin.c2 { background: #f2c94c; } .coin.c3 { background: #d08a4a; }
 .note.n1 { background: #7fb3e0; } .note.n2 { background: #c9a27a; } .note.n3 { background: #b38ad6; }
 .coin:disabled, .note:disabled { opacity: 0.35; box-shadow: none; cursor: default; }
+.slot { position: relative; display: inline-flex; }
+.cnt { position: absolute; right: -6px; top: -8px; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 14px; background: var(--ink); color: #fff8e8; font-style: normal; font-size: 16px; line-height: 28px; text-align: center; font-weight: 800; }
+.tasks { list-style: none; margin: 8px 0; padding: 0; }
+.task { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 6px 12px; margin: 6px 0; border: 4px solid var(--line); border-radius: 14px; background: #fffdf6; font-size: 24px; font-weight: 800; }
+.task.next { border-color: var(--gold-dark); background: var(--note); }
+.task.done { color: #6a5d49; background: #eef6ea; border-color: #b9d9b4; }
+.tk { flex: none; width: 34px; height: 34px; border: 4px solid var(--ink); border-radius: 8px; background: #fff; position: relative; }
+.task.done .tk { background: var(--good); border-color: #2f7d47; }
+.task.done .tk::after { content: ""; position: absolute; left: 8px; top: 1px; width: 9px; height: 17px; border: solid #fff; border-width: 0 5px 5px 0; transform: rotate(40deg); }
+.goal h3 { margin-top: 14px; }
+.pips { display: flex; gap: 8px; margin: 8px 0; }
+.pip { flex: 1; height: 22px; border: 4px solid var(--ink); border-radius: 11px; background: #fff; }
+.pip.on { background: #f08a24; }
+.first { margin: 8px 0; padding: 12px 16px; border-radius: 14px; background: var(--gold); border: 4px solid var(--gold-dark); font-size: 26px; }
 .stack { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; }
-.digGrid { display: grid; grid-template-columns: 40px repeat(8, 44px); grid-template-rows: 32px repeat(6, 44px); gap: 4px; margin: 10px 0; touch-action: none; }
-.digGrid i { font-style: normal; text-align: center; font-weight: 800; color: #8a7a60; line-height: 40px; font-size: 18px; }
+.digGrid { display: grid; grid-template-columns: 40px repeat(8, 50px); grid-template-rows: 32px repeat(6, 50px); gap: 4px; margin: 10px 0; touch-action: none; }
+.digGrid i { font-style: normal; text-align: center; font-weight: 800; color: #8a7a60; line-height: 46px; font-size: 18px; }
 .digGrid i.on { color: var(--ink); }
 .dc { border-radius: 6px; background: #e5d9b8; border: 0; }
 .dc.sel { background: var(--soil); }
@@ -90,7 +113,7 @@ p { margin: 6px 0; }
 .skill { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; font-size: 16px; line-height: 1.25; padding: 3px 0; border-bottom: 2px solid var(--line); }
 .skill small { color: #6a5d49; }
 .opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; align-items: center; }
-.opts .btn { min-height: 52px; padding: 4px 14px; font-size: 18px; }
+.opts .btn { min-height: 64px; padding: 4px 14px; font-size: 18px; }
 .btn[data-hold] { position: relative; overflow: hidden; }
 ul.ev { margin: 6px 0; padding-left: 26px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -99,9 +122,10 @@ ul.ev { margin: 6px 0; padding-left: 26px; }
   <div id="stage">
     <canvas id="cv" width="1024" height="768"></canvas>
     <div id="hud">
-      <button id="clockBtn" class="clockbtn" data-call="peek" aria-label="Часы"><canvas id="clock" width="88" height="88"></canvas></button>
+      <button id="clockBtn" class="clockbtn" data-call="peek" aria-label="Часы"><canvas id="clock" width="112" height="112"></canvas></button>
       <div id="dateChip" class="chip"></div>
       <div id="moneyChip" class="chip"></div>
+      <button id="tasksBtn" class="hudbtn" data-call="openTasks">Дела</button>
       <button id="bagBtn" class="hudbtn" data-call="openBag">Рюкзак</button>
       <button id="adultBtn" class="hudbtn" data-hold="2000" data-hold-call="openAdult">Взрослым<i class="hbar"></i></button>
     </div>
@@ -113,7 +137,9 @@ ul.ev { margin: 6px 0; padding-left: 26px; }
     </div>
     <div id="dlg" hidden><div class="card"></div></div>
     <div id="screen" hidden></div>
+    <div id="smallHint" hidden><span>Разверните окно пошире</span><button class="btn gold" data-call="hintOk">Понятно</button></div>
   </div>
+  <div id="rotate" hidden><span class="rot"></span><span><b>Поверни планшет</b><br>Так игра станет крупнее.</span></div>
 </div>
 <script>
 (function () {
@@ -127,7 +153,7 @@ const REDUCED = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: red
 const TILE = 32, MW = 32, MH = 24, DAY_START = 420, DAY_END = 1260, ROAD = 30;
 const PAL = {
   grass: "#6dbb4a", grass2: "#5aa63e", tuft: "#4b8f33", path: "#d8b779", pathDark: "#c19a5b",
-  soil: "#8a5a33", soilWet: "#5e3b22", furrow: "#6e4527", water: "#3f8fd8", waterLight: "#6fb5ef", waterDark: "#2f6fb0",
+  soil: "#8a5a33", soilWet: "#4a2f1b", furrow: "#6e4527", water: "#3f8fd8", waterLight: "#6fb5ef", waterDark: "#2f6fb0",
   wood: "#a0673a", woodDark: "#6f4424", roof: "#c8463d", roofDark: "#9a3029", wall: "#f1e3c6", wallShade: "#d9c49c", window: "#9fd3f0",
   crown: "#3e8e3a", crownLight: "#57a94a", trunk: "#7a4f2c", carrot: "#f08a24", leaf: "#49b04a", cabbage: "#9ad77a", zucchini: "#3f8f3f",
   appleRed: "#e0453a", appleGreen: "#8cc63f", skin: "#f2c49b", hair: "#6b3e1f", shirt: "#e85d3a", overall: "#3f6fb5",
@@ -184,20 +210,22 @@ const HOURS = {
 const PLACE_ORDER = ["shop", "post", "market"];
 const WEATHER_CYCLE = ["sun", "sun", "cloud", "rain", "sun", "cloud", "sun", "rain", "sun", "sun", "cloud", "rain", "sun", "rain"];
 const WEATHER_WORD = { sun: "солнце", cloud: "облачно", rain: "дождь" };
+// acc — винительный («посеял морковь»), g — род для глаголов («созрела морковь», «созрел кабачок»).
 const CROPS = {
-  carrot: { name: "Морковь", gen: "моркови", days: 3, price: 2000, packet: 10 },
-  zucchini: { name: "Кабачок", gen: "кабачка", days: 4, price: 3000, packet: 10 },
-  cabbage: { name: "Капуста", gen: "капусты", days: 5, price: 2500, packet: 10 }
+  carrot: { name: "Морковь", gen: "моркови", acc: "морковь", g: "f", days: 3, price: 2000, packet: 10 },
+  zucchini: { name: "Кабачок", gen: "кабачка", acc: "кабачок", g: "m", days: 4, price: 3000, packet: 10 },
+  cabbage: { name: "Капуста", gen: "капусты", acc: "капусту", g: "f", days: 5, price: 2500, packet: 10 }
 };
 const CROP_LIST = ["carrot", "zucchini", "cabbage"];
+// Номиналы в копейках: 100 = монета 1 ₽, 5000 = купюра 50 ₽. 10 и 50 копеек появятся с флагом kopecks (этап 2).
+const DENOM_BASE = [100, 200, 500, 1000, 5000, 10000, 50000], DENOM_ALL = [10, 50].concat(DENOM_BASE);
+const START_WALLET = { 100: 4, 200: 3, 500: 2, 1000: 3, 5000: 1, 10000: 0, 50000: 0 };   // 100 ₽: 50 + 3×10 + 2×5 + 3×2 + 4×1
 const ACTIONS = {
   dig: { label: "Разметить грядку", min: 20 },
   sow: { label: "Посеять", min: 15, unit: " за ряд" },
   resow: { label: "Досеять", min: 15, unit: " за ряд" },
   water: { label: "Полить", min: 10 },
-  buy: { label: "Купить", min: 5 },
-  wait: { label: "Подождать", min: 0 },
-  road: { label: "Дорога", min: ROAD }
+  buy: { label: "Купить", min: 5 }
 };
 const actLabel = (id) => ACTIONS[id].label + " — " + ACTIONS[id].min + " мин" + (ACTIONS[id].unit || "");
 const SKILLS = [
@@ -329,11 +357,6 @@ const LOGIC = (function () {
   }
   function nextWeekday(day, wd) { return day + ((wd - dateOfDay(day).wd + 7) % 7); }
   function weatherOf(day) { return WEATHER_CYCLE[(((day - 1) % 14) + 14) % 14]; }
-  function forecastLine(day) {
-    const w = weatherOf(day);
-    if (w === "rain") return "Завтра дождь — поливать не нужно. Дождь сам польёт грядки.";
-    return "Завтра " + WEATHER_WORD[w] + " — грядки надо полить.";
-  }
   function isOpen(place, day, min) { const h = HOURS[place]; return h.days.includes(dateOfDay(day).wd) && min >= h.open && min < h.close; }
   function hoursText(place) { return HOURS[place].text; }
   function nextOpenDay(place, day) { for (let d = day + 1; d < day + 8; d++) if (HOURS[place].days.includes(dateOfDay(d).wd)) return d; return day + 1; }
@@ -387,6 +410,37 @@ const LOGIC = (function () {
   function sumCoins(list) { return list.reduce((s, v) => s + v, 0); }
   function denoms(flags) { const base = [100, 200, 500, 1000, 5000, 10000, 50000]; return flags && flags.kopecks ? [10, 50].concat(base) : base; }
   function checkPay(price, laid) { const diff = laid - price; return diff === 0 ? { ok: true, diff: 0 } : { ok: false, diff, text: moneyDiffText(diff) }; }
+  // Кошелёк — объект «номинал в копейках → сколько штук»: {100: 4, 1000: 3, 5000: 1}. 100 = монета 1 ₽, 5000 = купюра 50 ₽.
+  function walletSum(w) { return Object.keys(w || {}).reduce((s, k) => s + (+k) * (w[k] || 0), 0); }
+  // Сдача жадно крупными номиналами. Возвращает кошелёк-объект только с нужными номиналами.
+  function makeChange(amount) {
+    const out = {}; let left = Math.max(0, Math.round(amount));
+    [50000, 10000, 5000, 1000, 500, 200, 100, 50, 10].forEach((d) => { const n = Math.floor(left / d); if (n > 0) { out[d] = n; left -= n * d; } });
+    return out;
+  }
+  function walletAdd(w, delta, sign) {
+    const out = {}; DENOM_ALL.forEach((d) => { const n = (w && w[d] || 0) + (sign || 1) * (delta && delta[d] || 0); if (n > 0 || DENOM_BASE.indexOf(d) >= 0) out[d] = Math.max(0, n); });
+    return out;
+  }
+  // Можно ли набрать ровно price из монет кошелька (сумма подмножества)?
+  function canPayExact(w, price) {
+    if (price === 0) return true;
+    if (price < 0) return false;
+    const coins = []; DENOM_ALL.forEach((d) => { for (let i = 0; i < ((w && w[d]) || 0); i++) coins.push(d); });
+    const unit = coins.some((d) => d % 100 !== 0) ? 10 : 100;
+    if (price % unit) return false;
+    const goal = price / unit, ok = new Uint8Array(goal + 1); ok[0] = 1;
+    coins.forEach((d) => { const v = d / unit; for (let i = goal; i >= v; i--) if (ok[i - v]) ok[i] = 1; });
+    return ok[goal] === 1;
+  }
+  function changeText(amount) { return "Сдача " + moneyWords(amount) + "."; }
+  // Правило кассира: ровно — «Спасибо!»; больше при возможности заплатить ровно — «Тут лишние N»; больше и ровно нечем — сдача; меньше — «Не хватает N».
+  function cashierRule(wallet, price, laid) {
+    if (laid === price) return { kind: "exact", ok: true, change: 0 };
+    if (laid < price) return { kind: "short", ok: false, diff: laid - price, text: moneyDiffText(laid - price) };
+    if (canPayExact(wallet, price)) return { kind: "extra", ok: false, diff: laid - price, text: moneyDiffText(laid - price) };
+    return { kind: "change", ok: true, change: laid - price, text: changeText(laid - price) };
+  }
   // Посев: клетки по рядам сверху вниз, слева направо. already — уже засеянные клетки (досев).
   function sow(rows, cols, seeds, already) {
     const total = rows * cols, cells = already ? already.slice() : new Array(total).fill(0);
@@ -395,9 +449,9 @@ const LOGIC = (function () {
     const emptyCells = []; cells.forEach((v, i) => { if (!v) emptyCells.push(i); });
     return { sown, empty: emptyCells.length, left, emptyCells, rowsUsed: Object.keys(used).length };
   }
-  function sowText(res) {
-    let t = "Засеяно: " + nounPhrase(res.sown, "клетка") + ".";
-    if (res.empty > 0) t += " " + res.empty + " " + plural(res.empty, "клетка осталась пустой", "клетки остались пустыми", "клеток остались пустыми") + " — семян не хватило.";
+  function sowText(res, resow) {
+    let t = (resow ? "Досеяно: " : "Засеяно: ") + nounPhrase(res.sown, "клетка") + ".";
+    if (res.empty > 0) t += " " + res.empty + " " + plural(res.empty, "клетка осталась пустой", "клетки остались пустыми", "клеток осталось пустыми") + " — семян не хватило.";
     else if (res.left > 0) t += " В запасе осталось " + nounPhrase(res.left, "семя") + ".";
     return t;
   }
@@ -440,24 +494,58 @@ const LOGIC = (function () {
     if (!ok && errText) s.errors = s.errors.concat({ day, t: errText }).slice(-10);
     return adjustLevel(s);
   }
-  // Глубокое слияние: значения из obj побеждают, недостающее берётся из def. Прогресс не обнуляется.
+  // Слияние с проверкой типов: тип значения по умолчанию задаёт ожидаемый тип. null, строка вместо числа, число вместо массива
+  // и т. п. заменяются значением по умолчанию. Остальные значения из obj побеждают, прогресс не обнуляется.
   function deepMerge(def, obj) {
-    if (Array.isArray(def) || def === null || typeof def !== "object") return obj === undefined ? def : obj;
-    if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return def;
-    const out = {};
-    Object.keys(def).forEach((k) => { out[k] = k in obj ? deepMerge(def[k], obj[k]) : def[k]; });
-    Object.keys(obj).forEach((k) => { if (!(k in out)) out[k] = obj[k]; });
-    return out;
+    if (obj === undefined) return def;
+    if (def === null) return obj;   // «пусто» по умолчанию (например, culture: null) — тип не задан, проверит sanitize
+    if (Array.isArray(def)) return Array.isArray(obj) ? obj : def;
+    if (def !== null && typeof def === "object") {
+      if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return def;
+      const out = {};
+      Object.keys(def).forEach((k) => { out[k] = k in obj ? deepMerge(def[k], obj[k]) : def[k]; });
+      Object.keys(obj).forEach((k) => { if (!(k in out)) out[k] = obj[k]; });
+      return out;
+    }
+    if (typeof obj !== typeof def || (typeof def === "number" && !isFinite(obj))) return def;
+    return obj;
   }
-  return { plural, poSafe, nounForm, nounPhrase, weekdayForm, fmtTime, parseTime, clockAngles, dayPart, durText, actionAllowed, dateOfDay, nextWeekday, weatherOf, forecastLine,
-    isOpen, hoursText, nextOpenDay, closedInfo, canMakeIt, planLines, moneyWords, fmtMoney, moneyDiffText, sumCoins, denoms, checkPay, sow, sowText, packetsNeeded, divRem,
-    parseMap, bfs, skillAcc, adjustLevel, recordAttempt, deepMerge };
+  // Дела на сегодня — чистая функция от состояния. next — id первого несделанного дела, obj — куда показывает стрелка.
+  function todayTasks(st) {
+    const beds = st.beds || [], inv = st.inv || {}, village = st.scene === "village";
+    const seeds = CROP_LIST.reduce((n, c) => n + (inv["seed:" + c] || 0), 0);
+    const marked = beds.filter((b) => b.rows > 0), planted = beds.filter((b) => b.crop);
+    const growing = planted.filter((b) => b.growth < CROPS[b.crop].days);
+    const items = [
+      { id: "dig", label: "Разметить грядку", done: marked.length > 0 },
+      { id: "buy", label: "Купить семена", done: seeds > 0 || planted.length > 0 },
+      { id: "sow", label: "Посеять семена", done: planted.length > 0 },
+      { id: "water", label: "Полить грядку", done: planted.length > 0 && growing.every((b) => b.watered) }
+    ];
+    const first = items.find((i) => !i.done), bedObj = (b) => "bed" + (b ? b.id : 1);
+    let obj;
+    if (!first) obj = village ? "exitVillage" : "house";
+    else if (first.id === "buy") obj = village ? "shop" : "exitFarm";
+    else if (village) obj = "exitVillage";
+    else if (first.id === "dig") obj = bedObj(beds.find((b) => !b.rows));
+    else if (first.id === "sow") obj = bedObj(marked.find((b) => !b.crop));
+    else obj = bedObj(growing.find((b) => !b.watered));
+    return { items, next: first ? first.id : null, obj, allDone: !first };
+  }
+  // Цель прототипа: вырастить первую морковь.
+  function carrotGoal(st) {
+    const days = CROPS.carrot.days, beds = (st.beds || []).filter((b) => b.crop === "carrot");
+    return { done: !!(st.goals && st.goals.firstCarrot), days, grown: beds.reduce((m, b) => Math.max(m, Math.min(days, b.growth)), 0), sown: beds.length > 0 };
+  }
+  return { plural, poSafe, nounForm, nounPhrase, weekdayForm, fmtTime, parseTime, clockAngles, dayPart, durText, actionAllowed, dateOfDay, nextWeekday, weatherOf,
+    isOpen, hoursText, nextOpenDay, closedInfo, canMakeIt, planLines, moneyWords, fmtMoney, moneyDiffText, sumCoins, denoms, checkPay, walletSum, makeChange, walletAdd, canPayExact,
+    changeText, cashierRule, sow, sowText, packetsNeeded, divRem, parseMap, bfs, skillAcc, adjustLevel, recordAttempt, deepMerge, todayTasks, carrotGoal };
 })();
 const { plural, nounPhrase, fmtTime, fmtMoney } = LOGIC;
 
 /* ---------- 3. STORE: localStorage и копия в db ---------- */
 const STORE = (function () {
-  const KEY = "ferma-save", TESTKEY = "ferma-testDate", mode = { v: "local", ref: null, timer: null, writing: false, again: false, latest: null };
+  const KEY = "ferma-save", BADKEY = "ferma-save-bad", TESTKEY = "ferma-testDate", SCHEMA = 2, mode = { v: "local", ref: null, timer: null, writing: false, again: false, latest: null };
   function todayKey() {
     try { const t = localStorage.getItem(TESTKEY); if (t) return t; } catch (e) {}
     const d = new Date(), p = (n) => String(n).padStart(2, "0");
@@ -465,8 +553,8 @@ const STORE = (function () {
   }
   function defaultState() {
     return {
-      v: 1, savedAt: 0, seed: 1, day: 1, time: DAY_START, scene: "farm", player: { x: HOME.x, y: HOME.y, dir: HOME.dir },
-      money: 10000, piggy: { saved: 0, goal: 0, bought: [] }, inv: {}, bags: [], baskets: [], boxes: { white: 0, brown: 0 }, jars: 0,
+      v: SCHEMA, savedAt: 0, seed: 1, day: 1, time: DAY_START, scene: "farm", player: { x: HOME.x, y: HOME.y, dir: HOME.dir },
+      wallet: Object.assign({}, START_WALLET), piggy: { saved: 0, goal: 0, bought: [] }, inv: {}, bags: [], baskets: [], boxes: { white: 0, brown: 0 }, jars: 0,
       loose: { eggWhite: 0, eggBrown: 0, milkL: 0 }, harvest: [], book: [],
       beds: [1, 2].map((id) => ({ id, plot: id, rows: 0, cols: 0, crop: null, sown: [], sownDay: 0, growth: 0, missed: 0, watered: false, highlight: [] })),
       trees: { red: { picked: 0 }, green: { picked: 0 } }, animals: { hensWhite: 0, hensBrown: 0, cow: false, fedDay: 0, milkedDay: 0 },
@@ -474,18 +562,76 @@ const STORE = (function () {
       skills: {}, peeks: { day: 1, used: 0 }, real: { date: "", daysToday: 0 }, log: { today: [], days: [], moneyStart: 10000 },
       settings: { daysPerReal: 2, peekUnlimited: false, split: false, sound: true, bigFont: false },
       flags: { kopecks: false, kgCarrot: false, tape: false, coop: false, barn: false, cowshed: false, boat: false, plot3: false, plot4: false },
-      neighbors: ["nyura", "misha", "katya", "vera"]
+      goals: { firstCarrot: false }, neighbors: ["nyura", "misha", "katya", "vera"]
     };
   }
-  // v0 → v1 (нет поля v): слияние с умолчаниями. Прогресс не теряется.
-  function migrate(obj) {
-    if (!obj || typeof obj !== "object") return defaultState();
-    const out = LOGIC.deepMerge(defaultState(), obj); out.v = 1; return out;
+  const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+  const isInt = (v, a, b) => typeof v === "number" && isFinite(v) && Math.floor(v) === v && v >= a && v <= b;
+  const bedTemplate = (id) => ({ id, plot: id, rows: 0, cols: 0, crop: null, sown: [], sownDay: 0, growth: 0, missed: 0, watered: false, highlight: [] });
+  // Кошелёк целиком: только известные номиналы, неотрицательные целые. Иначе null.
+  function cleanWallet(w) {
+    if (!isObj(w)) return null;
+    const out = {}; let ok = true;
+    Object.keys(w).forEach((k) => { if (DENOM_ALL.indexOf(+k) < 0 || !isInt(w[k], 0, 100000)) ok = false; else out[+k] = w[k]; });
+    return ok ? LOGIC.walletAdd(out, null) : null;
   }
+  function cleanBed(b, idx) {
+    const id = isObj(b) && isInt(b.id, 1, 4) ? b.id : idx + 1, out = LOGIC.deepMerge(bedTemplate(id), isObj(b) ? b : {});
+    out.id = id; out.plot = id;
+    ["sownDay", "growth", "missed"].forEach((k) => { if (!isInt(out[k], 0, 100000)) out[k] = 0; });
+    if (!isInt(out.rows, 2, 6) || !isInt(out.cols, 2, 8)) { out.rows = 0; out.cols = 0; }
+    const n = out.rows * out.cols;
+    if (out.sown.length !== n || out.sown.some((v) => v !== 0 && v !== 1)) out.sown = new Array(n).fill(0);
+    out.highlight = out.highlight.filter((v) => isInt(v, 0, n - 1));
+    if (!CROPS[out.crop] || !n || !out.sown.some((v) => v === 1)) { out.crop = null; out.highlight = []; }
+    return out;
+  }
+  // Проверка полей после слияния: числа в допустимых границах, перечисления из списка, вложенные записи по шаблону.
+  function sanitize(o) {
+    o.day = isInt(o.day, 1, 100000) ? o.day : 1;
+    o.time = clamp(Math.floor(o.time / 5) * 5, DAY_START, DAY_END);
+    if (o.scene !== "farm" && o.scene !== "village") o.scene = "farm";
+    const pl = o.player, row = WORLD.maps[o.scene].walk[pl.y], here = isInt(pl.x, 0, MW - 1) && isInt(pl.y, 0, MH - 1) && row && row[pl.x];
+    if (!here) o.player = Object.assign({}, o.scene === "farm" ? HOME : ARRIVE.village);
+    else if (["up", "down", "left", "right"].indexOf(pl.dir) < 0) pl.dir = "down";
+    const beds = Array.isArray(o.beds) ? o.beds.map(cleanBed) : [];
+    const seen = {}; o.beds = beds.filter((b) => (seen[b.id] ? false : (seen[b.id] = true)));
+    [1, 2].forEach((id) => { if (!seen[id]) o.beds.push(bedTemplate(id)); });
+    o.beds.sort((a, b) => a.id - b.id);
+    Object.keys(o.inv).forEach((k) => { if (!isInt(o.inv[k], 0, 1e6)) delete o.inv[k]; });
+    Object.keys(o.skills).forEach((k) => {
+      const sk = o.skills[k];
+      if (!isObj(sk)) { delete o.skills[k]; return; }
+      const f = LOGIC.deepMerge({ hist: [], n: 0, ok: 0, level: 1, atLevel: 0, last: 0, errors: [] }, sk);
+      f.hist = f.hist.filter((v) => v === 0 || v === 1).slice(-20); f.level = clamp(Math.floor(f.level) || 1, 1, 3);
+      f.errors = f.errors.filter((e) => isObj(e) && typeof e.t === "string" && typeof e.day === "number");
+      o.skills[k] = f;
+    });
+    o.log.today = o.log.today.filter((t) => typeof t === "string");
+    o.log.days = o.log.days.filter((d) => isObj(d) && Array.isArray(d.events));
+    o.settings.daysPerReal = clamp(Math.floor(o.settings.daysPerReal) || 2, 1, 3);
+    ["bags", "baskets", "harvest", "book"].forEach((k) => { o[k] = o[k].filter(isObj); });
+    o.neighbors = o.neighbors.filter((x) => typeof x === "string");
+    return o;
+  }
+  // v0 → v1: слияние с умолчаниями. v1 → v2: деньги-число становятся кошельком из монет (LOGIC.makeChange), добавлены goals.
+  function migrate(obj) {
+    if (!isObj(obj)) return defaultState();
+    const src = Object.assign({}, obj), money = src.money; let wallet = cleanWallet(src.wallet);
+    delete src.money; delete src.wallet;
+    if (!wallet && typeof money === "number" && isFinite(money) && money >= 0) wallet = LOGIC.walletAdd(LOGIC.makeChange(Math.round(money)), null);
+    const out = LOGIC.deepMerge(defaultState(), src);
+    if (wallet) out.wallet = wallet;
+    sanitize(out); out.v = SCHEMA; return out;
+  }
+  // Битую строку не затираем молча: копия в ferma-save-bad, чтобы взрослый мог её достать.
   function load() {
     let raw = null;
     try { raw = localStorage.getItem(KEY); } catch (e) {}
-    if (raw) { try { return { state: migrate(JSON.parse(raw)), fresh: false }; } catch (e) {} }
+    if (raw) {
+      try { const parsed = JSON.parse(raw); if (isObj(parsed)) return { state: migrate(parsed), fresh: false }; } catch (e) {}
+      try { localStorage.setItem(BADKEY, raw); } catch (e) {}
+    }
     return { state: defaultState(), fresh: true };
   }
   const strip = (S) => { const o = Object.assign({}, S); delete o.ui; return o; };
@@ -520,7 +666,7 @@ const STORE = (function () {
       }, () => {});
     } catch (e) {}
   }
-  return { KEY, TESTKEY, todayKey, defaultState, migrate, load, save, connect, mode };
+  return { KEY, BADKEY, TESTKEY, SCHEMA, todayKey, defaultState, migrate, load, save, connect, mode };
 })();
 LOGIC.migrate = STORE.migrate;
 
@@ -577,6 +723,10 @@ const logEvent = (t) => { S.log.today.push(t); };
 const attempt = (id, ok, err) => { S.skills[id] = LOGIC.recordAttempt(S.skills[id], ok, err, S.day); };
 const timeReason = (min) => (LOGIC.actionAllowed(S.time, min) ? "" : "До 21:00 не успеть");
 const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const money = () => LOGIC.walletSum(S.wallet);
+const cropName = (c) => CROPS[c].name.toLowerCase();
+const byGender = (c, f, m) => (CROPS[c].g === "m" ? m : f);
+const shopOpen = () => LOGIC.isOpen("shop", S.day, S.time);
 const rowsBy = (rows, cols) => nounPhrase(rows, "ряд") + " по " + nounPhrase(cols, "клетка", "по");
 
 // Время двигается только здесь. Ровно 21:00 — сразу диалог «Пора спать».
@@ -589,7 +739,10 @@ function openNight() {
   openDialog({ kind: "night", source: "system", title: "Пора спать", buttons: [B("sleep", "Спать", { cls: "gold" })],
     lines: extra.concat([S.scene === "village" ? "Уже 21:00. Пора домой. Ты дошёл до дома и лёг спать." : "Уже 21:00. Пора спать."]) });
 }
+// Любое окно останавливает ходьбу: персонаж остаётся на последней пройденной клетке и ничего не подменяет, пока окно открыто.
+function stopWalk() { walker = null; S.ui.walking = false; }
 function openDialog(d) {
+  stopWalk();
   S.ui.dialog = Object.assign({ kind: "", source: curSource || "system", title: "", lines: [], buttons: [], reply: null, data: {} }, d);
   S.ui.menu = null; refreshDialog(); return S.ui.dialog;
 }
@@ -606,12 +759,15 @@ function itemText(i) {
   return i.count > 1 ? pk + " по " + LOGIC.moneyWords(c.price) : pk + " за " + LOGIC.moneyWords(c.price);
 }
 function joinAnd(a) { return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " и " + a[a.length - 1]; }
+// Раздел 6.6: на уровне 1 навыка «оплата» кассир всегда называет сумму; выше — только состав корзины.
 function sellerLine(items, price) {
   const lvl = S.skills.pay ? S.skills.pay.level : 1;
-  if (items.length === 1 && (items[0].count === 1 || lvl <= 1)) return "С тебя " + LOGIC.moneyWords(price) + ".";
+  if (lvl <= 1 || (items.length === 1 && items[0].count === 1)) return "С тебя " + LOGIC.moneyWords(price) + ".";
   return joinAnd(items.map(itemText)) + ".";
 }
 const laidSum = (d) => Object.keys(d.data.laid).reduce((s, k) => s + (+k) * d.data.laid[k], 0);
+const walletLeft = (d, den) => (S.wallet[den] || 0) - (d.data.laid[den] || 0);
+const bedLines = () => S.beds.filter((b) => b.rows > 0).map((b) => "Грядка " + b.id + ": " + rowsBy(b.rows, b.cols));
 const cartFrom = (items) => { const c = { carrot: 0, zucchini: 0, cabbage: 0 }; items.forEach((i) => { c[i.crop] = i.count; }); return c; };
 
 /* --- обновление строк и кнопок диалогов из d.data --- */
@@ -620,29 +776,37 @@ const BUILD = {
     const toV = d.data.scene === "farm", t = d.data.target, bs = [];
     d.title = toV ? "Дорога в деревню" : "Дорога домой";
     d.lines = LOGIC.planLines(d.data.time, d.data.scene, S.day).concat(toV ? ["Куда идёшь?"] : []);
-    if (toV) [["shop", "В магазин"], ["post", "На почту"], ["market", "На рынок"], ["people", "К соседям"]].forEach((p) => bs.push(B(p[0], p[1], { row: 1, cls: t === p[0] ? "sel" : "" })));
+    if (toV) [["shop", "В магазин"], ["post", "На почту"], ["market", "На рынок"]].forEach((p) => bs.push(B(p[0], p[1], { row: 1, cls: t === p[0] ? "sel" : "" })));
     const why = timeReason(ROAD) || (toV && !t ? "Сначала выбери, куда идёшь" : "");
     bs.push(B("go", "Идти — " + ROAD + " мин", { row: 2, cls: "gold", enabled: !why, reason: why }));
     bs.push(B("stay", "Остаться", { row: 2 }));
     d.buttons = bs;
   },
   closed(d) {
-    const info = LOGIC.closedInfo(d.data.place, S.day, S.time);
+    const now = d.data.at === undefined ? S.time : d.data.at, info = LOGIC.closedInfo(d.data.place, S.day, now);
     d.title = "Закрыто"; d.lines = info.lines; d.buttons = [];
-    if (info.opensToday) d.buttons.push(B("wait", "Подождать до " + fmtTime(info.opensAt) + " — " + (info.opensAt - S.time) + " мин", { cls: "gold" }));
+    if (info.opensToday) d.buttons.push(B("wait", "Подождать до " + fmtTime(info.opensAt) + " — " + (info.opensAt - now) + " мин", { cls: "gold" }));
     d.buttons.push(B("close", "Закрыть"));
   },
   shop(d) {
     const items = cartItems(d.data.cart);
     d.title = "Магазин семян";
-    d.lines = ["Продавщица — тётя Люба."].concat(items.length ? [joinAnd(items.map(itemText)) + "."] : []);
+    d.lines = ["Продавщица — тётя Люба."].concat(bedLines(), items.length ? [joinAnd(items.map(itemText)) + "."] : []);
     d.buttons = [B("cashier", "К кассе", { cls: "gold", enabled: items.length > 0, reason: items.length ? "" : "Выбери пакетики" }), B("close", "Закрыть")];
   },
   pay(d) {
-    const t = d.data, short = t.price > S.money;
+    const t = d.data, short = t.price > money();
     d.title = "Касса"; d.lines = [sellerLine(t.items, t.price)];
     if (short) d.lines.push("В кошельке не хватает денег. Убери что-нибудь из корзины.");
     d.buttons = short ? [B("back", "Назад к полке", { cls: "gold" })] : [B("submit", "Заплатить", { cls: "gold" }), B("back", "Назад к полке")];
+  },
+  soon(d) {
+    d.title = HOURS[d.data.place].nom; d.lines = [HOURS[d.data.place].text, "Откроется, когда появятся заказы."]; d.buttons = [B("close", "Закрыть", { cls: "gold" })];
+  },
+  tasks(d) {
+    d.title = "Дела на сегодня"; d.buttons = [B("close", "Понятно", { cls: "gold" })];
+    d.data.tasks = LOGIC.todayTasks(S); d.data.goal = LOGIC.carrotGoal(S);
+    d.lines = d.data.tasks.items.map((i) => i.label).concat(d.data.tasks.allDone ? ["Все дела сделаны. Можно ложиться спать."] : []);
   },
   dig(d) {
     const t = d.data, why = timeReason(ACTIONS.dig.min);
@@ -673,8 +837,16 @@ function bedTitle(b) {
   if (!b.rows) return head + ". Земля не размечена.";
   if (!b.crop) return head + ": " + rowsBy(b.rows, b.cols) + ".";
   const c = CROPS[b.crop], left = c.days - b.growth, name = head + ": " + c.name.toLowerCase() + ". ";
-  if (left <= 0) return name + "Созрела!";
+  if (left <= 0) return name + "Урожай созрел!";
   return name + "Созреет через " + nounPhrase(left, "день") + ", " + LOGIC.weekdayForm(LOGIC.dateOfDay(S.day + left).wd, "в") + "." + (b.watered ? "" : " Сегодня не полита — без полива не растёт.");
+}
+// Причина, по которой «Посеять» серая. Кнопка живая, только если есть семена и хотя бы одну культуру успеем посеять до 21:00.
+function sowReason(b, only) {
+  if (!b.rows) return "Сначала размети грядку";
+  const crops = (only ? [only] : CROP_LIST).filter((c) => seedsOf(c) > 0);
+  if (!crops.length) return "Нужны семена — купи в магазине";
+  const can = crops.some((c) => !timeReason(15 * LOGIC.sow(b.rows, b.cols, seedsOf(c), only ? b.sown : null).rowsUsed));
+  return can ? "" : "До 21:00 не успеть";
 }
 function buildMenu(id) {
   const o = OBJECTS[id], btns = [], mb = (a, why) => B(a, actLabel(a), { enabled: !why, reason: why || "", act: true });
@@ -682,14 +854,14 @@ function buildMenu(id) {
   if (o.bed) {
     const b = bedById(o.bed), rain = LOGIC.weatherOf(S.day) === "rain";
     title = bedTitle(b);
+    const ripe = b.crop && b.growth >= CROPS[b.crop].days;
     if (!b.crop) {
       btns.push(mb("dig", timeReason(ACTIONS.dig.min)));
-      const seeds = CROP_LIST.reduce((s, c) => s + seedsOf(c), 0);
-      btns.push(mb("sow", !b.rows ? "Сначала размети грядку" : !seeds ? "Нужны семена — купи в магазине" : timeReason(15)));
+      btns.push(mb("sow", sowReason(b)));
     } else if (b.highlight.length) {
-      btns.push(mb("resow", b.sownDay !== S.day ? "Досеять нельзя: остальные уже растут." : !seedsOf(b.crop) ? "Нужны семена — купи в магазине" : timeReason(15)));
+      btns.push(mb("resow", b.sownDay !== S.day ? "Досеять нельзя: остальные уже растут." : sowReason(b, b.crop)));
     }
-    btns.push(mb("water", b.watered ? (rain ? "Сегодня дождь — грядка полита" : "Уже полита") : timeReason(ACTIONS.water.min)));
+    btns.push(mb("water", !b.crop ? "Сначала посей" : ripe ? "Урожай уже созрел" : b.watered ? (rain ? "Сегодня дождь — грядка полита" : "Уже полита") : timeReason(ACTIONS.water.min)));
   } else if (id === "house") btns.push(B("sleep", "Спать", { act: true }));
   btns.push(B("close", "Закрыть"));
   return { obj: id, title, buttons: btns };
@@ -697,9 +869,9 @@ function buildMenu(id) {
 function arrive(id) {
   const o = OBJECTS[id]; S.ui.menu = null; S.ui.dialog = null;
   if (o.exit) return openDialog({ kind: "plan", title: "", data: { scene: S.scene, time: S.time, target: null } });
+  if (o.gate && o.gate !== "shop") return openDialog({ kind: "soon", data: { place: o.gate } });
   if (o.gate && !LOGIC.isOpen(o.gate, S.day, S.time)) return openDialog({ kind: "closed", data: { place: o.gate } });
   if (id === "shop") return openDialog({ kind: "shop", data: { cart: { carrot: 0, zucchini: 0, cabbage: 0 } } });
-  if (o.gate) return null;
   S.ui.menu = buildMenu(id); return null;
 }
 
@@ -712,6 +884,7 @@ function doDig(b, rows, cols) {
   const st = WORLD.standOf("bed" + b.id, S); S.player.x = st[0]; S.player.y = st[1]; S.player.dir = "up"; walker = null; S.ui.walking = false;
   logEvent("Разметил грядку " + b.id + ": " + rowsBy(rows, cols));
   if (S.ui.dialog && S.ui.dialog.kind === "dig") closeDialog();
+  beep("done");
   spend(ACTIONS.dig.min);
   return OK();
 }
@@ -726,20 +899,32 @@ function doSow(b, crop, resow) {
   if (!resow) { b.crop = crop; b.sownDay = S.day; b.growth = 0; b.missed = 0; }
   b.highlight = res.emptyCells; S.inv["seed:" + crop] = seeds - res.sown;
   if (!resow) attempt("divrem", res.empty === 0, res.empty === 0 ? "" : "на грядку " + b.rows + " × " + b.cols + " хватило семян только на " + nounPhrase(res.sown, "клетка", "в"));
-  logEvent((resow ? "Досеял " : "Посеял ") + CROPS[crop].name.toLowerCase() + " на грядке " + b.id);
-  openDialog({ kind: "sow", data: { obj: "bed" + b.id, bed: b.id, done: true }, reply: LOGIC.sowText(res) });
+  logEvent((resow ? "Досеял " : "Посеял ") + CROPS[crop].acc + " на грядке " + b.id);
+  openDialog({ kind: "sow", data: { obj: "bed" + b.id, bed: b.id, done: true }, reply: LOGIC.sowText(res, resow) });
+  beep("done");
   spend(min);
   return OK();
 }
+// Магазин закрылся, пока окно было открыто: окно сменяется табличкой с часами работы, купить уже нельзя.
+function shopClosedNow() {
+  openDialog({ kind: "closed", data: { place: "shop" } });
+  return fail("Магазин закрыт");
+}
 function payNow(d) {
-  const t = d.data, laid = laidSum(d), r = LOGIC.checkPay(t.price, laid);
+  if (!shopOpen()) return shopClosedNow();
+  const t = d.data, laid = laidSum(d), r = LOGIC.cashierRule(S.wallet, t.price, laid);
+  // «Оплата» верна, если выложено ровно или больше, когда ровно заплатить было нечем (тогда кассир даёт сдачу).
   if (laid > 0 && !t.attempted) { t.attempted = true; attempt("pay", r.ok, r.ok ? "" : "положил " + fmtMoney(laid) + " вместо " + fmtMoney(t.price)); }
   if (!r.ok) { d.reply = r.text; beep("no"); return fail(r.text); }
   if (timeReason(ACTIONS.buy.min)) { d.reply = timeReason(ACTIONS.buy.min); return fail(d.reply); }
-  S.money -= t.price;
+  const given = {}; Object.keys(d.data.laid).forEach((k) => { given[k] = d.data.laid[k]; });
+  S.wallet = LOGIC.walletAdd(LOGIC.walletAdd(S.wallet, given, -1), LOGIC.makeChange(r.change));
   t.items.forEach((i) => { S.inv["seed:" + i.crop] = seedsOf(i.crop) + i.count * CROPS[i.crop].packet; logEvent("Купил " + nounPhrase(i.count, "пакетик", "в") + " " + CROPS[i.crop].gen); });
   beep("coin");
-  openDialog({ kind: "shop", data: { cart: { carrot: 0, zucchini: 0, cabbage: 0 } }, reply: "Спасибо! Приходи ещё." });
+  const thanks = r.change > 0 ? "Спасибо! " + r.text : "Спасибо! Приходи ещё.";
+  const at = S.time + ACTIONS.buy.min;
+  if (at >= HOURS.shop.close) openDialog({ kind: "closed", data: { place: "shop", at }, reply: "Спасибо! Магазин закрывается." });
+  else openDialog({ kind: "shop", data: { cart: { carrot: 0, zucchini: 0, cabbage: 0 } }, reply: thanks });
   spend(ACTIONS.buy.min);
   return OK();
 }
@@ -748,7 +933,7 @@ function payNow(d) {
 function doTravel(d) {
   if (timeReason(ROAD)) return fail(timeReason(ROAD));
   const to = S.scene === "farm" ? "village" : "farm", t = d.data.target, before = S.time;
-  if (to === "village" && HOURS[t]) {
+  if (to === "village" && t === "shop") {
     const r = LOGIC.canMakeIt(before, ROAD, t, S.day), h = HOURS[t];
     const why = r.reason === "notYet" ? h.lc + " ещё не " + (h.shut === "закрыта" ? "открылась" : "открылся") : r.reason === "closed" ? h.lc + " уже " + h.went : h.lc + " сегодня не работает";
     attempt("duration", r.ok, r.ok ? "" : "пошёл " + h.to + " в " + fmtTime(before) + " — " + why);
@@ -772,21 +957,33 @@ function startDay() {
   if (LOGIC.weatherOf(S.day) === "rain") { S.beds.forEach((b) => { b.watered = true; }); logEvent("Дождь полил грядки"); }
 }
 function endDay() {
-  const day = S.day, today = STORE.todayKey();
-  S.beds.forEach((b) => { if (b.crop) { if (b.watered) b.growth++; else b.missed++; } b.watered = false; });
+  const day = S.day, today = STORE.todayKey(), night = [];
+  S.beds.forEach((b) => {
+    if (!b.crop) return;
+    const was = b.growth >= CROPS[b.crop].days, c = b.crop;
+    if (b.watered) b.growth++; else if (!was) b.missed++;
+    if (was) return;
+    if (!b.watered) night.push("Грядка " + b.id + " не выросла: её не полили.");
+    else if (b.growth >= CROPS[c].days) night.push("Грядка " + b.id + ": " + byGender(c, "созрела ", "созрел ") + cropName(c) + ".");
+    else night.push("Грядка " + b.id + ": " + cropName(c) + byGender(c, " подросла.", " подрос."));
+  });
+  S.beds.forEach((b) => { b.watered = false; });
+  // Цель прототипа: первая морковь созрела.
+  const carrot = S.beds.find((b) => b.crop === "carrot" && b.growth >= CROPS.carrot.days);
+  let first = null;
+  if (carrot && !S.goals.firstCarrot) { S.goals.firstCarrot = true; first = { title: "Первый урожай!", text: "Морковь созрела на грядке " + carrot.id + "." }; beep("done"); }
   if (S.real.date !== today) S.real = { date: today, daysToday: 0 };
   S.real.daysToday++;
-  const events = S.log.today.slice(0, 8), moneyStart = S.log.moneyStart;
-  S.log.days.push({ day, date: today, earned: Math.max(0, S.money - moneyStart), events: S.log.today.slice() });
+  const events = S.log.today.slice(-12), moneyStart = S.log.moneyStart;
+  S.log.days.push({ day, date: today, earned: Math.max(0, money() - moneyStart), events: S.log.today.slice() });
   S.log.days = S.log.days.slice(-60);
   S.day++; S.time = DAY_START; S.scene = "farm"; Object.assign(S.player, HOME); walker = null;
-  S.log.today = []; S.log.moneyStart = S.money; S.ui.dialog = null; S.ui.menu = null; S.ui.walking = false;
+  S.log.today = []; S.log.moneyStart = money(); S.ui.dialog = null; S.ui.menu = null; S.ui.walking = false;
   startDay();
-  const ripe = S.beds.filter((b) => b.crop && b.growth >= CROPS[b.crop].days).map((b) => "Созрела " + CROPS[b.crop].name.toLowerCase() + " на грядке " + b.id + ".");
   const rain = LOGIC.weatherOf(S.day) === "rain";
-  S.ui.dayEnd = { title: capital(LOGIC.dateOfDay(day).text) + " — день закончился", events,
-    wallet: "Кошелёк: было " + fmtMoney(moneyStart) + ", стало " + fmtMoney(S.money) + ".",
-    tomorrow: "Завтра: " + WEATHER_WORD[LOGIC.weatherOf(S.day)] + "." + (rain ? " Дождь сам польёт грядки." : "") + (ripe.length ? " " + ripe.join(" ") : "") };
+  S.ui.dayEnd = { title: capital(LOGIC.dateOfDay(day).text) + " — день закончился", events, night, first,
+    wallet: "Кошелёк: было " + fmtMoney(moneyStart) + ", стало " + fmtMoney(money()) + ".",
+    tomorrow: "Завтра: " + WEATHER_WORD[LOGIC.weatherOf(S.day)] + "." + (rain ? " Дождь сам польёт грядки." : "") };
   S.ui.screen = "dayEnd";
 }
 function wake() {
@@ -802,7 +999,7 @@ function startWalk(path, obj) {
   walker = { path, i: 0, px: w.px, py: w.py, obj }; S.ui.walking = true;
 }
 function arriveAt(obj) {
-  if (!obj) return;
+  if (!obj || S.ui.dialog || S.ui.screen) return;
   const st = WORLD.standOf(obj, S);
   if (S.player.x === st[0] && S.player.y === st[1]) arrive(obj);
 }
@@ -831,14 +1028,15 @@ function frameArrive() { curSource = "tap"; skipWalk(); afterCall(); curSource =
 const A = {
   newGame(o) {
     o = o || {}; const kept = S.settings;
-    S = STORE.defaultState(); S.seed = o.seed || 1; S.day = o.day || 1; S.money = o.money === undefined ? 10000 : o.money; S.log.moneyStart = S.money;
+    S = STORE.defaultState(); S.seed = o.seed || 1; S.day = o.day || 1; if (o.money !== undefined) S.wallet = LOGIC.walletAdd(LOGIC.makeChange(o.money), null); S.log.moneyStart = money();
     S.peeks = { day: S.day, used: 0 }; S.real = { date: STORE.todayKey(), daysToday: 0 }; S.ui = freshUi(); walker = null;
     if (o.keepSettings) S.settings = kept;
     startDay(); return OK();
   },
   setTime(m) { S.time = m; return OK(); },
   setDay(n) { S.day = n; return OK(); },
-  setMoney(k) { S.money = k; return OK(); },
+  setMoney(k) { S.wallet = LOGIC.walletAdd(LOGIC.makeChange(k), null); return OK(); },
+  setWallet(w) { S.wallet = LOGIC.walletAdd(w, null); return OK(); },
   give(key, n) { S.inv[key] = (S.inv[key] || 0) + n; return OK(); },
   setFlag(k, v) { S.flags[k] = v; return OK(); },
   setSetting(k, v) { if (!(k in S.settings)) return fail("Нет такой настройки"); S.settings[k] = v; return OK(); },
@@ -867,14 +1065,14 @@ const A = {
   skipWalk() { return skipWalk(); },
   travel(target) {
     const id = S.scene === "farm" ? "exitFarm" : "exitVillage"; A.goTo(id);
-    if (S.ui.dialog && target) S.ui.dialog.data.target = target; refreshDialog(); return OK();
+    if (S.ui.dialog && target === "shop") S.ui.dialog.data.target = target; refreshDialog(); return OK();
   },
   act(id, args) {
     const m = S.ui.menu; if (!m) return fail("Рядом нет объекта");
     const btn = m.buttons.find((b) => b.id === id); if (!btn) return fail("Тут так нельзя");
     if (btn.enabled === false) return fail(btn.reason);
     args = args || {}; const o = OBJECTS[m.obj], b = o.bed ? bedById(o.bed) : null; let r = OK();
-    if (id === "water") { b.watered = true; logEvent("Полил грядку " + b.id); spend(ACTIONS.water.min); }
+    if (id === "water") { b.watered = true; logEvent("Полил грядку " + b.id); beep("done"); spend(ACTIONS.water.min); }
     else if (id === "dig") { if (args.rows) r = doDig(b, args.rows, args.cols); else openDialog({ kind: "dig", data: { obj: m.obj, bed: b.id, rows: b.rows || 4, cols: b.cols || 6 } }); }
     else if (id === "sow") { if (args.crop) r = doSow(b, args.crop, false); else openDialog({ kind: "sow", data: { obj: m.obj, bed: b.id } }); }
     else if (id === "resow") r = doSow(b, b.crop, true);
@@ -890,7 +1088,9 @@ const A = {
     if (d.kind === "plan") {
       if (id === "go") return doTravel(d);
       if (id === "stay") return doStay(d);
-      d.data.target = id; refreshDialog(); return OK();
+      // Почта и рынок появятся на этапе 2: сейчас они показывают только табличку и никуда не ведут.
+      if (id === "post" || id === "market") { d.reply = HOURS[id].text + " Откроется, когда появятся заказы."; refreshDialog(); return OK(); }
+      d.reply = null; d.data.target = id; refreshDialog(); return OK();
     }
     if (d.kind === "closed" && id === "wait") return doWait(d);
     if (d.kind === "shop" && id === "cashier") return A.toCashier();
@@ -908,13 +1108,14 @@ const A = {
   },
   toCashier() {
     const d = S.ui.dialog; if (!d || d.kind !== "shop") return fail("Нет магазина");
+    if (!shopOpen()) return shopClosedNow();
     const items = cartItems(d.data.cart); if (!items.length) return fail("Корзина пуста");
     openDialog({ kind: "pay", data: { items, price: cartPrice(items), laid: {}, attempted: false } }); return OK();
   },
   coin(den) {
     const d = S.ui.dialog; if (!d || d.kind !== "pay") return fail("Нет кассы");
     if (LOGIC.denoms(S.flags).indexOf(den) < 0) return fail("Нет такой монеты");
-    if (S.money - laidSum(d) < den) return fail("В кошельке нет столько");
+    if (walletLeft(d, den) <= 0) return fail("В кошельке нет такой монеты");
     d.data.laid[den] = (d.data.laid[den] || 0) + 1; d.reply = null; return OK();
   },
   uncoin(den) {
@@ -956,13 +1157,28 @@ const A = {
   },
   sleep() { endDay(); return OK(); },
   wake() { return wake(); },
-  openAdult() { if (S.ui.screen !== "adult") { S.ui.back = S.ui.screen; S.ui.screen = "adult"; S.ui.dialog = null; S.ui.menu = null; } return OK(); },
+  openAdult() { if (S.ui.screen !== "adult") { stopWalk(); S.ui.back = S.ui.screen; S.ui.screen = "adult"; S.ui.dialog = null; S.ui.menu = null; } return OK(); },
   closeScreen() {
-    if (S.ui.screen === "adult") { S.ui.screen = S.ui.back; S.ui.back = null; } else if (S.ui.screen === "start") S.ui.screen = null;
+    if (S.ui.screen === "adult") { S.ui.screen = S.ui.back; S.ui.back = null; }
+    else if (S.ui.screen === "start") { S.ui.screen = null; openDialog({ kind: "tasks" }); }
     return OK();
   },
   allowMore() { S.real.daysToday = Math.max(0, S.real.daysToday - 1); S.ui.screen = null; S.ui.back = null; return OK(); },
-  resetGame() { A.newGame({ seed: S.seed, keepSettings: true }); S.ui.screen = null; return OK(); },
+  // «Начать заново» не обнуляет счётчик игровых дней за реальную дату, иначе им можно обойти лимит.
+  resetGame() {
+    const real = S.real, today = STORE.todayKey();
+    A.newGame({ seed: S.seed, keepSettings: true });
+    S.real = real.date === today ? real : { date: today, daysToday: 0 };
+    S.ui.screen = S.real.daysToday >= S.settings.daysPerReal ? "sleep" : null; return OK();
+  },
+  // Экран сна сверяется с настоящей датой: при смене даты ферма просыпается без перезагрузки страницы.
+  checkDate() {
+    if (S.ui.screen !== "sleep") return fail("Ферма не спит");
+    const today = STORE.todayKey(); if (S.real.date === today) return fail("Дата та же");
+    S.real = { date: today, daysToday: 0 }; S.ui.screen = null; return OK();
+  },
+  hintOk() { hintSeen = true; try { localStorage.setItem("ferma-hint-small", "1"); } catch (e) {} $("smallHint").hidden = true; return OK(); },
+  openTasks() { if (S.ui.screen) return fail("Сейчас нельзя"); openDialog({ kind: "tasks" }); return OK(); },
   close() {
     const d = S.ui.dialog;
     if (d) { if (d.kind === "night") return fail("Пора спать"); closeDialog(); return OK(); }
@@ -1079,15 +1295,26 @@ function stageOf(b) {
   const days = CROPS[b.crop].days;
   return b.growth >= days ? 3 : b.growth === 0 ? 0 : b.growth < days / 2 ? 1 : 2;
 }
+// Четыре стадии: семена (посеяно сегодня), росток 12×14, куст 18×18, урожай. Каждая стадия крупнее и заметно отличается от предыдущей.
 function drawPlant(c, crop, stage, x, y) {
-  if (stage === 0) { fr(c, "#ead9a8", x - 6, y - 3, 3, 3); fr(c, "#ead9a8", x + 3, y + 3, 3, 3); }
-  else if (stage === 1) { fr(c, PAL.leaf, x - 3, y - 4, 2, 6); fr(c, PAL.leaf, x + 1, y - 5, 2, 7); }
-  else if (stage === 2) { fr(c, PAL.leaf, x - 5, y - 4, 10, 8); fr(c, PAL.cabbage, x - 3, y - 6, 6, 6); }
-  else if (crop === "carrot") {
-    [[-3, -11], [-1, -12], [1, -11]].forEach((l) => fr(c, PAL.leaf, x + l[0], y + l[1], 2, 6));
-    fr(c, PAL.carrot, x - 4, y - 5, 8, 4); fr(c, PAL.carrot, x - 3, y - 1, 6, 4); fr(c, PAL.carrot, x - 2, y + 3, 4, 4);
-  } else if (crop === "cabbage") { fr(c, PAL.cabbage, x - 9, y - 7, 18, 14); fr(c, "#c5eaa8", x - 5, y - 4, 10, 8); }
-  else { fr(c, PAL.zucchini, x - 9, y - 4, 18, 8); fr(c, "#6fc06f", x - 6, y - 3, 6, 2); }
+  const leaf = crop === "cabbage" ? "#78d060" : crop === "zucchini" ? "#3f9a45" : PAL.leaf, dark = crop === "zucchini" ? "#2b7a33" : "#2f8a3a", light = "#8fe07a";
+  if (stage === 0) { [[-8, -5], [3, -7], [-4, 4], [6, 3]].forEach((q) => { fr(c, "#b79a5e", x + q[0], y + q[1], 4, 4); fr(c, "#ead9a8", x + q[0], y + q[1], 3, 3); }); }
+  else if (stage === 1) {
+    fr(c, dark, x - 1, y - 2, 3, 10);
+    fr(c, leaf, x - 7, y - 7, 7, 4); fr(c, leaf, x - 6, y - 4, 6, 3); fr(c, light, x - 6, y - 7, 3, 1);
+    fr(c, leaf, x + 1, y - 10, 7, 4); fr(c, leaf, x + 1, y - 7, 6, 3); fr(c, light, x + 2, y - 10, 3, 1);
+  } else if (stage === 2) {
+    fr(c, dark, x - 1, y - 2, 3, 10);
+    fr(c, leaf, x - 10, y - 4, 9, 6); fr(c, leaf, x + 2, y - 6, 9, 6); fr(c, leaf, x - 6, y - 11, 9, 7); fr(c, leaf, x - 1, y + 1, 8, 6);
+    fr(c, light, x - 9, y - 4, 4, 1); fr(c, light, x + 3, y - 6, 4, 1); fr(c, light, x - 5, y - 11, 4, 1);
+  } else if (crop === "carrot") {
+    [[-6, -14, 6], [-1, -15, 8], [4, -14, 6]].forEach((l) => { fr(c, leaf, x + l[0], y + l[1], 3, l[2] + 2); fr(c, light, x + l[0], y + l[1], 1, l[2]); });
+    fr(c, PAL.carrot, x - 6, y - 6, 12, 5); fr(c, PAL.carrot, x - 4, y - 1, 8, 5); fr(c, PAL.carrot, x - 2, y + 4, 4, 5); fr(c, "#ffb057", x - 5, y - 6, 3, 3);
+  } else if (crop === "cabbage") {
+    fr(c, "#5fb04c", x - 11, y - 8, 22, 17); fr(c, PAL.cabbage, x - 9, y - 9, 18, 17); fr(c, "#c5eaa8", x - 5, y - 6, 10, 11); fr(c, "#6fb85a", x - 1, y - 8, 2, 15);
+  } else {
+    fr(c, dark, x - 11, y - 11, 10, 6); fr(c, PAL.zucchini, x - 11, y - 4, 22, 10); fr(c, "#6fc06f", x - 8, y - 2, 12, 3); fr(c, "#2b7a33", x + 8, y - 3, 3, 8);
+  }
 }
 
 let frame = 0, drops = null;
@@ -1097,8 +1324,10 @@ function drawBeds() {
     const o = PLOTS[b.plot], hl = new Set(b.highlight);
     for (let i = 0; i < b.rows * b.cols; i++) {
       const x = (o[0] + (i % b.cols)) * 32, y = (o[1] + Math.floor(i / b.cols)) * 32;
-      fr(cx, b.watered ? PAL.soilWet : PAL.soil, x + 1, y + 1, 30, 30); fr(cx, PAL.furrow, x + 3, y + 8, 26, 2); fr(cx, PAL.furrow, x + 3, y + 20, 26, 2);
-      if (b.sown[i] && b.crop) drawPlant(cx, b.crop, stageOf(b), x + 16, y + 16);
+      fr(cx, b.watered ? PAL.soilWet : PAL.soil, x + 1, y + 1, 30, 30); fr(cx, b.watered ? "#3a2415" : PAL.furrow, x + 3, y + 8, 26, 2); fr(cx, b.watered ? "#3a2415" : PAL.furrow, x + 3, y + 20, 26, 2);
+      // мокрая земля: тёмная, с каплями воды (неподвижными)
+      if (b.watered && b.crop) [[4, 3], [23, 4], [5, 24], [24, 23]].forEach((q) => { fr(cx, "#9fd0ff", x + q[0], y + q[1], 3, 5); fr(cx, "#e8f5ff", x + q[0], y + q[1], 1, 2); });
+      if (b.sown[i] && b.crop) drawPlant(cx, b.crop, stageOf(b), x + 16, y + 17);
       else if (hl.has(i)) {
         fr(cx, "rgba(255,210,63,0.75)", x + 1, y + 1, 30, 30);
         cx.save(); cx.setLineDash([6, 4]); cx.lineWidth = 3; cx.strokeStyle = "#b9861a"; cx.strokeRect(x + 4, y + 4, 24, 24); cx.restore();
@@ -1115,6 +1344,15 @@ function drawPlayer() {
   fr(cx, PAL.skin, x + 4, y + 4, 12, 8); fr(cx, PAL.hair, x + 4, y, 12, d === "up" ? 8 : 4);
   if (d === "left") fr(cx, PAL.hair, x + 14, y + 4, 2, 4); if (d === "right") fr(cx, PAL.hair, x + 4, y + 4, 2, 4);
   if (d !== "up") { const sx = d === "left" ? -2 : d === "right" ? 2 : 0; fr(cx, PAL.ink, x + 6 + sx, y + 8, 2, 2); fr(cx, PAL.ink, x + 12 + sx, y + 8, 2, 2); }
+}
+// Стрелка-указатель к следующему делу: неподвижная, без мигания. У грядок, дома и магазина смотрит вверх из точки стояния, у выходов — вниз.
+function drawArrow() {
+  if (S.ui.screen) return;
+  const id = LOGIC.todayTasks(S).obj, o = OBJECTS[id]; if (!o || o.scene !== S.scene) return;
+  const st = WORLD.standOf(id, S), up = !!o.bed || !!o.gate || id === "house", x = st[0] * 32 + 16, y = up ? st[1] * 32 + 2 : st[1] * 32 - 4, d = up ? 1 : -1;
+  const pts = [[0, 0], [-14, 15], [-6, 15], [-6, 32], [6, 32], [6, 15], [14, 15]];
+  const path = (grow) => { cx.beginPath(); pts.forEach((q, i) => { const px = x + q[0] * (grow ? 1 : 1) + (q[0] === 0 ? 0 : Math.sign(q[0]) * grow), py = y + d * (q[1] + (q[1] === 0 ? -grow * 1.5 : q[1] === 32 ? grow : 0)); i ? cx.lineTo(px, py) : cx.moveTo(px, py); }); cx.closePath(); };
+  cx.fillStyle = PAL.ink; path(3); cx.fill(); cx.fillStyle = PAL.highlight; path(0); cx.fill();
 }
 function drawWeather() {
   const w = LOGIC.weatherOf(S.day);
@@ -1137,36 +1375,45 @@ function drawScene() {
   }
   if (S.scene === "village") PLACE_ORDER.forEach((p) => {
     if (LOGIC.isOpen(p, S.day, S.time)) return;
-    const st = OBJECTS[p].stand; cx.font = '800 11px Nunito, sans-serif'; cx.textAlign = "center"; cx.textBaseline = "middle";
-    fr(cx, PAL.woodDark, st[0] * 32 - 12, st[1] * 32 - 36, 56, 20); fr(cx, "#fff8e8", st[0] * 32 - 10, st[1] * 32 - 34, 52, 16); cx.fillStyle = PAL.ink; cx.fillText("ЗАКРЫТО", st[0] * 32 + 16, st[1] * 32 - 26);
+    const st = OBJECTS[p].stand, mx = st[0] * 32 + 16, top = st[1] * 32 - 52; cx.font = '800 15px Nunito, sans-serif'; cx.textAlign = "center"; cx.textBaseline = "middle";
+    fr(cx, PAL.woodDark, mx - 44, top, 88, 30); fr(cx, "#fff8e8", mx - 41, top + 3, 82, 24); cx.fillStyle = PAL.ink; cx.fillText("ЗАКРЫТО", mx, top + 15);
   });
   if (S.scene === "farm") drawBeds();
+  drawArrow();
   drawPlayer(); drawWeather();
 }
+// Холст нужного логического размера с учётом плотности пикселей экрана и масштаба сцены, чтобы часы не были размытыми.
+function fitCanvas(canvas, size) {
+  const pr = clamp((window.devicePixelRatio || 1) * scale, 1, 4), px = Math.round(size * pr);
+  if (canvas.width !== px) { canvas.width = px; canvas.height = px; }
+  canvas.style.width = size + "px"; canvas.style.height = size + "px";
+  const c = canvas.getContext("2d"); c.setTransform(px / size, 0, 0, px / size, 0, 0); return c;
+}
 function drawClock(c, min, size) {
-  const k = size / 88, m = size / 2, R = size / 2 - 3, a = LOGIC.clockAngles(min);
+  const m = size / 2, R = size / 2 - 3, u = R / 41, a = LOGIC.clockAngles(min);
   c.clearRect(0, 0, size, size);
   c.fillStyle = PAL.paper; c.beginPath(); c.arc(m, m, R, 0, Math.PI * 2); c.fill();
-  c.lineWidth = 4 * Math.max(1, k * 0.8); c.strokeStyle = PAL.ink; c.stroke();
+  c.lineWidth = Math.max(3, 3.4 * u); c.strokeStyle = PAL.ink; c.stroke();
   const pt = (deg, r) => [m + Math.sin(deg * Math.PI / 180) * r, m - Math.cos(deg * Math.PI / 180) * r];
   c.lineCap = "butt";
   for (let i = 0; i < 60; i++) {
-    const five = i % 5 === 0, len = (five ? 7 : 3.5) * k, p1 = pt(i * 6, R - 3 * k), p2 = pt(i * 6, R - 3 * k - len);
-    c.lineWidth = (five ? 3 : 1) * Math.max(1, k * 0.8); c.beginPath(); c.moveTo(p1[0], p1[1]); c.lineTo(p2[0], p2[1]); c.stroke();
+    const five = i % 5 === 0, p1 = pt(i * 6, R - 4 * u), p2 = pt(i * 6, R - 4 * u - (five ? 8 : 4) * u);
+    c.lineWidth = (five ? 2.6 : 1) * Math.max(1, u * 0.9); c.beginPath(); c.moveTo(p1[0], p1[1]); c.lineTo(p2[0], p2[1]); c.stroke();
   }
-  c.fillStyle = PAL.ink; c.font = Math.round(12 * k) + 'px "Russo One", sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
-  for (let i = 1; i <= 12; i++) { const p = pt(i * 30, R * 0.66); c.fillText(String(i), p[0], p[1] + k); }
+  // цифры на 0,57 радиуса: не касаются рисок
+  c.fillStyle = PAL.ink; c.font = Math.round(R * 0.26) + 'px "Russo One", sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
+  for (let i = 1; i <= 12; i++) { const p = pt(i * 30, R * 0.57); c.fillText(String(i), p[0], p[1] + R * 0.02); }
   c.lineCap = "round";
-  let p = pt(a.h, R * 0.5); c.strokeStyle = PAL.ink; c.lineWidth = 6 * Math.max(1, k * 0.8); c.beginPath(); c.moveTo(m, m); c.lineTo(p[0], p[1]); c.stroke();
-  p = pt(a.m, R * 0.8); c.strokeStyle = PAL.roof; c.lineWidth = 4 * Math.max(1, k * 0.8); c.beginPath(); c.moveTo(m, m); c.lineTo(p[0], p[1]); c.stroke();
-  c.fillStyle = PAL.ink; c.beginPath(); c.arc(m, m, 5 * Math.max(1, k * 0.8), 0, Math.PI * 2); c.fill();
+  let p = pt(a.h, R * 0.5); c.strokeStyle = PAL.ink; c.lineWidth = 6 * Math.max(1, u * 0.85); c.beginPath(); c.moveTo(m, m); c.lineTo(p[0], p[1]); c.stroke();
+  p = pt(a.m, R * 0.8); c.strokeStyle = PAL.roof; c.lineWidth = 4 * Math.max(1, u * 0.85); c.beginPath(); c.moveTo(m, m); c.lineTo(p[0], p[1]); c.stroke();
+  c.fillStyle = PAL.ink; c.beginPath(); c.arc(m, m, 5 * Math.max(1, u * 0.85), 0, Math.PI * 2); c.fill();
 }
 function drawCropIcon(canvas) {
   const c = canvas.getContext("2d"); c.clearRect(0, 0, 48, 48); c.save(); c.scale(2, 2); drawPlant(c, canvas.dataset.crop, 3, 12, 14); c.restore();
 }
 
 /* ---------- 7. UI: DOM рисуется из модели S.ui, ничего не решает ---------- */
-const clockCtx = $("clock").getContext("2d");
+const CLOCK = 112;
 const parseArg = (a) => (/^-?\d+$/.test(a) ? +a : a === "true" ? true : a === "false" ? false : a);
 const btnHtml = (b) => '<button class="btn' + (b.cls ? " " + b.cls : "") + '" data-call="choose" data-arg="' + esc(b.id) + '"' + (b.enabled ? "" : " disabled") + "><span>" + esc(b.label) + "</span>" + (b.reason && !b.enabled ? "<small>" + esc(b.reason) + "</small>" : "") + "</button>";
 function buttonsHtml(bs) {
@@ -1176,7 +1423,15 @@ function buttonsHtml(bs) {
 const moneyCls = (d) => (d >= 5000 ? "note n" + (d === 5000 ? 1 : d === 10000 ? 2 : 3) : "coin c" + (d < 100 ? 3 : d <= 200 ? 1 : 2));
 function bodyHtml(d) {
   const ps = (arr) => arr.map((l) => "<p>" + esc(l) + "</p>").join("");
-  if (d.kind === "closed") return '<div class="sign">' + esc(d.lines[0]) + "</div>" + ps(d.lines.slice(1));
+  if (d.kind === "closed" || d.kind === "soon") return '<div class="sign">' + esc(d.lines[0]) + "</div>" + ps(d.lines.slice(1));
+  if (d.kind === "tasks") {
+    const t = d.data.tasks, g = d.data.goal;
+    const items = t.items.map((i) => '<li class="task' + (i.done ? " done" : "") + (i.id === t.next ? " next" : "") + '"><span class="tk" aria-hidden="true"></span><span>' + esc(i.label) + "</span></li>").join("");
+    const pips = [1, 2, 3].map((n) => '<i class="pip' + (g.grown >= n ? " on" : "") + '"></i>').join("");
+    const gtext = g.done ? "Первый урожай! Морковь выросла." : g.sown ? "Дней роста: " + g.grown + " из " + g.days + "." : "Посей морковь — она растёт " + nounPhrase(g.days, "день") + ".";
+    return '<ul class="tasks">' + items + "</ul>" + (t.allDone ? '<p class="reply">Все дела сделаны. Можно ложиться спать.</p>' : "") +
+      '<div class="goal"><h3>Цель: вырастить первую морковь</h3><div class="pips">' + pips + "</div><p>" + esc(gtext) + "</p></div>";
+  }
   if (d.kind === "plan") return '<div class="planrow"><canvas id="planClock" width="120" height="120"></canvas><div>' + ps(d.lines) + "</div></div>";
   if (d.kind === "shop") {
     const shelf = CROP_LIST.map((c) => {
@@ -1188,9 +1443,9 @@ function bodyHtml(d) {
     return ps(d.lines) + '<div class="shelf">' + shelf + "</div>";
   }
   if (d.kind === "pay") {
-    const laid = d.data.laid, left = S.money - laidSum(d), ds = LOGIC.denoms(S.flags);
+    const laid = d.data.laid, ds = LOGIC.denoms(S.flags);
     const onC = Object.keys(laid).map(Number).sort((a, b) => b - a).map((k) => '<span class="stack"><button class="' + moneyCls(k) + '" data-call="uncoin" data-arg="' + k + '">' + fmtMoney(k) + "</button>× " + laid[k] + "</span>").join("");
-    const tray = ds.map((k) => '<button class="' + moneyCls(k) + '" data-call="coin" data-arg="' + k + '"' + (left >= k ? "" : " disabled") + ">" + fmtMoney(k) + "</button>").join("");
+    const tray = ds.map((k) => { const n = walletLeft(d, k); return '<span class="slot"><button class="' + moneyCls(k) + '" data-call="coin" data-arg="' + k + '"' + (n > 0 ? "" : " disabled") + ">" + fmtMoney(k) + '</button><i class="cnt">' + n + "</i></span>"; }).join("");
     return ps(d.lines) + "<h3>Прилавок</h3><div class=\"money\">" + onC + "</div><h3>Кошелёк</h3><div class=\"money\">" + tray + "</div>";
   }
   if (d.kind === "dig") {
@@ -1201,6 +1456,10 @@ function bodyHtml(d) {
       for (let c = 1; c <= 8; c++) g += '<div class="dc' + (r <= d.data.rows && c <= d.data.cols ? " sel" : "") + (r === d.data.rows && c === d.data.cols ? " hd" : "") + '" data-r="' + r + '" data-c="' + c + '"></div>';
     }
     return ps(d.lines) + g + "</div>";
+  }
+  if (d.kind === "bag") {
+    const coins = LOGIC.denoms(S.flags).slice().reverse().filter((k) => S.wallet[k] > 0).map((k) => '<span class="stack"><span class="' + moneyCls(k) + '">' + fmtMoney(k) + "</span>× " + S.wallet[k] + "</span>").join("");
+    return ps(d.lines) + "<h3>Кошелёк: " + esc(fmtMoney(money())) + '</h3><div class="money">' + coins + "</div>";
   }
   return ps(d.lines);
 }
@@ -1222,7 +1481,7 @@ function renderDlg() {
   card.className = "card" + (d.kind === "night" || d.kind === "confirm" || d.kind === "bag" ? " narrow" : "");
   card.innerHTML = (d.title ? "<h2>" + esc(d.title) + "</h2>" : "") + bodyHtml(d) + (d.reply ? '<div class="reply">' + esc(d.reply) + "</div>" : "") + buttonsHtml(d.buttons);
   box.hidden = false;
-  const pc = $("planClock"); if (pc) drawClock(pc.getContext("2d"), d.data.time, 120);
+  const pc = $("planClock"); if (pc) drawClock(fitCanvas(pc, 120), d.data.time, 120);
   card.querySelectorAll("canvas.ico").forEach(drawCropIcon);
 }
 let screenKey = "";
@@ -1235,12 +1494,13 @@ function renderScreen() {
   let html = "";
   if (s === "start") html = '<div class="card narrow" style="text-align:center"><h1>Ферма у реки</h1><div class="row" style="justify-content:center"><button class="btn gold" data-call="closeScreen">Играть</button></div></div>';
   else if (s === "dayEnd") {
-    const e = S.ui.dayEnd || { events: [] };
-    html = '<div class="card"><h2>' + esc(e.title) + "</h2>" + (e.events.length ? "<h3>Сделано сегодня</h3><ul class=\"ev\">" + e.events.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ul>" : "") +
+    const e = S.ui.dayEnd || { events: [] }, li = (a) => a.map((t) => "<li>" + esc(t) + "</li>").join("");
+    html = '<div class="card"><h2>' + esc(e.title) + "</h2>" + (e.first ? '<div class="first"><b>' + esc(e.first.title) + "</b> " + esc(e.first.text) + "</div>" : "") +
+      (e.events.length ? '<h3>Сделано сегодня</h3><ul class="ev">' + li(e.events) + "</ul>" : "") + (e.night && e.night.length ? '<h3>Ночью на ферме</h3><ul class="ev">' + li(e.night) + "</ul>" : "") +
       "<p>" + esc(e.wallet) + "</p><p>" + esc(e.tomorrow) + '</p><div class="row"><button class="btn gold" data-call="wake">Доброе утро!</button></div></div>';
   } else if (s === "sleep") {
-    const ripe = S.beds.filter((b) => b.crop && b.growth >= CROPS[b.crop].days).map((b) => CROPS[b.crop].name.toLowerCase());
-    html = '<div class="moon"></div><h1>Куры спят, приходи завтра.</h1>' + (ripe.length ? "<p>Завтра на ферме: созреет " + esc(ripe[0]) + ".</p>" : "") + hold;
+    const ripe = S.beds.filter((b) => b.crop && b.growth >= CROPS[b.crop].days).map((b) => cropName(b.crop));
+    html = '<div class="moon"></div><h1>Куры спят, приходи завтра.</h1>' + (ripe.length ? "<p>На ферме ждёт урожай: " + esc(ripe.filter((c, i) => ripe.indexOf(c) === i).join(", ")) + ".</p>" : "") + hold;
   } else if (s === "adult") {
     const sk = SKILLS.map((p) => {
       const v = S.skills[p[0]], last = v && v.errors.length ? v.errors[v.errors.length - 1] : null;
@@ -1260,19 +1520,25 @@ function renderScreen() {
 function renderUI() {
   const dt = LOGIC.dateOfDay(S.day), pb = $("peekBubble");
   $("dateChip").textContent = dt.short + " · " + LOGIC.dayPart(S.time) + " · " + WEATHER_WORD[LOGIC.weatherOf(S.day)];
-  $("moneyChip").textContent = fmtMoney(S.money);
+  $("moneyChip").textContent = fmtMoney(money());
+  const tk = LOGIC.todayTasks(S); $("tasksBtn").textContent = "Дела " + tk.items.filter((i) => i.done).length + "/" + tk.items.length;
   $("where").textContent = S.scene === "farm" ? "Двор" : "Деревня";
   $("app").classList.toggle("big", !!S.settings.bigFont);
-  drawClock(clockCtx, S.time, 88);
+  drawClock(fitCanvas($("clock"), CLOCK), S.time, CLOCK);
   pb.hidden = !S.ui.peekText; pb.textContent = S.ui.peekText || "";
   renderCtx(); renderDlg(); renderScreen();
 }
 
 /* ---------- 8. INPUT: касание, удержание, клавиатура ---------- */
 let scale = 1, hold = null, audio = null;
+let hintSeen = false;
+try { hintSeen = localStorage.getItem("ferma-hint-small") === "1"; } catch (e) {}
+// Масштаб сцены. В портрете показывается плашка «Поверни планшет» (игра работает и так); в маленьком окне один раз — «Разверните окно пошире».
 function layout() {
   scale = Math.min(innerWidth / 1024, innerHeight / 768);
   $("stage").style.transform = "translate(" + (innerWidth - 1024 * scale) / 2 + "px," + (innerHeight - 768 * scale) / 2 + "px) scale(" + scale + ")";
+  const portrait = innerHeight > innerWidth;
+  $("rotate").hidden = !portrait; $("smallHint").hidden = !(scale < 0.8 && !portrait && !hintSeen);
 }
 function beep(kind) {
   if (!audio || !S.settings.sound) return;
@@ -1289,6 +1555,7 @@ function cancelHold() {
 }
 function initInput() {
   $("stage").addEventListener("click", (e) => {
+    if (S.ui.screen === "sleep") api.checkDate();   // касание экрана сна сверяет настоящую дату
     const b = e.target.closest("button[data-call]"); if (!b || b.disabled) return;
     const args = [b.dataset.arg, b.dataset.arg2].filter((v) => v !== undefined).map(parseArg);
     api[b.dataset.call].apply(null, args);
@@ -1326,7 +1593,11 @@ function initInput() {
   });
   ["pointerup", "pointercancel"].forEach((ev) => dlg.addEventListener(ev, () => { drag = false; }));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") api.close(); });
-  window.addEventListener("resize", layout); window.addEventListener("orientationchange", layout);
+  const relayout = () => { layout(); renderUI(); };
+  window.addEventListener("resize", relayout); window.addEventListener("orientationchange", relayout);
+  // планшет вернулся из фона или на следующий день: сон сверяется с датой без перезагрузки страницы
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) api.checkDate(); });
+  window.addEventListener("focus", () => { api.checkDate(); });
 }
 
 /* ---------- 9. BOOT: загрузка, цикл кадров, window.FERMA ---------- */
@@ -1343,8 +1614,13 @@ function boot() {
     if (S.ui.dialog || S.ui.screen || walker) return;
     const ui = S.ui; S = remote; S.ui = ui; STORE.save(S); renderUI();
   });
-  let last = 0;
-  const loop = (t) => { const dt = Math.min(0.1, (t - last) / 1000 || 0); last = t; stepWalker(dt); drawScene(); requestAnimationFrame(loop); };
+  // Кадр в try/catch: одна ошибка не должна остановить холст навсегда. Сообщение пишется один раз.
+  let last = 0, reported = false;
+  const loop = (t) => {
+    try { const dt = Math.min(0.1, (t - last) / 1000 || 0); last = t; stepWalker(dt); drawScene(); }
+    catch (e) { if (!reported) { reported = true; console.error("ferma: ошибка кадра", e); } }
+    requestAnimationFrame(loop);
+  };
   requestAnimationFrame(loop);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { invalidateBg(); renderUI(); });
 }
@@ -1353,7 +1629,7 @@ window.FERMA = {
   logic: LOGIC,
   data: { MAPS, OBJECTS, HOURS, CROPS, NOUNS, WEEKDAYS, SKILLS },
   world: { standOf: (id) => WORLD.standOf(id, S), grid: (scene) => WORLD.grid(scene, S) },
-  state: () => JSON.parse(JSON.stringify(S)),
+  state: () => Object.assign(JSON.parse(JSON.stringify(S)), { money: money() }),
   api,
   render: () => { renderUI(); drawScene(); }
 };
