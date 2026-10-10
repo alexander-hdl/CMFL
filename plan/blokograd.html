@@ -29,6 +29,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; overflow: hidden; }
 body { background: var(--sky); color: var(--ink); font-family: var(--f-body); font-size: 18px; line-height: 1.35; font-weight: 600; -webkit-text-size-adjust: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -60,9 +61,27 @@ p { margin: 0; }
 .ibtn svg { width: 28px; height: 28px; }
 .ibtn[aria-pressed="true"] { background: var(--gold); }
 
+@media (max-width: 700px) {
+  .chip { min-height: 40px; padding: 4px 10px 4px 8px; font-size: 1rem; gap: 6px; }
+  .chip svg { width: 22px; height: 22px; }
+  #sunarc { width: 64px; height: 28px; }
+  .ibtn { width: 44px; height: 44px; font-size: 1.1rem; }
+  #top { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  .ibtns { gap: 6px; }
+}
 /* Hint line */
 #hint { position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); top: calc(72px + env(safe-area-inset-top, 0px)); max-width: min(92vw, 640px); background: rgba(42, 29, 14, 0.82); color: #fff; padding: 8px 16px; border-radius: 12px; font-size: 1.05rem; text-align: center; pointer-events: none; transition: opacity .25s; }
 #hint.off { opacity: 0; }
+
+/* D-pad for the hero (hold to walk) */
+#dpad { position: absolute; left: 12px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); z-index: 6; display: grid; grid-template-columns: 56px 56px 56px; grid-template-rows: 56px 56px; gap: 4px; }
+#dpad[hidden] { display: none; }
+#dpad button { width: 56px; height: 56px; border-radius: 14px; border: 3px solid var(--wood-line); background: rgba(255, 246, 220, 0.9); box-shadow: 0 3px 0 var(--wood-line); font-size: 1.2rem; padding: 0; touch-action: none; }
+#dpad button[data-dir="up"] { grid-column: 2; grid-row: 1; }
+#dpad button[data-dir="left"] { grid-column: 1; grid-row: 2; }
+#dpad button[data-dir="right"] { grid-column: 3; grid-row: 2; }
+#dpad button[data-dir="down"] { grid-column: 2; grid-row: 2; }
+@media (max-width: 700px) { #dpad { bottom: calc(176px + env(safe-area-inset-bottom, 0px)); } }
 
 /* Bottom toolbar */
 #tools { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; gap: 8px; pointer-events: none; }
@@ -194,6 +213,7 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
       </svg>
       <div><b id="dayno">День 1</b><div class="lbl" id="daylbl">утро</div></div>
     </div>
+    <div class="chip" title="Где человечек"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 C10 3 6 8 6 13 C6 20 16 29 16 29 C16 29 26 20 26 13 C26 8 22 3 16 3Z" fill="#e5484d" stroke="#7d241a" stroke-width="2"/><circle cx="16" cy="13" r="4" fill="#fff"/></svg><b id="where" style="font-size:1rem">Блокоград</b></div>
     <div class="chip" title="Монеты">
       <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#ffc83d" stroke="#a67c00" stroke-width="3"/><text x="16" y="21" text-anchor="middle" font-size="14" font-family="Russo One, sans-serif" fill="#3a2a00">₽</text></svg>
       <b id="coins">0</b>
@@ -203,6 +223,8 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
       <button class="ibtn" id="b-rotr" aria-label="Повернуть вправо">⟳</button>
       <button class="ibtn" id="b-zin" aria-label="Приблизить">+</button>
       <button class="ibtn" id="b-zout" aria-label="Отдалить">−</button>
+      <button class="ibtn" id="b-mode" aria-label="Режим: человечек или камера" aria-pressed="true">🧍</button>
+      <button class="ibtn" id="b-home" aria-label="Показать человечка">◎</button>
       <button class="ibtn" id="b-pause" aria-label="Пауза" aria-pressed="false">❚❚</button>
       <button class="ibtn" id="b-sound" aria-label="Звук" aria-pressed="true">♪</button>
       <button class="ibtn" id="b-gear" aria-label="Для взрослого (удерживать 2 секунды)">⚙</button>
@@ -212,6 +234,13 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
   <div id="hint" class="off"></div>
 
   <div id="frameact" hidden></div>
+
+  <div id="dpad" hidden>
+    <button data-dir="up" aria-label="Вверх">▲</button>
+    <button data-dir="left" aria-label="Влево">◀</button>
+    <button data-dir="right" aria-label="Вправо">▶</button>
+    <button data-dir="down" aria-label="Вниз">▼</button>
+  </div>
 
   <div id="tools">
     <button data-tool="pick" aria-pressed="true"><svg viewBox="0 0 32 32"><path d="M6 26 L18 14" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/><path d="M12 6 Q22 4 28 12 Q22 10 16 16 Q20 10 12 6Z" fill="#9aa4ab"/></svg>Кирка</button>
@@ -331,7 +360,7 @@ var CONTENT = {
     { parts: ["гриб", "ник"], item: "грибник", kind: "villager", hint: "житель с корзиной грибов" },
     { parts: ["колод", "ец"], item: "колодец", kind: "well", hint: "из него берут воду" },
     { parts: ["фонар", "ик"], item: "фонарик", kind: "lamp", hint: "маленький фонарь" },
-    { parts: ["кораб", "лик"], item: "кораблик", kind: "boat", hint: "маленький корабль" },
+    { parts: ["корабл", "ик"], item: "кораблик", kind: "boat", hint: "маленький корабль" },
     { parts: ["мост", "ик"], item: "мостик", kind: "bridge", hint: "маленький мост" },
     { parts: ["рыб", "ак"], item: "рыбак", kind: "villager", hint: "житель с удочкой" },
     { parts: ["двор", "ник"], item: "дворник", kind: "villager", hint: "житель с метлой" },
@@ -360,11 +389,13 @@ var CONTENT = {
   ],
   goods: [
     { id: "lamp", name: "фонарь", base: 25, kind: "lamp" },
+    { id: "oil", name: "масло для фонарей", base: 5, kind: "oil" },
     { id: "flag", name: "флаг", base: 17, kind: "flag" },
     { id: "paint", name: "ведро краски", base: 40, kind: "paint" },
     { id: "seed", name: "саженец", base: 12, kind: "tree" },
-    { id: "glass", name: "стекло", base: 8, kind: "block", block: 13 },
-    { id: "brick", name: "кирпич", base: 6, kind: "block", block: 10 }
+    { id: "plank", name: "доски", base: 9, kind: "block", block: 8, pack: 10 },
+    { id: "glass", name: "стекло", base: 8, kind: "block", block: 13, pack: 3 },
+    { id: "brick", name: "кирпич", base: 6, kind: "block", block: 10, pack: 5 }
   ]
 };
 var INTRO_ORDER = [2, 10, 5, 3, 4, 6, 7, 8, 9];
@@ -375,23 +406,37 @@ var LS = "blokograd.v1";
 var S = null;
 function freshState() {
   return {
-    v: 1, day: 1, coins: 30, t: 0, extra: false, started: false,
-    blocks: { 8: 40, 3: 0, 2: 0, 6: 0, 4: 0, 10: 0, 13: 0, 12: 0 },
+    v: 2, day: 1, coins: 30, t: 0, extra: false, started: false, mode: "hero",
+    player: { x: 48.5, z: 50.5 }, visited: { home: true }, houses: [], oil: 0, jobDay: {}, jobs: 0, voyages: 0,
+    blocks: { 8: 40, 3: 0, 2: 0, 6: 0, 4: 0, 10: 0, 13: 0, 12: 0, 16: 0 },
     parts: [], gaps: [], items: {}, museum: [],
     cards: {}, stats: {}, recent: { m: [], w: [], c: [] },
     quests: [], qseq: 0, builds: 0, crafts: 0, trades: 0,
-    props: [], villagers: [{ id: "fedor", name: "Мастер Фёдор", x: 16, z: 20, skin: 0 }, { id: "marfa", name: "Бабушка Марфа", x: 20, z: 17, skin: 1 }, { id: "ilyas", name: "Торговец Ильяс", x: 12, z: 17, skin: 2 }],
+    props: [{ kind: "ship", x: 48, z: 93 }], villagers: defaultVillagers(),
     today: { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() },
-    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}
+    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}, build: null, leafCount: 0, oreSeq: 0
   };
 }
+function defaultVillagers() {
+  return [
+    { id: "fedor", name: "Мастер Фёдор", dat: "Мастеру Фёдору", x: 46, z: 51, skin: 0, lore: "Строит всё в Блокограде. Даёт чертежи и платит за мосты." },
+    { id: "marfa", name: "Бабушка Марфа", dat: "Бабушке Марфе", fem: true, x: 52, z: 47, skin: 1, lore: "Знает все слова на свете и их части." },
+    { id: "ilyas", name: "Торговец Ильяс", dat: "Торговцу Ильясу", x: 44, z: 47, skin: 2, lore: "Продаёт и покупает. Любит, когда платят без сдачи." },
+    { id: "grisha", gen: "Гриши", dat: "Рудокопу Грише", name: "Рудокоп Гриша", x: 48, z: 13, skin: 6, lore: "Живёт на Скалах. Платит за склады руды." },
+    { id: "petr", gen: "Петра", dat: "Лесорубу Петру", name: "Лесоруб Пётр", x: 83, z: 48, skin: 7, lore: "Живёт в Лесу. Платит за штабели досок." },
+    { id: "vera", gen: "Веры", dat: "Тёте Вере", fem: true, name: "Тётя Вера", x: 13, z: 48, skin: 8, lore: "Живёт на Лугах. Платит за клумбы и грядки." },
+    { id: "marat", gen: "Марата", dat: "Капитану Марату", name: "Капитан Марат", x: 48, z: 83, skin: 4, lore: "Живёт на Песках. Возит на корабле к Снегам." },
+    { id: "zima", gen: "Зимы", dat: "Бабушке Зиме", fem: true, name: "Бабушка Зима", x: 84, z: 85, skin: 5, lore: "Живёт на Снегах. Платит за снежные стены." }
+  ];
+}
 function load() {
-  try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && o.v === 1) return o; } } catch (e) {}
+  try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && (o.v === 1 || o.v === 2)) return o; } } catch (e) {}
   return null;
 }
-var saveTimer = null, dbRef = null, dbWriting = false, savedAt = 0;
+var saveTimer = null, dbRef = null, dbWriting = false, savedAt = 0, noSave = false;
 function save(now) {
-  if (!S) return;
+  if (!S || noSave) return;
+  S.build = Build.snapshot();
   if (World.dirty) { S.world = World.encode(); World.dirty = false; }
   S.savedAt = Date.now();
   try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {}
@@ -412,7 +457,7 @@ function recordResult(type, id, correct) {
   else { c.iv = -1; c.due = todayKey(1); }
   c.last = todayKey();
   var st = S.stats[type] || (S.stats[type] = { n: 0, ok: 0 }); st.n++; if (correct) st.ok++;
-  var r = S.recent[type[0] === "m" ? "m" : (type === "money" ? "c" : "w")]; r.push(correct ? 1 : 0); if (r.length > 10) r.shift();
+  var r = S.recent[type === "mult" ? "m" : (type === "money" ? "c" : "w")]; r.push(correct ? 1 : 0); if (r.length > 10) r.shift();
 }
 function recentRate(key) { var r = S.recent[key]; if (r.length < 4) return 0.8; return r.reduce(function (a, b) { return a + b; }, 0) / r.length; }
 function accuracy(id) { var c = S.cards[id]; return c && c.n ? c.ok / c.n : null; }
@@ -447,79 +492,157 @@ function pickWord(list, prefix) {
 function content() { return S.custom || CONTENT; }
 
 /* ===================== WORLD ===================== */
-var W = 32, H = 16, D = 32;
-var AIR = 0, GRASS = 1, DIRT = 2, STONE = 3, SAND = 4, WATER = 5, LOG = 6, LEAF = 7, PLANK = 8, ORE = 9, BRICK = 10, ROOF = 11, FENCE = 12, GLASS = 13, BED = 14, PATH = 15;
-var BLOCK_NAME = { 1: "дёрн", 2: "земля", 3: "камень", 4: "песок", 6: "бревно", 7: "листья", 8: "доски", 9: "руда", 10: "кирпич", 11: "черепица", 12: "забор", 13: "стекло", 14: "грядка", 15: "дорожка" };
+var W = 96, H = 20, D = 96, CH = 16, SEA = 3; /* SEA: deck level above the two water layers */
+var AIR = 0, GRASS = 1, DIRT = 2, STONE = 3, SAND = 4, WATER = 5, LOG = 6, LEAF = 7, PLANK = 8, ORE = 9, BRICK = 10, ROOF = 11, FENCE = 12, GLASS = 13, BED = 14, PATH = 15, SNOW = 16, ICE = 17, PIER = 18;
+var BLOCK_NAME = { 1: "дёрн", 2: "земля", 3: "камень", 4: "песок", 6: "бревно", 7: "листья", 8: "доски", 9: "руда", 10: "кирпич", 11: "черепица", 12: "забор", 13: "стекло", 14: "грядка", 15: "дорожка", 16: "снег", 17: "лёд", 18: "причал" };
+/* islands: the home one in the middle, four around it (bridges), one far corner (ship only) */
+var ISLANDS = [
+  { id: "home", name: "Блокоград", cx: 48, cz: 48, r: 17, kind: "home" },
+  { id: "rock", name: "Скалы", cx: 48, cz: 12, r: 10, kind: "rock", bridge: { x0: 47, x1: 49, z0: null, z1: null, axis: "z" } },
+  { id: "forest", name: "Лес", cx: 84, cz: 48, r: 10, kind: "forest", bridge: { axis: "x", z0: 47, z1: 49 } },
+  { id: "sand", name: "Пески", cx: 48, cz: 84, r: 10, kind: "sand", bridge: { axis: "z", x0: 47, x1: 49 } },
+  { id: "west", name: "Луга", cx: 12, cz: 48, r: 10, kind: "meadow", bridge: { axis: "x", z0: 47, z1: 49 } },
+  { id: "snow", name: "Снега", cx: 84, cz: 84, r: 9, kind: "snow", ship: true }
+];
+function islandById(id) { for (var i = 0; i < ISLANDS.length; i++) if (ISLANDS[i].id === id) return ISLANDS[i]; return null; }
+function islandAt(x, z) { var best = null, bd = 1e9; ISLANDS.forEach(function (I) { var d = Math.hypot(x - I.cx, z - I.cz) - I.r; if (d < bd) { bd = d; best = I; } }); return bd < 8 ? best : null; }
 var World = {
-  b: new Uint8Array(W * H * D), dirty: false,
+  b: new Uint8Array(W * H * D), dirty: false, dirtyChunks: {},
   idx: function (x, y, z) { return (y * D + z) * W + x; },
   get: function (x, y, z) { if (x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D) return AIR; return this.b[(y * D + z) * W + x]; },
-  set: function (x, y, z, v) { if (x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D) return; this.b[(y * D + z) * W + x] = v; this.dirty = true; },
-  top: function (x, z) { for (var y = H - 1; y >= 0; y--) { var v = this.b[(y * D + z) * W + x]; if (v && v !== WATER) return y; } return -1; },
-  encode: function () { var s = ""; for (var i = 0; i < this.b.length; i++) s += String.fromCharCode(this.b[i]); return btoa(s); },
-  decode: function (str) { var s = atob(str); for (var i = 0; i < this.b.length && i < s.length; i++) this.b[i] = s.charCodeAt(i); },
+  set: function (x, y, z, v) { if (x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D) return; this.b[(y * D + z) * W + x] = v; this.dirty = true; this.touch(x, z); if (x % CH === 0) this.touch(x - 1, z); if (x % CH === CH - 1) this.touch(x + 1, z); if (z % CH === 0) this.touch(x, z - 1); if (z % CH === CH - 1) this.touch(x, z + 1); },
+  touch: function (x, z) { if (x < 0 || z < 0 || x >= W || z >= D) return; this.dirtyChunks[((x / CH) | 0) + "," + ((z / CH) | 0)] = true; },
+  top: function (x, z) { if (x < 0 || z < 0 || x >= W || z >= D) return -1; for (var y = H - 1; y >= 0; y--) { var v = this.b[(y * D + z) * W + x]; if (v && v !== WATER) return y; } return -1; },
+  isWater: function (x, z) { return this.get(x, 1, z) === WATER && this.top(x, z) <= 0; },
+  encode: function () {
+    /* run-length: pairs of (value, count) with count up to 255, as base64 */
+    var out = [], b = this.b, i = 0; while (i < b.length) { var v = b[i], n = 1; while (i + n < b.length && b[i + n] === v && n < 255) n++; out.push(v, n); i += n; }
+    var s = ""; for (var k = 0; k < out.length; k++) s += String.fromCharCode(out[k]); return "rle:" + btoa(s);
+  },
+  decode: function (str) {
+    if (str.slice(0, 4) !== "rle:") return false;
+    var s = atob(str.slice(4)), p = 0; for (var k = 0; k + 1 < s.length; k += 2) { var v = s.charCodeAt(k), n = s.charCodeAt(k + 1); for (var j = 0; j < n && p < this.b.length; j++) this.b[p++] = v; }
+    return p === this.b.length;
+  },
   generate: function (seed) {
-    var rnd = mulberry(seed);
-    var b = this.b; b.fill(0);
+    var rnd = mulberry(seed), b = this.b, self = this; b.fill(0);
     var n1 = [], n2 = []; for (var i = 0; i < 64; i++) { n1.push(rnd()); n2.push(rnd()); }
     function noise(arr, x, z, sc) { var fx = x / sc, fz = z / sc, ix = Math.floor(fx), iz = Math.floor(fz), tx = fx - ix, tz = fz - iz; function v(a, c) { return arr[((a & 7) * 8 + (c & 7))]; } var a = v(ix, iz), bb = v(ix + 1, iz), c = v(ix, iz + 1), d = v(ix + 1, iz + 1); tx = tx * tx * (3 - 2 * tx); tz = tz * tz * (3 - 2 * tz); return (a * (1 - tx) + bb * tx) * (1 - tz) + (c * (1 - tx) + d * tx) * tz; }
-    var hm = [];
+    var hm = new Int8Array(W * D), kind = [];
     for (var z = 0; z < D; z++) for (var x = 0; x < W; x++) {
-      var dx = (x - 15.5) / 15.5, dz = (z - 15.5) / 15.5, r = Math.sqrt(dx * dx + dz * dz);
-      var e = 1 - r * r * 1.15 + noise(n1, x, z, 9) * 0.5 + noise(n2, x, z, 4) * 0.2;
-      var hgt = Math.max(0, Math.min(9, Math.floor(e * 5.2)));
-      hm.push(hgt);
+      var best = 0, bk = null;
+      ISLANDS.forEach(function (I) { var r = Math.hypot(x - I.cx, z - I.cz) / I.r; var e = 1 - r * r * 1.15 + noise(n1, x, z, 9) * 0.45 + noise(n2, x, z, 4) * 0.2; if (e > best) { best = e; bk = I; } });
+      var hgt = best <= 0 ? 0 : Math.max(0, Math.min(11, SEA + Math.floor(best * (bk.kind === "rock" ? 6.5 : bk.kind === "sand" ? 2.6 : 4.4))));
+      if (best > 0 && hgt < SEA) hgt = SEA - 1 + (best > 0.12 ? 1 : 0);
+      hm[z * W + x] = hgt; kind[z * W + x] = bk ? bk.kind : null;
     }
     for (z = 0; z < D; z++) for (x = 0; x < W; x++) {
-      var hh = hm[z * W + x];
-      if (hh < 2) { for (var y = 0; y <= 1; y++) b[this.idx(x, y, z)] = y === 0 ? SAND : WATER; if (hh === 1) b[this.idx(x, 1, z)] = SAND; continue; }
-      for (y = 0; y <= hh; y++) {
-        var t = y === hh ? (hh <= 2 ? SAND : GRASS) : (y >= hh - 2 ? DIRT : STONE);
-        if (hh >= 7 && y >= hh - 1) t = STONE;
-        b[this.idx(x, y, z)] = t;
+      var hh = hm[z * W + x], k = kind[z * W + x];
+      if (hh < SEA) { b[self.idx(x, 0, z)] = SAND; b[self.idx(x, 1, z)] = WATER; b[self.idx(x, 2, z)] = hh === SEA - 1 ? SAND : WATER; continue; }
+      for (var y = 0; y <= hh; y++) {
+        var t;
+        if (y === hh) t = hh <= SEA ? SAND : (k === "snow" ? SNOW : (k === "rock" && hh >= SEA + 4 ? STONE : GRASS));
+        else t = y >= hh - 2 ? DIRT : STONE;
+        if (k === "rock" && y >= SEA + 1 && hh >= SEA + 4) t = STONE;
+        if (k === "snow" && y === hh - 1) t = DIRT;
+        b[self.idx(x, y, z)] = t;
       }
     }
-    /* flatten the village square at the island's usual height */
-    for (z = 14; z <= 23; z++) for (x = 9; x <= 23; x++) { for (y = 0; y < H; y++) b[this.idx(x, y, z)] = y < 3 ? STONE : (y === 3 ? DIRT : (y === 4 ? GRASS : AIR)); }
-    for (z = 17; z <= 20; z++) for (x = 13; x <= 19; x++) b[this.idx(x, 4, z)] = PATH;
-    /* rock outcrops to mine: stone mounds with ore inside */
-    [[5, 7], [26, 8], [6, 26], [26, 26], [16, 4], [16, 28]].forEach(function (c) {
-      var cx = c[0], cz = c[1]; if (World.top(cx, cz) < 3) return;
-      for (var dx = -3; dx <= 3; dx++) for (var dz = -3; dz <= 3; dz++) { var xx = cx + dx, zz = cz + dz; if (xx < 1 || zz < 1 || xx >= W - 1 || zz >= D - 1) continue; var r = Math.abs(dx) + Math.abs(dz); if (r > 4) continue; var base = World.top(xx, zz); if (base < 3) continue; var add = r <= 1 ? 4 : (r <= 2 ? 3 : (r <= 3 ? 2 : 1)); for (var k = 1; k <= add && base + k < H; k++) b[World.idx(xx, base + k, zz)] = STONE; }
-    });
-    /* trees */
-    var trees = 0, tries = 0;
-    while (trees < 9 && tries++ < 300) {
-      x = 2 + Math.floor(rnd() * 28); z = 2 + Math.floor(rnd() * 28);
-      var ty = this.top(x, z); if (ty < 3 || b[this.idx(x, ty, z)] !== GRASS) continue;
-      if (x >= 8 && x <= 24 && z >= 13 && z <= 24) continue;
-      for (y = 1; y <= 3; y++) b[this.idx(x, ty + y, z)] = LOG;
-      for (var lx = -1; lx <= 1; lx++) for (var lz = -1; lz <= 1; lz++) for (var ly = 3; ly <= 4; ly++) { if (ly === 4 && Math.abs(lx) + Math.abs(lz) > 1) continue; if (lx === 0 && lz === 0 && ly === 3) continue; var xx = x + lx, zz = z + lz, yy = ty + ly; if (xx >= 0 && xx < W && zz >= 0 && zz < D && yy < H && !b[this.idx(xx, yy, zz)]) b[this.idx(xx, yy, zz)] = LEAF; }
+    /* the village square on the home island, levelled at the height the land already has there */
+    var ring = []; for (z = 40; z <= 56; z += 2) for (x = 38; x <= 58; x += 2) ring.push(hm[z * W + x]); ring.sort(function (a, b) { return a - b; });
+    var SQ = Math.max(SEA + 1, ring[Math.floor(ring.length / 2)]);
+    for (z = 42; z <= 54; z++) for (x = 40; x <= 56; x++) { for (y = 0; y < H; y++) b[self.idx(x, y, z)] = y < SQ - 1 ? STONE : (y === SQ - 1 ? DIRT : (y === SQ ? GRASS : AIR)); hm[z * W + x] = SQ; }
+    /* soften the edge of the square so the hero can walk out in every direction */
+    for (z = 38; z <= 58; z++) for (x = 36; x <= 60; x++) { var inside = x >= 40 && x <= 56 && z >= 42 && z <= 54; if (inside) continue; var dEdge = Math.max(40 - x, x - 56, 42 - z, z - 54, 0); var want = SQ + Math.sign(hm[z * W + x] - SQ) * Math.min(Math.abs(hm[z * W + x] - SQ), dEdge); if (want === hm[z * W + x] || hm[z * W + x] < SEA) continue; for (y = 0; y < H; y++) b[self.idx(x, y, z)] = y < want - 2 ? STONE : (y < want ? DIRT : (y === want ? GRASS : AIR)); hm[z * W + x] = want; }
+    for (z = 46; z <= 50; z++) for (x = 44; x <= 52; x++) b[self.idx(x, SQ, z)] = PATH;
+    /* flatten a small plaza on each other island for its villager */
+    ISLANDS.forEach(function (I) { if (I.id === "home") return; var py = Math.max(SEA + 1, hm[I.cz * W + I.cx]); for (var zz = I.cz - 2; zz <= I.cz + 2; zz++) for (var xx = I.cx - 2; xx <= I.cx + 2; xx++) { for (var yy = 0; yy < H; yy++) b[self.idx(xx, yy, zz)] = yy < py - 1 ? STONE : (yy === py - 1 ? DIRT : (yy === py ? (I.kind === "snow" ? SNOW : I.kind === "sand" ? SAND : PATH) : AIR)); } });
+    /* trees: dense in the forest, a few elsewhere */
+    var tries = 0, trees = 0;
+    while (trees < 70 && tries++ < 6000) {
+      x = 2 + Math.floor(rnd() * (W - 4)); z = 2 + Math.floor(rnd() * (D - 4));
+      var k2 = kind[z * W + x]; if (!k2 || k2 === "sand" || k2 === "snow") continue;
+      if (k2 !== "forest" && rnd() < 0.72) continue;
+      var ty = self.top(x, z); if (ty < SEA + 1 || b[self.idx(x, ty, z)] !== GRASS) continue;
+      if (x >= 38 && x <= 58 && z >= 40 && z <= 56) continue;
+      var near = ISLANDS.some(function (I) { return I.id !== "home" && Math.abs(x - I.cx) <= 3 && Math.abs(z - I.cz) <= 3; }); if (near) continue;
+      if (Math.abs(x - 48) <= 2 || Math.abs(z - 48) <= 2) continue; /* keep bridge lanes clear */
+      for (y = 1; y <= 3; y++) b[self.idx(x, ty + y, z)] = LOG;
+      for (var lx = -1; lx <= 1; lx++) for (var lz = -1; lz <= 1; lz++) for (var ly = 3; ly <= 4; ly++) { if (ly === 4 && Math.abs(lx) + Math.abs(lz) > 1) continue; if (lx === 0 && lz === 0 && ly === 3) continue; var xx = x + lx, zz = z + lz, yy = ty + ly; if (xx >= 0 && xx < W && zz >= 0 && zz < D && yy < H && !b[self.idx(xx, yy, zz)]) b[self.idx(xx, yy, zz)] = LEAF; }
       trees++;
     }
-    this.seedOre(rnd, 40);
-    this.dirty = true;
+    /* rock outcrops with ore on the home island and the rocky island */
+    [[36, 36], [60, 38], [38, 60], [60, 60], [48, 8], [42, 14], [54, 14]].forEach(function (c) {
+      var cx = c[0], cz = c[1]; if (self.top(cx, cz) < SEA) return;
+      for (var dx = -3; dx <= 3; dx++) for (var dz = -3; dz <= 3; dz++) { var xx = cx + dx, zz = cz + dz; var r = Math.abs(dx) + Math.abs(dz); if (r > 4) continue; var base = self.top(xx, zz); if (base < SEA) continue; if (Math.abs(xx - 48) <= 2 && zz > 20 && zz < 76 && false) continue; var add = r <= 1 ? 4 : (r <= 2 ? 3 : (r <= 3 ? 2 : 1)); for (var k3 = 1; k3 <= add && base + k3 < H; k3++) b[self.idx(xx, base + k3, zz)] = STONE; }
+    });
+    /* ice floes near the snow island */
+    for (z = 70; z < 96; z++) for (x = 70; x < 96; x++) if (hm[z * W + x] < SEA && noise(n2, x, z, 3) > 0.72) b[self.idx(x, 2, z)] = ICE;
+    /* piers: a wooden landing on each shore where a bridge starts and ends */
+    this.computeBridges();
+    ISLANDS.forEach(function (I) { if (!I.bridge) return; var B = I.bridge; B.cells.forEach(function (c) { if (c.pier) { for (var yy = 0; yy <= SEA; yy++) b[self.idx(c.x, yy, c.z)] = yy === SEA ? PIER : (yy === 0 ? SAND : STONE); } }); });
+    /* the ship landing on the sand island and on the snow island */
+    [[48, 92], [92, 84]].forEach(function (p) { for (var dz = -1; dz <= 1; dz++) for (var dx = -1; dx <= 1; dx++) { var xx = p[0] + dx, zz = p[1] + dz; if (xx >= W || zz >= D) continue; for (var yy = 0; yy <= SEA; yy++) b[self.idx(xx, yy, zz)] = yy === SEA ? PIER : (yy === 0 ? SAND : STONE); } });
+    this.seedOre(rnd, 60);
+    this.dirty = true; this.dirtyChunks = {}; this.touchAll();
   },
+  computeBridges: function () {
+    /* a bridge is the straight strip of water between the home shore and the island shore, three blocks wide */
+    var self = this;
+    ISLANDS.forEach(function (I) {
+      if (!I.bridge) return; var B = I.bridge, cells = [], lanes = B.axis === "z" ? [47, 48, 49] : [47, 48, 49];
+      var from, to, step;
+      if (B.axis === "z") { if (I.cz < 48) { from = 48; to = I.cz; step = -1; } else { from = 48; to = I.cz; step = 1; } }
+      else { if (I.cx < 48) { from = 48; to = I.cx; step = -1; } else { from = 48; to = I.cx; step = 1; } }
+      var water = [];
+      for (var p = from; p !== to; p += step) { var x = B.axis === "z" ? 48 : p, z = B.axis === "z" ? p : 48; var isW = self.isWater(x, z); water.push({ p: p, w: isW }); }
+      var first = -1, last = -1; for (var i = 0; i < water.length; i++) if (water[i].w) { if (first < 0) first = i; last = i; }
+      if (first < 0) { B.cells = []; B.len = 0; return; }
+      var pA = water[first].p, pB = water[last].p;
+      lanes.forEach(function (l) { for (var q = pA; q !== pB + step; q += step) { var x = B.axis === "z" ? l : q, z = B.axis === "z" ? q : l; cells.push({ x: x, z: z, y: SEA }); } });
+      /* the pier cells sit one step before the first water cell and one after the last */
+      lanes.forEach(function (l) { [pA - step, pB + step].forEach(function (q) { var x = B.axis === "z" ? l : q, z = B.axis === "z" ? q : l; cells.push({ x: x, z: z, y: SEA, pier: true }); }); });
+      B.cells = cells; B.len = Math.abs(pB - pA) + 1; B.width = 3;
+      B.x0 = Math.min.apply(null, cells.filter(function (c) { return !c.pier; }).map(function (c) { return c.x; })); B.x1 = Math.max.apply(null, cells.filter(function (c) { return !c.pier; }).map(function (c) { return c.x; }));
+      B.z0 = Math.min.apply(null, cells.filter(function (c) { return !c.pier; }).map(function (c) { return c.z; })); B.z1 = Math.max.apply(null, cells.filter(function (c) { return !c.pier; }).map(function (c) { return c.z; }));
+    });
+  },
+  bridgeDone: function (I) { var B = I.bridge; if (!B || !B.cells) return false; return B.cells.every(function (c) { return c.pier || World.get(c.x, SEA, c.z) !== AIR; }); },
+  touchAll: function () { for (var cx = 0; cx < W / CH; cx++) for (var cz = 0; cz < D / CH; cz++) this.dirtyChunks[cx + "," + cz] = true; },
   seedOre: function (rnd, count) {
     rnd = rnd || Math.random; var b = this.b, placed = 0, tries = 0;
-    while (placed < count && tries++ < 4000) {
-      var x = Math.floor(rnd() * W), z = Math.floor(rnd() * D), y = 1 + Math.floor(rnd() * 7);
+    while (placed < count && tries++ < 8000) {
+      var x = Math.floor(rnd() * W), z = Math.floor(rnd() * D), y = 1 + Math.floor(rnd() * 9);
       var i = this.idx(x, y, z); if (b[i] !== STONE) continue;
       var exposed = false; [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, -1]].forEach(function (d) { var v = World.get(x + d[0], y + d[1], z + d[2]); if (v === AIR) exposed = true; });
       if (!exposed) continue;
-      b[i] = ORE; placed++;
+      b[i] = ORE; placed++; this.touch(x, z);
     }
     this.dirty = true;
   },
-  countOre: function () { var n = 0; for (var i = 0; i < this.b.length; i++) if (this.b[i] === ORE) n++; return n; }
+  countOre: function () { var n = 0; for (var i = 0; i < this.b.length; i++) if (this.b[i] === ORE) n++; return n; },
+  /* walking: a column is walkable when its top is solid ground (not water, not a tree) and the step is at most one block */
+  walkTop: function (x, z) { var y = this.top(x, z); if (y < 0) return -1; var t = this.get(x, y, z); if (t === LEAF || t === LOG || t === WATER) return -1; if (this.get(x, y + 1, z) !== AIR) return -1; return y; },
+  path: function (x0, z0, x1, z1, maxLen) {
+    maxLen = maxLen || W * D; var key = function (x, z) { return z * W + x; }; var start = key(x0, z0), goal = key(x1, z1);
+    if (this.walkTop(x1, z1) < 0) return null;
+    var prev = new Int32Array(W * D).fill(-1), q = [start], qi = 0; prev[start] = start;
+    while (qi < q.length && qi < maxLen) {
+      var cur = q[qi++]; if (cur === goal) break; var cx = cur % W, cz = (cur / W) | 0, cy = this.walkTop(cx, cz);
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var nx = cx + d[0], nz = cz + d[1]; if (nx < 0 || nz < 0 || nx >= W || nz >= D) return; var k = key(nx, nz); if (prev[k] >= 0) return; var ny = World.walkTop(nx, nz); if (ny < 0 || Math.abs(ny - cy) > 1) return; prev[k] = cur; q.push(k); });
+    }
+    if (prev[goal] < 0) return null;
+    var out = [], k2 = goal; while (k2 !== start) { out.push({ x: k2 % W, z: (k2 / W) | 0 }); k2 = prev[k2]; } return out.reverse();
+  }
 };
+function surfaceY(x, z) { return World.isWater(x, z) ? SEA : World.top(x, z) + 1; }
 
 /* ===================== RENDER ===================== */
-var R = { angle: 0, azTarget: 0, az: 0, zoom: 22, target: new THREE.Vector3(16, 4, 18), hot: null };
-var scene, camera, renderer, atlasTex, terrain, water, frameMesh, missMesh, sunLight, hemi, spriteGroup, outlineMesh;
-var TILES = {}; /* type -> [top, side, bottom] tile index */
+var R = { azTarget: 0, az: 0, zoom: 22, target: new THREE.Vector3(48, 4, 50) };
+var scene, camera, renderer, atlasTex, chunks = {}, chunkMeshes = [], waterMeshes = [], frameMesh, missMesh, sunLight, hemi, spriteGroup, outlineMesh, matOpaque, matWater;
+var TILES = {};
 function makeAtlas() {
-  var N = 20, c = document.createElement("canvas"); c.width = 16 * N; c.height = 16; var g = c.getContext("2d");
+  var N = 24, c = document.createElement("canvas"); c.width = 16 * N; c.height = 16; var g = c.getContext("2d");
   var rnd = mulberry(7);
   function tile(i, base, spots, spotColor, amount, fn) {
     g.fillStyle = base; g.fillRect(i * 16, 0, 16, 16);
@@ -543,9 +666,12 @@ function makeAtlas() {
   tile(14, "#bfe9ff", 0, "#ffffff", 10); g.fillStyle = "#7fc8ef"; g.fillRect(224, 0, 16, 1); g.fillRect(224, 0, 1, 16); g.fillRect(224, 15, 16, 1); g.fillRect(239, 0, 1, 16);
   tile(15, "#5a3a1e", 0, "#3f2814", 30); g.fillStyle = "#6e4a26"; for (var xx = 1; xx < 16; xx += 3) g.fillRect(240 + xx, 0, 1, 16);
   tile(16, "#b9ad92", 0, "#9d9178", 30); tile(16, "#b9ad92", 0, "#cfc3a8", 18);
-  tile(17, "#c9a063", 0, "#a67d45", 16);
+  tile(17, "#f4f8ff", 0, "#dfe8f5", 24); tile(17, "#f4f8ff", 0, "#ffffff", 20);
+  tile(18, "#bfe3f5", 0, "#9ccbe6", 16); g.fillStyle = "#e8f6ff"; g.fillRect(288 + 3, 2, 1, 7); g.fillRect(288 + 9, 6, 1, 8);
+  tile(19, "#a87a48", 0, "#7d5a32", 20); g.fillStyle = "#6b4423"; for (yy = 0; yy < 16; yy += 5) g.fillRect(304, yy, 16, 1);
   TILES[GRASS] = [0, 1, 2]; TILES[DIRT] = [2, 2, 2]; TILES[STONE] = [3, 3, 3]; TILES[SAND] = [4, 4, 4]; TILES[WATER] = [5, 5, 5]; TILES[LOG] = [7, 6, 7]; TILES[LEAF] = [8, 8, 8];
   TILES[PLANK] = [9, 9, 9]; TILES[ORE] = [10, 10, 10]; TILES[BRICK] = [12, 12, 12]; TILES[ROOF] = [11, 11, 11]; TILES[FENCE] = [13, 13, 13]; TILES[GLASS] = [14, 14, 14]; TILES[BED] = [15, 2, 2]; TILES[PATH] = [16, 16, 16];
+  TILES[SNOW] = [17, 17, 2]; TILES[ICE] = [18, 18, 18]; TILES[PIER] = [19, 19, 19];
   var tex = new THREE.CanvasTexture(c); tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
   return { tex: tex, n: N, canvas: c };
 }
@@ -557,10 +683,11 @@ var FACES = [
   { n: [0, 0, 1], v: [[1, 0, 1], [1, 1, 1], [0, 1, 1], [0, 0, 1]], s: 0.8 },
   { n: [0, 0, -1], v: [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0]], s: 0.68 }
 ];
-function buildGeometry(filter, isOpen) {
-  var pos = [], nor = [], uv = [], col = [], idx = [], vi = 0, nT = atlasTex.n;
-  var b = World.b;
-  for (var y = 0; y < H; y++) for (var z = 0; z < D; z++) for (var x = 0; x < W; x++) {
+function isTransparent(t) { return t === AIR || t === WATER || t === GLASS || t === ICE; }
+function buildChunkGeometry(cx, cz, filter, isOpen) {
+  var pos = [], nor = [], uv = [], col = [], idx = [], vi = 0, nT = atlasTex.n, b = World.b;
+  var x0 = cx * CH, z0 = cz * CH;
+  for (var y = 0; y < H; y++) for (var z = z0; z < z0 + CH; z++) for (var x = x0; x < x0 + CH; x++) {
     var t = b[(y * D + z) * W + x]; if (!t || !filter(t)) continue;
     var tiles = TILES[t] || [3, 3, 3];
     for (var f = 0; f < 6; f++) {
@@ -582,28 +709,36 @@ function buildGeometry(filter, isOpen) {
   g.setIndex(idx);
   return g;
 }
-function rebuildTerrain() {
-  if (terrain) { terrain.geometry.dispose(); }
-  if (water) { water.geometry.dispose(); }
-  var gOpaque = buildGeometry(function (t) { return t !== WATER; }, function (nb, t) { return nb === AIR || nb === WATER || (nb === GLASS && t !== GLASS); });
-  var gWater = buildGeometry(function (t) { return t === WATER; }, function (nb) { return nb === AIR; });
-  if (!terrain) {
-    terrain = new THREE.Mesh(gOpaque, new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true })); scene.add(terrain);
-    water = new THREE.Mesh(gWater, new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true, transparent: true, opacity: 0.75 })); scene.add(water);
-  } else { terrain.geometry = gOpaque; water.geometry = gWater; }
+function rebuildTerrain(all) {
+  var keys = all ? null : Object.keys(World.dirtyChunks);
+  if (all) World.touchAll();
+  keys = Object.keys(World.dirtyChunks);
+  keys.forEach(function (key) {
+    var p = key.split(",").map(Number), cx = p[0], cz = p[1];
+    var ch = chunks[key];
+    var gO = buildChunkGeometry(cx, cz, function (t) { return t !== WATER; }, function (nb, t) { return isTransparent(nb) && nb !== t; });
+    var gW = buildChunkGeometry(cx, cz, function (t) { return t === WATER; }, function (nb) { return nb === AIR; });
+    if (!ch) {
+      ch = chunks[key] = { o: new THREE.Mesh(gO, matOpaque), w: new THREE.Mesh(gW, matWater) };
+      scene.add(ch.o); scene.add(ch.w); chunkMeshes.push(ch.o); waterMeshes.push(ch.w);
+    } else { ch.o.geometry.dispose(); ch.w.geometry.dispose(); ch.o.geometry = gO; ch.w.geometry = gW; }
+  });
+  World.dirtyChunks = {};
 }
 function initRender() {
   scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fd3ff);
   renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   $("c3d").appendChild(renderer.domElement);
-  camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -200, 400);
+  camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -300, 600);
   atlasTex = makeAtlas();
+  matOpaque = new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true });
+  matWater = new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true, transparent: true, opacity: 0.75 });
   hemi = new THREE.HemisphereLight(0xdff3ff, 0x6b4423, 0.9); scene.add(hemi);
   sunLight = new THREE.DirectionalLight(0xffffff, 1.6); scene.add(sunLight);
   spriteGroup = new THREE.Group(); scene.add(spriteGroup);
   frameMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: 0x4caf50, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false })); scene.add(frameMesh);
-  missMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xe5484d, linewidth: 2 })); scene.add(missMesh);
+  missMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xe5484d })); scene.add(missMesh);
   outlineMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffffff })); scene.add(outlineMesh);
   resize(); window.addEventListener("resize", resize);
 }
@@ -615,23 +750,21 @@ function resize() {
 function updateCamera() {
   var az = (R.az + 45) * Math.PI / 180, el = 35.264 * Math.PI / 180;
   var dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
-  camera.position.copy(R.target).addScaledVector(dir, 80); camera.lookAt(R.target); camera.updateMatrixWorld();
+  camera.position.copy(R.target).addScaledVector(dir, 120); camera.lookAt(R.target); camera.updateMatrixWorld();
 }
 function setSun(t) {
-  /* t: 0 sunrise .. 1 sunset; sky, light and the HUD arc follow */
   var a = Math.PI * Math.min(1, Math.max(0, t));
-  sunLight.position.set(Math.cos(a) * 40 + 16, Math.sin(a) * 50 + 8, 26); sunLight.target.position.set(16, 4, 16); sunLight.target.updateMatrixWorld();
+  sunLight.position.set(Math.cos(a) * 60 + 48, Math.sin(a) * 70 + 10, 70); sunLight.target.position.set(48, 4, 48); sunLight.target.updateMatrixWorld();
   var day = Math.sin(a); var dusk = Math.max(0, 1 - day * 4) * 0.5;
   sunLight.intensity = 0.5 + day * 1.3; hemi.intensity = 0.45 + day * 0.5;
-  var c = new THREE.Color(0x8fd3ff).lerp(new THREE.Color(0xffb37a), dusk * 0.8); if (t >= 1) c = new THREE.Color(0x1a2550);
+  var c = new THREE.Color(0x8fd3ff).lerp(new THREE.Color(0xffb37a), dusk * 0.8); if (t >= 1) { c = new THREE.Color(0x1a2550); sunLight.intensity = 0.25; hemi.intensity = 0.35; }
   scene.background = c; document.body.style.background = "#" + c.getHexString();
   var dot = $("sundot"); dot.setAttribute("cx", 6 + 84 * t); dot.setAttribute("cy", 36 - 34 * Math.sin(a));
   $("daylbl").textContent = t >= 1 ? "ночь" : (t < 0.25 ? "утро" : (t < 0.6 ? "день" : (t < 0.85 ? "вечер" : "закат")));
 }
 /* --- sprites (pixel art drawn on canvas) --- */
-var spriteCache = {};
 function pixelCanvas(w, hh, fn) { var c = document.createElement("canvas"); c.width = w; c.height = hh; var g = c.getContext("2d"); g.imageSmoothingEnabled = false; fn(g); return c; }
-var SKINS = [["#3b6ea5", "#f1c27d", "#6b4423"], ["#a53b6e", "#f1c27d", "#e9e9e9"], ["#2e9d5c", "#d9a066", "#222"], ["#c0392b", "#f1c27d", "#8a5a2e"], ["#8e44ad", "#f1c27d", "#f1c40f"], ["#e67e22", "#d9a066", "#444"]];
+var SKINS = [["#3b6ea5", "#f1c27d", "#6b4423"], ["#a53b6e", "#f1c27d", "#e9e9e9"], ["#2e9d5c", "#d9a066", "#222"], ["#c0392b", "#f1c27d", "#8a5a2e"], ["#8e44ad", "#f1c27d", "#f1c40f"], ["#e67e22", "#d9a066", "#444"], ["#1f8a8a", "#f1c27d", "#2c3e50"], ["#d35400", "#d9a066", "#ecf0f1"], ["#27ae60", "#f1c27d", "#7f8c8d"]];
 function drawVillager(g, skin, tool) {
   var s = SKINS[skin % SKINS.length];
   g.fillStyle = s[2]; g.fillRect(5, 1, 6, 3); g.fillRect(4, 2, 8, 2);
@@ -645,24 +778,49 @@ function drawVillager(g, skin, tool) {
   if (tool === "coin") { g.fillStyle = "#ffc83d"; g.fillRect(12, 9, 3, 3); }
   if (tool === "rod") { g.fillStyle = "#6b4423"; g.fillRect(14, 2, 1, 14); }
   if (tool === "broom") { g.fillStyle = "#8a5a2e"; g.fillRect(14, 6, 1, 12); g.fillStyle = "#e0c060"; g.fillRect(13, 18, 3, 4); }
+  if (tool === "pick") { g.fillStyle = "#6b4423"; g.fillRect(13, 5, 1, 10); g.fillStyle = "#9aa4ab"; g.fillRect(11, 4, 5, 2); }
+  if (tool === "axe") { g.fillStyle = "#6b4423"; g.fillRect(13, 5, 1, 10); g.fillStyle = "#9aa4ab"; g.fillRect(13, 4, 3, 3); }
+  if (tool === "cap") { g.fillStyle = "#1c2a4a"; g.fillRect(4, 0, 8, 2); g.fillRect(3, 2, 10, 1); }
+  if (tool === "lamp") { g.fillStyle = "#3a3a3a"; g.fillRect(14, 8, 1, 6); g.fillStyle = "#ffe08a"; g.fillRect(13, 5, 3, 3); }
+}
+function drawPlayer(g, walking) {
+  g.fillStyle = "#ffc83d"; g.fillRect(4, 0, 8, 2); g.fillRect(3, 2, 10, 1);
+  g.fillStyle = "#f1c27d"; g.fillRect(5, 3, 6, 5);
+  g.fillStyle = "#222"; g.fillRect(6, 5, 1, 1); g.fillRect(9, 5, 1, 1);
+  g.fillStyle = "#2f80ed"; g.fillRect(4, 8, 8, 8); g.fillRect(2, 9, 2, 5); g.fillRect(12, 9, 2, 5);
+  g.fillStyle = "#f1c27d"; g.fillRect(2, 14, 2, 2); g.fillRect(12, 14, 2, 2);
+  g.fillStyle = "#1c2a4a"; if (walking) { g.fillRect(4, 16, 2, 7); g.fillRect(10, 16, 2, 7); } else { g.fillRect(5, 16, 2, 7); g.fillRect(9, 16, 2, 7); }
+  g.fillStyle = "#c58a3c"; g.fillRect(12, 8, 3, 5);
+}
+function drawGremlin(g, t) {
+  g.fillStyle = "#7d4bb5"; g.fillRect(3, 10 + (t ? 1 : 0), 10, 10); g.fillRect(5, 7 + (t ? 1 : 0), 6, 4);
+  g.fillStyle = "#b084e6"; g.fillRect(4, 11, 2, 2); g.fillRect(9, 15, 2, 2);
+  g.fillStyle = "#ffe08a"; g.fillRect(5, 12, 2, 2); g.fillRect(9, 12, 2, 2);
+  g.fillStyle = "#222"; g.fillRect(6, 13, 1, 1); g.fillRect(10, 13, 1, 1);
+  g.fillStyle = "#7d4bb5"; g.fillRect(2, 20, 3, 3); g.fillRect(11, 20, 3, 3); g.fillRect(4, 5, 2, 3); g.fillRect(10, 5, 2, 3);
 }
 function propCanvas(kind, label) {
   return pixelCanvas(16, 24, function (g) {
     if (kind === "villager") { drawVillager(g, 3, "hammer"); }
     else if (kind === "flower") { g.fillStyle = "#2f6f26"; g.fillRect(7, 12, 2, 12); g.fillStyle = "#ffffff"; g.fillRect(5, 8, 6, 6); g.fillStyle = "#ffc83d"; g.fillRect(7, 10, 2, 2); g.fillStyle = "#2f6f26"; g.fillRect(3, 16, 4, 2); g.fillRect(9, 18, 4, 2); }
     else if (kind === "lamp") { g.fillStyle = "#3a3a3a"; g.fillRect(7, 8, 2, 16); g.fillStyle = "#ffe08a"; g.fillRect(4, 2, 8, 7); g.fillStyle = "#3a3a3a"; g.fillRect(4, 1, 8, 1); g.fillRect(4, 9, 8, 1); }
+    else if (kind === "lampoff") { g.fillStyle = "#3a3a3a"; g.fillRect(7, 8, 2, 16); g.fillStyle = "#6a6a6a"; g.fillRect(4, 2, 8, 7); g.fillStyle = "#3a3a3a"; g.fillRect(4, 1, 8, 1); g.fillRect(4, 9, 8, 1); }
     else if (kind === "flag") { g.fillStyle = "#6b4423"; g.fillRect(3, 0, 2, 24); g.fillStyle = "#e5484d"; g.fillRect(5, 1, 10, 7); g.fillStyle = "#ffc83d"; g.fillRect(8, 3, 3, 3); }
     else if (kind === "tree") { g.fillStyle = "#6b4423"; g.fillRect(7, 12, 2, 12); g.fillStyle = "#3e8f32"; g.fillRect(3, 2, 10, 11); g.fillStyle = "#56b347"; g.fillRect(5, 4, 4, 4); }
     else if (kind === "well") { g.fillStyle = "#8d9399"; g.fillRect(2, 14, 12, 10); g.fillStyle = "#6b4423"; g.fillRect(3, 4, 2, 10); g.fillRect(11, 4, 2, 10); g.fillStyle = "#b85c3a"; g.fillRect(1, 2, 14, 3); g.fillStyle = "#3f8fe0"; g.fillRect(4, 16, 8, 2); }
     else if (kind === "mill") { g.fillStyle = "#8a5a2e"; g.fillRect(5, 10, 6, 14); g.fillStyle = "#e0c9a8"; g.fillRect(7, 1, 2, 12); g.fillRect(2, 6, 12, 2); g.fillStyle = "#b85c3a"; g.fillRect(4, 8, 8, 3); }
     else if (kind === "boat") { g.fillStyle = "#8a5a2e"; g.fillRect(1, 16, 14, 5); g.fillRect(3, 21, 10, 2); g.fillStyle = "#6b4423"; g.fillRect(7, 4, 2, 12); g.fillStyle = "#ffffff"; g.fillRect(9, 5, 5, 9); }
+    else if (kind === "ship") { g.fillStyle = "#6b4423"; g.fillRect(0, 15, 16, 6); g.fillRect(2, 21, 12, 2); g.fillStyle = "#4e3017"; g.fillRect(7, 2, 2, 13); g.fillStyle = "#fff6dc"; g.fillRect(9, 3, 6, 10); g.fillRect(1, 5, 6, 8); g.fillStyle = "#e5484d"; g.fillRect(7, 0, 4, 2); }
     else if (kind === "bridge") { g.fillStyle = "#c9a063"; g.fillRect(0, 12, 16, 4); g.fillStyle = "#8a5a2e"; g.fillRect(1, 8, 2, 4); g.fillRect(13, 8, 2, 4); g.fillRect(7, 8, 2, 4); g.fillRect(1, 8, 14, 1); }
     else if (kind === "shop") { g.fillStyle = "#c9a063"; g.fillRect(1, 8, 14, 16); g.fillStyle = "#b85c3a"; g.fillRect(0, 4, 16, 5); g.fillStyle = "#6b4423"; g.fillRect(6, 16, 4, 8); g.fillStyle = "#ffe08a"; g.fillRect(2, 11, 3, 3); g.fillRect(11, 11, 3, 3); }
     else if (kind === "snowman") { g.fillStyle = "#ffffff"; g.fillRect(4, 12, 8, 12); g.fillRect(5, 4, 6, 8); g.fillStyle = "#222"; g.fillRect(6, 6, 1, 1); g.fillRect(9, 6, 1, 1); g.fillRect(4, 1, 8, 3); g.fillStyle = "#ff7f00"; g.fillRect(7, 8, 3, 1); }
     else if (kind === "fence") { g.fillStyle = "#c9a063"; g.fillRect(0, 10, 16, 2); g.fillRect(0, 16, 16, 2); for (var i = 1; i < 16; i += 4) g.fillRect(i, 8, 2, 14); }
     else if (kind === "paint") { g.fillStyle = "#9aa4ab"; g.fillRect(3, 10, 10, 12); g.fillStyle = "#e5484d"; g.fillRect(3, 10, 10, 3); g.fillStyle = "#555"; g.fillRect(2, 8, 12, 2); }
+    else if (kind === "oil") { g.fillStyle = "#6b4423"; g.fillRect(4, 8, 8, 14); g.fillStyle = "#3a3a3a"; g.fillRect(6, 5, 4, 3); g.fillStyle = "#ffe08a"; g.fillRect(6, 12, 4, 6); }
     else if (kind === "sign") { g.fillStyle = "#6b4423"; g.fillRect(7, 10, 2, 14); g.fillStyle = "#d9b66a"; g.fillRect(1, 2, 14, 9); g.fillStyle = "#3f2814"; g.fillRect(2, 4, 12, 1); g.fillRect(2, 7, 9, 1); }
-    else if (kind === "cow") { g.fillStyle = "#ffffff"; g.fillRect(2, 8, 12, 9); g.fillStyle = "#222"; g.fillRect(3, 9, 3, 3); g.fillRect(9, 12, 3, 3); g.fillStyle = "#ffffff"; g.fillRect(11, 4, 4, 5); g.fillStyle = "#f1c27d"; g.fillRect(12, 7, 3, 2); g.fillStyle = "#333"; g.fillRect(3, 17, 2, 6); g.fillRect(11, 17, 2, 6); }
+    else if (kind === "log") { g.fillStyle = "#6b4423"; g.fillRect(1, 10, 14, 6); g.fillStyle = "#c58a3c"; g.fillRect(13, 11, 2, 4); g.fillRect(1, 11, 2, 4); }
+    else if (kind === "gremlin") { drawGremlin(g, false); }
+    else if (kind === "player") { drawPlayer(g, false); }
     else { g.fillStyle = "#c58a3c"; g.fillRect(3, 6, 10, 14); g.fillStyle = "#6b4423"; g.fillRect(5, 9, 6, 2); g.fillRect(5, 13, 6, 2); }
   });
 }
@@ -678,20 +836,33 @@ function makeSprite(canvas, w, hh) {
   var tex = new THREE.CanvasTexture(canvas); tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
   var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, alphaTest: 0.2 })); sp.scale.set(w, hh, 1); sp.center.set(0.5, 0); return sp;
 }
+var playerSprite = null, playerTex = { stand: null, walk: null };
+var mobSprites = [];
+function villagerTool(v) { return v.id === "fedor" ? "hammer" : v.id === "marfa" ? "basket" : v.id === "ilyas" ? "coin" : v.id === "grisha" ? "pick" : v.id === "petr" ? "axe" : v.id === "marat" ? "cap" : v.id === "zima" ? "lamp" : v.id === "vera" ? "basket" : (v.tool || null); }
 function refreshSprites() {
   while (spriteGroup.children.length) { var ch = spriteGroup.children.pop(); if (ch.material.map) ch.material.map.dispose(); ch.material.dispose(); }
   S.villagers.forEach(function (v) {
-    var tool = v.id === "fedor" ? "hammer" : v.id === "marfa" ? "basket" : v.id === "ilyas" ? "coin" : (v.tool || null);
-    var sp = makeSprite(pixelCanvas(16, 24, function (g) { drawVillager(g, v.skin, tool); }), 1, 1.5);
+    var sp = makeSprite(pixelCanvas(16, 24, function (g) { drawVillager(g, v.skin, villagerTool(v)); }), 1, 1.5);
     var y = World.top(v.x, v.z) + 1; sp.position.set(v.x + 0.5, y, v.z + 0.5); sp.userData = { villager: v.id }; spriteGroup.add(sp);
   });
   S.props.forEach(function (p) {
-    var sp = p.kind === "sign" && p.text ? makeSprite(textCanvas(p.text), 2.6, 1) : (p.kind === "museum" ? makeSprite(textCanvas(p.text, "#fff6dc"), 2, 0.75) : makeSprite(propCanvas(p.kind), 1, 1.5));
-    var y = World.top(p.x, p.z) + 1; sp.position.set(p.x + 0.5, y + (p.dy || 0), p.z + 0.5); sp.userData = { prop: p }; spriteGroup.add(sp);
+    var kind = p.kind === "lamp" && !(S.oil > 0) ? "lampoff" : p.kind;
+    var sp = p.kind === "sign" && p.text ? makeSprite(textCanvas(p.text), 2.6, 1) : (p.kind === "museum" ? makeSprite(textCanvas(p.text, "#fff6dc"), 2, 0.75) : makeSprite(propCanvas(kind), p.kind === "ship" ? 2 : 1, p.kind === "ship" ? 3 : 1.5));
+    var y = World.top(p.x, p.z) + 1; if (World.isWater(p.x, p.z)) y = SEA; sp.position.set(p.x + 0.5, y + (p.dy || 0), p.z + 0.5); sp.userData = { prop: p }; spriteGroup.add(sp);
   });
+  if (!playerTex.stand) { playerTex.stand = pixelCanvas(16, 24, function (g) { drawPlayer(g, false); }); playerTex.walk = pixelCanvas(16, 24, function (g) { drawPlayer(g, true); }); }
+  playerSprite = makeSprite(playerTex.stand, 1, 1.5); playerSprite.userData = { player: true }; spriteGroup.add(playerSprite);
+  mobSprites = [];
+  (Mobs.list || []).forEach(function (m) { var sp = makeSprite(pixelCanvas(16, 24, function (g) { drawGremlin(g, false); }), 1, 1.5); sp.userData = { mob: m }; m.sprite = sp; spriteGroup.add(sp); mobSprites.push(sp); });
+  updatePlayerSprite();
+}
+function updatePlayerSprite() {
+  if (!playerSprite || !S) return; var P = S.player; var y = World.walkTop(Math.round(P.x - 0.5), Math.round(P.z - 0.5)); if (y < 0) y = World.top(Math.round(P.x - 0.5), Math.round(P.z - 0.5)); if (y < 0) y = SEA;
+  playerSprite.position.set(P.x, y + 1, P.z);
+  var tex = Player.moving ? playerTex.walk : playerTex.stand; if (playerSprite.material.map.image !== tex) { playerSprite.material.map.dispose(); playerSprite.material.map = new THREE.CanvasTexture(tex); playerSprite.material.map.magFilter = THREE.NearestFilter; playerSprite.material.map.minFilter = THREE.NearestFilter; playerSprite.material.map.colorSpace = THREE.SRGBColorSpace; playerSprite.material.needsUpdate = true; }
 }
 /* --- frame & highlight geometry --- */
-function cellTopY(x, z) { return World.top(x, z) + 1; }
+function cellTopY(x, z) { return surfaceY(x, z); }
 function quadsGeometry(cells, isWall) {
   var pos = [], idx = [], vi = 0;
   cells.forEach(function (c) {
@@ -722,20 +893,19 @@ function setOutline(cells, isWall) { outlineMesh.geometry.dispose(); outlineMesh
 function project(x, y, z) { var v = new THREE.Vector3(x, y, z).project(camera); var el = $("c3d"); return { x: (v.x + 1) / 2 * el.clientWidth, y: (1 - v.y) / 2 * el.clientHeight }; }
 /* --- picking --- */
 var raycaster = new THREE.Raycaster();
-function pickAt(cx, cy) {
+function pickAt(cx, cy, allowWater) {
   var el = $("c3d"); var ndc = new THREE.Vector2(cx / el.clientWidth * 2 - 1, -(cy / el.clientHeight) * 2 + 1);
   raycaster.setFromCamera(ndc, camera);
-  var hits = raycaster.intersectObjects([terrain, water].concat(spriteGroup.children), false);
+  var hits = raycaster.intersectObjects(chunkMeshes.concat(waterMeshes, spriteGroup.children), false);
   for (var i = 0; i < hits.length; i++) {
     var hh = hits[i];
-    if (hh.object.isSprite) return { sprite: hh.object };
-    if (hh.object === water) continue;
+    if (hh.object.isSprite) { if (hh.object === playerSprite) continue; return { sprite: hh.object }; }
     var n = hh.face.normal; var p = hh.point;
     var bx = Math.floor(p.x - n.x * 0.5), by = Math.floor(p.y - n.y * 0.5), bz = Math.floor(p.z - n.z * 0.5);
+    if (waterMeshes.indexOf(hh.object) >= 0) { if (!allowWater) continue; return { block: [bx, by, bz], place: [bx, SEA, bz], normal: [0, 1, 0], water: true }; }
     var px = Math.floor(p.x + n.x * 0.5), py = Math.floor(p.y + n.y * 0.5), pz = Math.floor(p.z + n.z * 0.5);
     return { block: [bx, by, bz], place: [px, py, pz], normal: [n.x, n.y, n.z] };
   }
-  /* fall back to the water plane for frames on the beach */
   return null;
 }
 
@@ -755,7 +925,8 @@ var SFX = {
   dig: function () { beep(180, 0.08, "square", 0.04); }, place: function () { beep(440, 0.07, "triangle", 0.05); },
   ok: function () { beep(660, 0.1, "triangle", 0.06); setTimeout(function () { beep(880, 0.16, "triangle", 0.06); }, 90); },
   bad: function () { beep(200, 0.2, "sawtooth", 0.03); }, coin: function () { beep(1200, 0.08, "sine", 0.05); setTimeout(function () { beep(1600, 0.1, "sine", 0.05); }, 60); },
-  tap: function () { beep(520, 0.04, "sine", 0.03); }
+  tap: function () { beep(520, 0.04, "sine", 0.03); }, squeak: function () { beep(900, 0.06, "square", 0.03); setTimeout(function () { beep(700, 0.08, "square", 0.03); }, 70); },
+  step: function () { beep(300, 0.03, "triangle", 0.015); }
 };
 
 /* ===================== HUD HELPERS ===================== */
@@ -763,16 +934,117 @@ var hintTimer = null;
 function hint(text, ms) { var el = $("hint"); if (!text) { el.classList.add("off"); return; } el.textContent = text; el.classList.remove("off"); clearTimeout(hintTimer); if (ms) hintTimer = setTimeout(function () { el.classList.add("off"); }, ms); }
 function toastAt(x, y, text, cls) { var t = h("div", { class: "toast " + (cls || ""), text: text }); var el = $("c3d"); x = Math.max(120, Math.min(el.clientWidth - 120, x)); y = Math.max(90, Math.min(el.clientHeight - 120, y)); t.style.left = x + "px"; t.style.top = y + "px"; $("app").appendChild(t); setTimeout(function () { t.remove(); }, 1900); }
 function toastWorld(wx, wy, wz, text, cls) { var p = project(wx, wy, wz); toastAt(p.x, p.y, text, cls); }
-function updateHud() { $("coins").textContent = S.coins; $("dayno").textContent = "День " + S.day; var open = S.quests.filter(function (q) { return q.status === "open"; }).length; var b = $("qbadge"); b.hidden = !open; b.textContent = open; }
+function updateHud() { $("coins").textContent = S.coins; $("dayno").textContent = "День " + S.day; var open = S.quests.filter(function (q) { return q.status === "open"; }).length; var b = $("qbadge"); b.hidden = !open; b.textContent = open; $("b-mode").setAttribute("aria-pressed", S.mode === "hero"); $("b-mode").textContent = S.mode === "hero" ? "🧍" : "🎥"; $("dpad").hidden = S.mode !== "hero"; var here = islandAt(Math.floor(S.player.x), Math.floor(S.player.z)); $("where").textContent = here ? here.name : "море"; }
+
+/* ===================== PLAYER ===================== */
+var Player = {
+  path: [], moving: false, speed: 4.5, onArrive: null, held: null, stepAcc: 0,
+  cell: function () { return { x: Math.floor(S.player.x), z: Math.floor(S.player.z) }; },
+  dist: function (x, z) { var c = this.cell(); return Math.max(Math.abs(c.x - x), Math.abs(c.z - z)); },
+  near: function (x, z, r) { return this.dist(x, z) <= (r || 3); },
+  goTo: function (x, z, onArrive, maxLen) {
+    var c = this.cell(); if (c.x === x && c.z === z) { this.path = []; if (onArrive) onArrive(); return true; }
+    var p = World.path(c.x, c.z, x, z, maxLen);
+    if (!p) { /* try the nearest walkable neighbour of the target */
+      var best = null; for (var dx = -1; dx <= 1; dx++) for (var dz = -1; dz <= 1; dz++) { if (!dx && !dz) continue; var q = World.path(c.x, c.z, x + dx, z + dz, maxLen); if (q && (!best || q.length < best.length)) best = q; }
+      p = best;
+    }
+    if (!p) return false;
+    this.path = p; this.onArrive = onArrive || null; return true;
+  },
+  stop: function () { this.path = []; this.onArrive = null; this.moving = false; },
+  update: function (dt) {
+    var P = S.player;
+    if (this.held && !this.path.length) { var c = this.cell(); var nx = c.x + this.held[0], nz = c.z + this.held[1]; var cy = World.walkTop(c.x, c.z), ny = World.walkTop(nx, nz); if (ny >= 0 && Math.abs(ny - cy) <= 1 && nx >= 0 && nz >= 0 && nx < W && nz < D) this.path = [{ x: nx, z: nz }]; }
+    if (!this.path.length) { if (this.moving) { this.moving = false; updatePlayerSprite(); } return; }
+    var t = this.path[0], tx = t.x + 0.5, tz = t.z + 0.5, dx = tx - P.x, dz = tz - P.z, d = Math.hypot(dx, dz), step = this.speed * dt;
+    if (d <= step) { P.x = tx; P.z = tz; this.path.shift(); this.stepAcc += 1; if (this.stepAcc % 2 === 0) SFX.step(); if (!this.path.length) { var cb = this.onArrive; this.onArrive = null; this.arrived(); if (cb) cb(); } }
+    else { P.x += dx / d * step; P.z += dz / d * step; }
+    this.moving = true; updatePlayerSprite();
+    if (S.mode === "hero") { R.target.x += (P.x - R.target.x) * Math.min(1, dt * 4); R.target.z += (P.z - R.target.z) * Math.min(1, dt * 4); }
+  },
+  arrived: function () {
+    var I = islandAt(Math.floor(S.player.x), Math.floor(S.player.z));
+    if (I && !S.visited[I.id]) { S.visited[I.id] = true; SFX.ok(); hint("Ты на острове «" + I.name + "»! Теперь здесь можно копать и строить.", 4000); save(); updateHud(); }
+  },
+  canAct: function (x, z) {
+    /* in hero mode only nearby blocks; in camera mode any block on an island the hero has reached */
+    if (S.mode === "hero") return this.near(x, z, 4);
+    var I = islandAt(x, z); return !I || !!S.visited[I.id];
+  },
+  explainCant: function (x, z) {
+    var I = islandAt(x, z);
+    if (S.mode === "hero") { hint("Далеко. Подойди ближе: нажми на землю рядом, и человечек пойдёт.", 3000); return; }
+    hint("Этот остров ещё не открыт: человечек должен добраться туда по мосту или на корабле.", 3500);
+  },
+  walkOrExplain: function (x, z, onArrive) {
+    var ok = this.goTo(x, z, onArrive); if (!ok) { var I = islandAt(x, z); hint(I && I.id !== "home" ? "Туда пока не пройти: нужен мост на «" + I.name + "»" + (I.ship ? " или корабль" : "") + "." : "Туда не пройти пешком.", 3500); SFX.bad(); }
+    return ok;
+  }
+};
+function setMode(m) { S.mode = m; updateHud(); if (m === "hero") { R.target.x = S.player.x; R.target.z = S.player.z; hint("Режим человечка: нажми на землю, чтобы идти, или держи стрелки. Копать и строить можно рядом с собой.", 4500); } else hint("Режим камеры: тяни остров пальцем, строй где угодно на открытых островах.", 3500); save(); }
+
+/* ===================== NIGHT GUESTS (gremlins) ===================== */
+var Mobs = {
+  list: [], acc: 0, nibbleAcc: 0,
+  houses: function () { return S.houses || []; },
+  lit: function (hs) { if (!(S.oil > 0)) return false; return S.props.some(function (p) { return p.kind === "lamp" && p.x >= hs.x0 - 2 && p.x <= hs.x1 + 2 && p.z >= hs.z0 - 2 && p.z <= hs.z1 + 2; }); },
+  spawn: function () {
+    if (this.list.length || Game.spawnedNight === S.day) return; Game.spawnedNight = S.day;
+    var n = Math.min(5, 1 + Math.floor(S.day / 2)); var targets = this.houses().filter(function (hs) { return !Mobs.lit(hs); });
+    if (!targets.length || !S.houses.length) { if (S.houses.length) hint("Все дома освещены: ночные гости прошли мимо.", 4000); return; }
+    for (var i = 0; i < n; i++) {
+      var hs = targets[i % targets.length]; var ang = Math.random() * Math.PI * 2; var x = (hs.x0 + hs.x1) / 2 + Math.cos(ang) * 14, z = hs.z1 + Math.sin(ang) * 14;
+      this.list.push({ x: x, z: z, tx: (hs.x0 + hs.x1) / 2, tz: hs.z1 + 1.5, house: hs, bites: 0, state: "go", t: 0 });
+    }
+    refreshSprites(); SFX.squeak(); hint("Ночные гости! Гремлины идут к неосвещённым домам. Подойди к гремлину и нажми на него, чтобы прогнать.", 5000);
+  },
+  clear: function () { this.list = []; refreshSprites(); },
+  update: function (dt) {
+    if (!this.list.length) return; var self = this;
+    this.list.forEach(function (m) {
+      m.t += dt;
+      if (m.state === "go") { var dx = m.tx - m.x, dz = m.tz - m.z, d = Math.hypot(dx, dz); if (d < 0.6) { m.state = "bite"; m.t = 0; } else { m.x += dx / d * 2.6 * dt; m.z += dz / d * 2.6 * dt; } }
+      else if (m.state === "bite") { if (m.t > 5) { m.t = 0; self.bite(m); } }
+      else if (m.state === "flee") { var fx = m.x - 48, fz = m.z - 48, fd = Math.hypot(fx, fz) || 1; m.x += fx / fd * 5 * dt; m.z += fz / fd * 5 * dt; if (fd > 30) m.dead = true; }
+      if (m.sprite) { var y = World.walkTop(Math.floor(m.x), Math.floor(m.z)); if (y < 0) y = World.top(Math.floor(m.x), Math.floor(m.z)); if (y < 0) y = SEA - 1; m.sprite.position.set(m.x, y + 1 + (m.state === "bite" ? Math.abs(Math.sin(m.t * 8)) * 0.2 : 0), m.z); }
+    });
+    if (this.list.some(function (m) { return m.dead; })) { this.list = this.list.filter(function (m) { return !m.dead; }); refreshSprites(); }
+  },
+  bite: function (m) {
+    var hs = m.house;
+    /* take one wall block from the house; the hole is remembered for the morning repair */
+    var cand = [];
+    for (var x = hs.x0; x <= hs.x1; x++) for (var z = hs.z0; z <= hs.z1; z++) { var edge = x === hs.x0 || x === hs.x1 || z === hs.z0 || z === hs.z1; if (!edge) continue; for (var y = hs.y + 1; y <= hs.y + 2; y++) { var t = World.get(x, y, z); if (t === BRICK || t === GLASS) cand.push({ x: x, y: y, z: z, t: t }); } }
+    if (!cand.length || m.bites >= 3) { m.state = "flee"; return; }
+    var c = pick(cand); World.set(c.x, c.y, c.z, AIR); hs.holes = hs.holes || []; hs.holes.push({ x: c.x, y: c.y, z: c.z, t: c.t }); m.bites++;
+    rebuildTerrain(); SFX.squeak(); toastWorld(c.x + 0.5, c.y + 1, c.z + 0.5, "гремлин откусил кирпич!", "bad"); save();
+    if (m.bites >= 3) m.state = "flee";
+  },
+  shoo: function (m) {
+    if (!Player.near(Math.floor(m.x), Math.floor(m.z), 3)) { Player.walkOrExplain(Math.floor(m.x), Math.floor(m.z), function () { if (Mobs.list.indexOf(m) >= 0 && m.state !== "flee") Mobs.shoo(m); }); hint("Иду к гремлину…", 1500); return; }
+    m.state = "flee"; SFX.squeak(); toastWorld(m.x, SEA + 2, m.z, "Кыш!", "good"); S.today.shooed = (S.today.shooed || 0) + 1;
+  }
+};
+function houseHoles() { var out = []; (S.houses || []).forEach(function (hs) { (hs.holes || []).forEach(function (hole) { if (World.get(hole.x, hole.y, hole.z) === AIR) out.push(hole); }); }); return out; }
+function refreshHoleOutline() { var holes = houseHoles(); if (!holes.length && Frame.bp && Frame.bp.type === "bridge") { setOutline(Frame.bp.cells, false); return; } setOutline(holes.map(function (hh) { return { x: hh.x, z: hh.z, y: hh.y }; }), true); }
+function checkRepairs() {
+  var left = 0;
+  (S.houses || []).forEach(function (hs) { if (!hs.holes) return; hs.holes = hs.holes.filter(function (hole) { return World.get(hole.x, hole.y, hole.z) === AIR; }); left += hs.holes.length; });
+  refreshHoleOutline();
+  var q = S.quests.filter(function (x) { return x.status === "open" && x.kind === "repair"; })[0];
+  if (q && !left) { q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; SFX.coin(); hint("Дом починен! +" + q.reward + " монет.", 3500); updateHud(); save(); }
+}
 
 /* ===================== INPUT ===================== */
 var Tool = "pick";
 var Ptr = { list: {}, pinch: null, drag: null };
 function setTool(t) {
+  if (Build.busy) { hint("Подожди, идёт стройка.", 2000); return; }
   Tool = t;
   document.querySelectorAll("#tools button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-tool") === t ? "true" : "false"); });
   if (t === "frame") { Frame.show(); frameHint(); } else { Frame.hideUI(); }
-  if (t === "pick") hint("Нажми на блок, чтобы выкопать его. Тяни, чтобы двигать остров.", 4000);
+  if (t === "pick") hint(S.mode === "hero" ? "Нажми на блок рядом с собой, чтобы выкопать. Нажми на землю подальше, чтобы пойти туда." : "Нажми на блок, чтобы выкопать его. Тяни, чтобы двигать остров.", 4000);
   if (t === "place") { if (!S.sel) S.sel = "b8"; hint("Нажми на землю, чтобы поставить: " + selName() + ". Выбери другое в рюкзаке.", 4000); }
 }
 function selName() { if (!S.sel) return ""; if (S.sel[0] === "b") return BLOCK_NAME[+S.sel.slice(1)] + " (" + (S.blocks[+S.sel.slice(1)] || 0) + ")"; var it = S.items[S.sel]; return (it ? it.name : S.sel) + " (" + (it ? it.n : 0) + ")"; }
@@ -783,7 +1055,7 @@ function bindInput() {
     Ptr.list[e.pointerId] = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: Date.now(), moved: false };
     var ids = Object.keys(Ptr.list);
     if (ids.length === 2) { var a = Ptr.list[ids[0]], b = Ptr.list[ids[1]]; Ptr.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom: R.zoom }; Frame.cancelDrag(); return; }
-    if (ids.length === 1 && Tool === "frame" && Frame.canDraw()) { var hit = pickAt(e.clientX, e.clientY); if (hit && hit.block) { Frame.beginDrag(hit.block[0], hit.block[2]); Ptr.drag = "frame"; return; } }
+    if (ids.length === 1 && Tool === "frame" && Frame.canDraw()) { var hit = pickAt(e.clientX, e.clientY, Frame.isBridge()); if (hit && hit.block) { Frame.beginDrag(hit.block[0], hit.block[2]); Ptr.drag = "frame"; return; } }
     Ptr.drag = "pan";
   });
   el.addEventListener("pointermove", function (e) {
@@ -792,7 +1064,7 @@ function bindInput() {
     if (Math.hypot(e.clientX - p.sx, e.clientY - p.sy) > 8) p.moved = true;
     var ids = Object.keys(Ptr.list);
     if (ids.length >= 2 && Ptr.pinch) { var a = Ptr.list[ids[0]], b = Ptr.list[ids[1]]; var d = Math.hypot(a.x - b.x, a.y - b.y); setZoom(Ptr.pinch.zoom * Ptr.pinch.d / Math.max(20, d)); pan(dx / 2, dy / 2); return; }
-    if (Ptr.drag === "frame") { var hit = pickAt(e.clientX, e.clientY); if (hit && hit.block) Frame.dragTo(hit.block[0], hit.block[2]); return; }
+    if (Ptr.drag === "frame") { var hit = pickAt(e.clientX, e.clientY, Frame.isBridge()); if (hit && hit.block) Frame.dragTo(hit.block[0], hit.block[2]); return; }
     if (Ptr.drag === "pan" && p.moved) pan(dx, dy);
   });
   function up(e) {
@@ -808,7 +1080,9 @@ function bindInput() {
   $("b-rotr").addEventListener("click", function () { R.azTarget += 90; SFX.tap(); });
   $("b-zin").addEventListener("click", function () { setZoom(R.zoom * 0.8); });
   $("b-zout").addEventListener("click", function () { setZoom(R.zoom * 1.25); });
-  $("b-pause").addEventListener("click", function () { Game.paused = !Game.paused; $("b-pause").setAttribute("aria-pressed", Game.paused); hint(Game.paused ? "Пауза. Солнце остановилось." : "", Game.paused ? 0 : 1); if (!Game.paused) hint(""); });
+  $("b-mode").addEventListener("click", function () { SFX.tap(); setMode(S.mode === "hero" ? "cam" : "hero"); });
+  $("b-home").addEventListener("click", function () { SFX.tap(); R.target.x = S.player.x; R.target.z = S.player.z; });
+  $("b-pause").addEventListener("click", function () { Game.paused = !Game.paused; $("b-pause").setAttribute("aria-pressed", Game.paused); if (Game.paused) hint("Пауза. Солнце остановилось.", 0); else hint(""); });
   $("b-sound").addEventListener("click", function () { S.sound = !S.sound; $("b-sound").setAttribute("aria-pressed", S.sound); save(); if (S.sound) SFX.tap(); });
   var gearT = null;
   function gearDown(e) { e.preventDefault(); clearTimeout(gearT); gearT = setTimeout(function () { gearT = null; openParent(); }, 2000); }
@@ -823,33 +1097,75 @@ function bindInput() {
       setTool(t);
     });
   });
+  /* d-pad: hold to walk; directions follow the camera */
+  document.querySelectorAll("#dpad button").forEach(function (b) {
+    var dir = b.getAttribute("data-dir");
+    function down(e) { e.preventDefault(); Player.held = screenDir(dir); }
+    function upd() { Player.held = null; }
+    b.addEventListener("pointerdown", down); b.addEventListener("pointerup", upd); b.addEventListener("pointerleave", upd); b.addEventListener("pointercancel", upd);
+  });
+  var keys = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", KeyW: "up", KeyS: "down", KeyA: "left", KeyD: "right" };
+  document.addEventListener("keydown", function (e) { if (Game.modal || !Game.running) return; var d = keys[e.code]; if (!d) return; e.preventDefault(); if (S.mode !== "hero") setMode("hero"); Player.held = screenDir(d); });
+  document.addEventListener("keyup", function (e) { if (keys[e.code]) Player.held = null; });
 }
-function setZoom(z) { R.zoom = Math.max(8, Math.min(44, z)); resize(); }
+function screenDir(d) {
+  /* "up" on screen is away from the camera; rotate by the camera azimuth (multiples of 90) */
+  var q = ((Math.round(R.azTarget / 90) % 4) + 4) % 4;
+  var base = { up: [-1, -1], down: [1, 1], left: [-1, 1], right: [1, -1] }[d];
+  /* at azimuth 0 the camera looks from +x,+z towards the origin: screen-up is (-1,-1) diagonal; snap to an axis for grid walking */
+  var vx = base[0], vz = base[1];
+  for (var i = 0; i < q; i++) { var t = vx; vx = -vz; vz = t; }
+  /* prefer the axis that the hero can actually step onto */
+  var c = Player.cell(), cy = World.walkTop(c.x, c.z);
+  var opts = Math.abs(vx) >= Math.abs(vz) ? [[Math.sign(vx), 0], [0, Math.sign(vz)]] : [[0, Math.sign(vz)], [Math.sign(vx), 0]];
+  if (d === "up" || d === "down") opts = [[0, Math.sign(vz)], [Math.sign(vx), 0]]; else opts = [[Math.sign(vx), 0], [0, Math.sign(vz)]];
+  for (var k = 0; k < opts.length; k++) { var o = opts[k]; if (!o[0] && !o[1]) continue; var ny = World.walkTop(c.x + o[0], c.z + o[1]); if (ny >= 0 && Math.abs(ny - cy) <= 1) return o; }
+  return opts[0][0] || opts[0][1] ? opts[0] : opts[1];
+}
+function setZoom(z) { R.zoom = Math.max(8, Math.min(60, z)); resize(); }
 function pan(dx, dy) {
+  if (S.mode === "hero") return;
   var el = $("c3d"), k = R.zoom / el.clientHeight;
   var right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0); right.y = 0; right.normalize();
   var up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1); up.y = 0; up.normalize();
   R.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k / Math.sin(35.264 * Math.PI / 180));
-  R.target.x = Math.max(-4, Math.min(36, R.target.x)); R.target.z = Math.max(-4, Math.min(36, R.target.z));
+  R.target.x = Math.max(-4, Math.min(W + 4, R.target.x)); R.target.z = Math.max(-4, Math.min(D + 4, R.target.z));
 }
 function tap(cx, cy) {
   if (Build.busy) return;
-  var hit = pickAt(cx, cy); if (!hit) return;
-  if (hit.sprite) { var ud = hit.sprite.userData; if (ud.villager) return openVillager(ud.villager); if (ud.prop && ud.prop.kind === "sign") { hint("«" + ud.prop.text + "»", 3000); } return; }
+  var hit = pickAt(cx, cy, Tool === "frame" && Frame.isBridge()); if (!hit) return;
+  if (hit.sprite) {
+    var ud = hit.sprite.userData;
+    if (ud.villager) return approachVillager(ud.villager);
+    if (ud.mob) return Mobs.shoo(ud.mob);
+    if (ud.prop && ud.prop.kind === "sign") hint("«" + ud.prop.text + "»", 3000);
+    if (ud.prop && ud.prop.kind === "ship") return approachShip(ud.prop);
+    return;
+  }
   var b = hit.block;
+  if (Tool === "frame") { if (Frame.cutMode) Frame.cutAt(b[0], b[2]); else if (Frame.canDraw()) { Frame.beginDrag(b[0], b[2]); Frame.endDrag(); } return; }
+  if (!Player.canAct(b[0], b[2])) {
+    if (S.mode === "hero") { Player.walkOrExplain(hit.place[0], hit.place[2]) || Player.walkOrExplain(b[0], b[2]); return; }
+    Player.explainCant(b[0], b[2]); return;
+  }
   if (Tool === "pick") return dig(b[0], b[1], b[2], cx, cy);
   if (Tool === "place") return placeAt(hit, cx, cy);
-  if (Tool === "frame") { if (Frame.cutMode) Frame.cutAt(b[0], b[2]); else if (Frame.canDraw()) { Frame.beginDrag(b[0], b[2]); Frame.endDrag(); } }
 }
+function approachVillager(id) {
+  var v = S.villagers.filter(function (x) { return x.id === id; })[0]; if (!v) return;
+  if (Player.near(v.x, v.z, 3)) return openVillager(id);
+  if (Player.walkOrExplain(v.x, v.z, function () { openVillager(id); })) hint("Иду к " + (v.dat || v.name || "жителю") + "…", 1500);
+}
+function approachShip(p) { if (Player.near(p.x, p.z, 3)) return openShip(); if (Player.walkOrExplain(p.x, p.z, openShip)) hint("Иду к кораблю…", 1500); }
 function dig(x, y, z, cx, cy) {
-  var t = World.get(x, y, z); if (!t || t === WATER || y === 0) return;
+  var t = World.get(x, y, z); if (!t || t === WATER || y === 0 || t === PIER) return;
   World.set(x, y, z, AIR); rebuildTerrain(); SFX.dig();
   var gain = null;
-  if (t === GRASS) gain = DIRT; else if (t === LEAF) gain = null; else if (t === ORE) gain = null; else gain = t;
+  if (t === GRASS || t === SNOW) gain = DIRT; else if (t === LEAF || t === ORE || t === ICE) gain = null; else gain = t;
   if (gain) { S.blocks[gain] = (S.blocks[gain] || 0) + 1; toastAt(cx, cy, "+1 " + BLOCK_NAME[gain]); }
   if (t === ORE) { var part = dropPart(); if (part.gap) { S.gaps.push(part.gap); toastAt(cx, cy, "слово с дыркой: " + gapForm(part.gap), "bad"); } else { S.parts.push(part.part); toastAt(cx, cy, "часть слова: " + part.part, "good"); } SFX.coin(); }
-  if (t === LEAF && Math.random() < 0.3) { S.items.seed = S.items.seed || { name: "саженец", kind: "tree", n: 0 }; S.items.seed.n++; toastAt(cx, cy, "+1 саженец"); }
-  refreshSprites(); save();
+  if (t === LEAF) { S.leafCount = (S.leafCount || 0) + 1; if (S.leafCount % 3 === 0) { S.items.seed = S.items.seed || { name: "саженец", kind: "tree", n: 0 }; S.items.seed.n++; toastAt(cx, cy, "+1 саженец"); } else toastAt(cx, cy, "листья (саженец за каждые 3)"); }
+  checkRepairs(); refreshSprites(); save();
 }
 function placeAt(hit, cx, cy) {
   var p = hit.place; if (p[1] >= H || p[1] < 1 || p[0] < 0 || p[0] >= W || p[2] < 0 || p[2] >= D) return;
@@ -857,7 +1173,8 @@ function placeAt(hit, cx, cy) {
   if (S.sel[0] === "b") {
     var bt = +S.sel.slice(1); if (!(S.blocks[bt] > 0)) { hint("Таких блоков нет в рюкзаке. Выкопай или купи.", 2500); SFX.bad(); return; }
     if (World.get(p[0], p[1], p[2]) !== AIR) return;
-    S.blocks[bt]--; World.set(p[0], p[1], p[2], bt); rebuildTerrain(); SFX.place(); refreshSprites(); save(); hint(selName(), 1500);
+    if (p[0] === Math.floor(S.player.x) && p[2] === Math.floor(S.player.z)) { hint("Здесь стоишь ты сам.", 2000); return; }
+    S.blocks[bt]--; World.set(p[0], p[1], p[2], bt); rebuildTerrain(); SFX.place(); checkRepairs(); refreshSprites(); save(); hint(selName(), 1500);
   } else {
     var it = S.items[S.sel]; if (!it || !(it.n > 0)) { hint("Этого предмета больше нет.", 2000); return; }
     if (hit.normal[1] < 0.5) { hint("Предметы ставят сверху на блок.", 2000); return; }
@@ -866,16 +1183,15 @@ function placeAt(hit, cx, cy) {
 }
 function gapForm(g) { var w = g.w; return w.slice(0, g.i) + "_" + w.slice(g.i + 1); }
 function dropPart() {
-  /* parts needed by open craft quests first, then anything from the recipe book */
   var C = content(); var need = [];
   S.quests.forEach(function (q) {
     if (q.status !== "open" || q.kind !== "craft") return;
-    if (q.sub === "morph") { var have = S.parts.slice(); C.morph[q.ref].parts.forEach(function (p) { var i = have.indexOf(p); if (i >= 0) have.splice(i, 1); else need.push({ part: p }); }); }
-    if (q.sub === "check") { var cw = C.check[q.ref]; if (!S.gaps.some(function (g) { return g.w === cw[0]; }) && !q.fixed) need.push({ gap: { w: cw[0], i: cw[1], ref: q.ref } }); }
+    if (q.sub === "morph" && C.morph[q.ref]) { var have = S.parts.slice(); C.morph[q.ref].parts.forEach(function (p) { var i = have.indexOf(p); if (i >= 0) have.splice(i, 1); else need.push({ part: p }); }); }
+    if (q.sub === "check" && C.check[q.ref]) { var cw = C.check[q.ref]; if (!S.gaps.some(function (g) { return g.w === cw[0]; }) && !q.fixed) need.push({ gap: { w: cw[0], i: cw[1], ref: q.ref } }); }
   });
-  if (need.length && Math.random() < 0.8) return need[0];
+  if (need.length) return need[0];
   var all = []; C.morph.forEach(function (m) { m.parts.forEach(function (p) { all.push({ part: p }); }); });
-  return pick(all);
+  S.oreSeq = (S.oreSeq || 0) + 1; return all[S.oreSeq % all.length];
 }
 
 /* ===================== FRAME (mechanic 1) ===================== */
@@ -883,10 +1199,11 @@ var Frame = {
   on: false, start: null, end: null, hgt: 1, cut: null, cutMode: false, cells: [], rects: [], stage: 0, used: false,
   q: null, bp: null, labels: [],
   canDraw: function () { return !Build.busy && !Build.partial; },
-  show: function () { this.on = true; this.bp = Build.q ? Build.q.bp : null; this.render(); },
-  hideUI: function () { this.on = false; $("frameact").hidden = true; this.clearLabels(); if (!Build.partial) { setFrameCells([], 0x4caf50); this.start = null; this.end = null; this.cells = []; this.rects = []; this.stage = 0; this.cut = null; this.cutMode = false; } },
+  show: function () { this.on = true; this.bp = Build.q ? Build.q.bp : null; if (this.isBridge()) setOutline(this.bp.cells, false); this.render(); },
+  hideUI: function () { this.on = false; $("frameact").hidden = true; this.clearLabels(); if (!Build.partial) { setFrameCells([], 0x4caf50); this.start = null; this.end = null; this.cells = []; this.rects = []; this.stage = 0; this.cut = null; this.cutMode = false; } refreshHoleOutline(); },
   reset: function () { this.start = null; this.end = null; this.cells = []; this.rects = []; this.stage = 0; this.cut = null; this.cutMode = false; this.used = false; this.hgt = 1; setFrameCells([], 0x4caf50); setMissCells([]); this.render(); },
   isWall: function () { return this.bp && this.bp.type === "wall"; },
+  isBridge: function () { return !!(this.bp && this.bp.type === "bridge"); },
   beginDrag: function (x, z) { this.start = { x: x, z: z }; this.end = { x: x, z: z }; this.cut = null; this.compute(); this.render(); },
   dragTo: function (x, z) { if (!this.start) return; if (this.end.x === x && this.end.z === z) return; this.end = { x: x, z: z }; this.compute(); this.render(); },
   cancelDrag: function () { if (Ptr.drag === "frame") { Ptr.drag = null; } },
@@ -906,8 +1223,11 @@ var Frame = {
   },
   valid: function () {
     var d = this.dims(); if (!d) return false;
-    var bp = this.bp; if (!bp) return true;
+    var bp = this.bp;
+    if (!bp) { return this.cells.every(function (c) { return cellOpen(c.x, c.z) && !World.isWater(c.x, c.z); }); }
     var a = this.isWall() ? Math.max(d.cols, d.rows) : d.cols, b = this.isWall() ? this.hgt : d.rows;
+    if (bp.type === "bridge") { return d.x0 === bp.x0 && d.x1 === bp.x1 && d.z0 === bp.z0 && d.z1 === bp.z1; }
+    if (!this.cells.every(function (c) { return cellOpen(c.x, c.z) && !World.isWater(c.x, c.z); })) return false;
     if (bp.type === "div") return a === bp.rows || b === bp.rows;
     var need = bp.type === "wall" ? [bp.len, bp.h] : [bp.r, bp.c];
     return (a === need[0] && b === need[1]) || (a === need[1] && b === need[0]);
@@ -950,7 +1270,7 @@ var Frame = {
     var fa = $("frameact"); fa.innerHTML = ""; fa.hidden = !this.on;
     if (!this.on) return;
     var self = this, bp = this.bp, d = this.dims();
-    if (Build.partial) { fa.appendChild(h("button", { class: "btn gold big", text: "Взять ещё блоков", onclick: function () { Build.takeMore(); } })); fa.appendChild(h("button", { class: "btn", text: "Переделать", onclick: function () { Build.undo(); } })); return; }
+    if (Build.partial) { if (!(bp && bp.type === "div")) fa.appendChild(h("button", { class: "btn gold big", text: "Взять ещё блоков", onclick: function () { Build.takeMore(); } })); fa.appendChild(h("button", { class: "btn", text: "Переделать", onclick: function () { Build.undo(); } })); return; }
     if (bp && bp.type === "double") fa.appendChild(h("span", { class: "btn ghost", text: "Грядка " + (this.rects.length + 1) + " из 2" }));
     if (this.isWall() && d) { fa.appendChild(h("button", { class: "btn sq", text: "−", onclick: function () { self.hgt = Math.max(1, self.hgt - 1); self.compute(); self.render(); } })); fa.appendChild(h("span", { class: "btn ghost", text: "высота " + this.hgt })); fa.appendChild(h("button", { class: "btn sq", text: "+", onclick: function () { self.hgt = Math.min(9, self.hgt + 1); self.compute(); self.render(); } })); }
     if (d && !this.isWall() && bp && bp.type !== "double" && !S.cutHidden[bp.factId]) fa.appendChild(h("button", { class: "btn" + (this.cutMode ? " on" : "") + (this.cut ? " on" : ""), text: this.cut ? "Убрать разрез" : "Разрезать", onclick: function () { if (self.cut) { self.cut = null; self.render(); } else { self.cutMode = !self.cutMode; self.renderActions(); hint(self.cutMode ? "Нажми на клетку внутри рамки — разрез пройдёт перед ней." : "", self.cutMode ? 0 : 1); } } }));
@@ -959,39 +1279,56 @@ var Frame = {
     if (d || this.rects.length) fa.appendChild(h("button", { class: "btn", text: "Очистить", onclick: function () { self.reset(); frameHint(); } }));
   }
 };
+function cellOpen(x, z) { var I = islandAt(x, z); return !I || !!S.visited[I.id]; }
 function frameHint() {
   var bp = Frame.bp;
   if (Frame.cutMode) return;
-  if (!Frame.start && !Frame.rects.length) { hint(bp ? (bp.type === "wall" ? "Проведи линию по земле: это длина забора. Потом подними высоту." : "Проведи пальцем по земле, чтобы нарисовать рамку " + bpDims(bp) + ".") : "Проведи по земле — нарисуй рамку. Блоки берутся из рюкзака.", 0); return; }
-  if (bp && !Frame.valid()) { hint("Нужно " + bpDims(bp) + ". Поправь рамку.", 0); return; }
+  if (!Frame.start && !Frame.rects.length) { hint(bp ? (bp.type === "wall" ? "Проведи линию по земле: это длина забора. Потом подними высоту." : bp.type === "bridge" ? "Проведи рамку по воде вдоль белого контура: мост " + bp.len + " в длину и " + bp.width + " в ширину." : "Проведи пальцем по земле, чтобы нарисовать рамку " + bpDims(bp) + ".") : "Проведи по земле — нарисуй рамку. Блоки берутся из рюкзака.", 0); return; }
+  if (bp && !Frame.valid()) { hint(bp.type === "bridge" ? "Рамка должна лечь точно на белый контур моста." : "Нужно " + bpDims(bp) + ". Поправь рамку. Строить можно на суше открытого острова.", 0); return; }
+  if (!bp && !Frame.valid()) { hint("Строить можно на суше открытого острова.", 0); return; }
   hint(bp && bp.type === "div" ? "Рядов столько, сколько надо. Теперь нажми «Разложить блоки»." : "Рамка готова. Нажми «Построить» и возьми блоки из сундука.", 0);
 }
-function bpDims(bp) { if (!bp) return ""; if (bp.type === "wall") return bp.len + " в длину и " + bp.h + " в высоту"; if (bp.type === "div") return bp.rows + " " + plural(bp.rows, "ряд", "ряда", "рядов") + " по сколько-то блоков"; return bp.r + " × " + bp.c; }
+function bpDims(bp) { if (!bp) return ""; if (bp.type === "wall") return bp.len + " в длину и " + bp.h + " в высоту"; if (bp.type === "bridge") return bp.len + " в длину и " + bp.width + " в ширину"; if (bp.type === "div") return bp.rows + " " + plural(bp.rows, "ряд", "ряда", "рядов") + " по сколько-то блоков"; return bp.r + " × " + bp.c; }
 
 /* ===================== BUILD (chest + placing) ===================== */
 var Build = {
   q: null, busy: false, partial: false, cells: [], placed: [], taken: 0, attempts: 0, firstExact: null, chest: 0, block: PLANK, wall: false, timer: null,
+  snapshot: function () { if (!this.q) return null; return { qid: this.q.id, partial: this.partial, placed: this.placed, cells: this.cells, chest: this.chest, block: this.block, wall: this.wall, attempts: this.attempts, firstExact: this.firstExact, rects: Frame.rects, hgt: Frame.hgt }; },
+  restore: function (snap) {
+    if (!snap) return; var q = S.quests.filter(function (x) { return x.id === snap.qid && x.status === "open"; })[0]; if (!q) return;
+    this.q = q; Frame.bp = q.bp; this.partial = !!snap.partial; this.placed = snap.placed || []; this.cells = snap.cells || []; this.chest = snap.chest || 0; this.block = snap.block || PLANK; this.wall = !!snap.wall; this.attempts = snap.attempts || 0; this.firstExact = snap.firstExact;
+    Frame.rects = snap.rects || []; Frame.hgt = snap.hgt || 1;
+    if (this.partial) { var self = this; var missing = this.cells.filter(function (c) { return !self.placed.some(function (p) { return p.x === c.x && p.z === c.z && p.y === c.y; }); }); setMissCells(missing, this.wall); }
+  },
   begin: function () {
     var bp = Frame.bp; var cells = Frame.rects.reduce(function (a, r) { return a.concat(r.cells); }, []).concat(Frame.cells);
     if (!cells.length) return;
     this.cells = cells; this.placed = []; this.taken = 0; this.attempts = 0; this.firstExact = null; this.wall = Frame.isWall();
-    this.block = bp ? bp.block : PLANK;
+    this.block = bp ? bp.block : PLANK; if (bp && bp.type === "bridge") this.block = PIER;
     if (bp && bp.type === "div") { this.chest = bp.total; this.attempts = 1; this.firstExact = cells.length === bp.total; this.takeN(bp.total); return; }
-    this.chest = bp ? bp.chest : (S.blocks[this.block] || 0);
-    if (!bp && this.chest <= 0) { hint("В рюкзаке нет досок. Выкопай дерево или купи у торговца.", 3000); return; }
+    if (bp) { if (bp.chestLeft == null) bp.chestLeft = bp.chest; this.chest = bp.chestLeft; } else this.chest = S.blocks[this.block] || 0;
+    if (!bp && this.chest <= 0) { hint("В рюкзаке нет досок. Распили брёвна на верстаке или купи у торговца.", 3500); return; }
     this.openChest();
   },
+  bagBlock: function () { return this.block === PIER ? PLANK : this.block; },
   openChest: function () {
     var self = this, bp = Frame.bp; var need = this.cells.length - this.placed.length;
+    var own = S.blocks[this.bagBlock()] || 0;
     openNumber({
-      title: bp ? "Сундук мастера" : "Рюкзак", who: bp ? "fedor" : null,
+      title: bp ? "Сундук мастера" : "Рюкзак", who: bp ? bp.v || "fedor" : null,
       text: (bp ? "В сундуке " + this.chest + " " + plural(this.chest, "блок", "блока", "блоков") + ". " : "В рюкзаке " + this.chest + " " + plural(this.chest, "доска", "доски", "досок") + ". ") + (this.placed.length ? "Сколько взять ещё?" : "Сколько блоков взять для стройки?"),
       max: this.chest, button: "Взять",
+      extra: bp && own > 0 ? { label: "Добавить из рюкзака (" + BLOCK_NAME[this.bagBlock()] + ": " + own + ")", onclick: function () { self.topUp(); } } : null,
       onDone: function (n) { self.attempts++; if (self.firstExact === null) self.firstExact = n === need; self.takeN(n); }
     });
   },
+  topUp: function () {
+    var self = this, own = S.blocks[this.bagBlock()] || 0;
+    openNumber({ title: "Пополнить сундук", who: null, text: "В рюкзаке " + own + " " + plural(own, "блок", "блока", "блоков") + " (" + BLOCK_NAME[this.bagBlock()] + "). Сколько переложить в сундук мастера?", max: own, button: "Переложить",
+      onDone: function (n) { S.blocks[self.bagBlock()] = own - n; self.chest += n; if (Frame.bp) { Frame.bp.chestLeft = self.chest; Frame.bp.fromBag = (Frame.bp.fromBag || 0) + n; } save(); self.openChest(); }, onCancel: function () { self.openChest(); } });
+  },
   takeN: function (n) {
-    var bp = Frame.bp; this.chest -= n; this.taken = n; if (!bp) S.blocks[this.block] = this.chest;
+    var bp = Frame.bp; this.chest -= n; this.taken = n; if (!bp) S.blocks[this.block] = this.chest; else bp.chestLeft = this.chest;
     this.busy = true; this.partial = false; $("frameact").hidden = true; setMissCells([]);
     Frame.clearLabels(); hint("Строим…", 0);
     var self = this, i = 0;
@@ -1009,27 +1346,26 @@ var Build = {
     rebuildTerrain(); refreshSprites(); this.busy = false;
     var bp = Frame.bp, surplus = this.taken; this.taken = 0;
     var anchor = this.cells[0];
-    if (surplus > 0) { if (bp) this.chest += surplus; else S.blocks[this.block] = (S.blocks[this.block] || 0) + surplus; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1, anchor.z + 0.5, (bp && bp.type === "div" ? "осталось лишних: " : "лишние ") + surplus + (bp && bp.type === "div" ? "" : " вернулись в сундук"), "bad"); }
+    if (surplus > 0) { if (bp) { this.chest += surplus; bp.chestLeft = this.chest; } else S.blocks[this.block] = (S.blocks[this.block] || 0) + surplus; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1, anchor.z + 0.5, (bp && bp.type === "div" ? "осталось лишних: " + surplus : (surplus === 1 ? "лишний 1 вернулся" : "лишние " + surplus + " вернулись") + (bp ? " в сундук" : " в рюкзак")), "bad"); }
     if (missing.length) {
       this.partial = true; setMissCells(missing.map(function (c) { return { x: c.x, z: c.z, y: c.y }; }), this.wall);
-      hint(bp && bp.type === "div" ? "Блоки кончились, а клетки остались. Ряды слишком длинные: нажми «Переделать»." : "Блоков не хватило: пустые клетки обведены. Возьми ещё.", 0);
-      SFX.bad(); if (bp && bp.type === "div") { Frame.renderActions(); } else Frame.renderActions();
-      Frame.on = true; return;
+      hint(bp && bp.type === "div" ? "Блоки кончились, а клетки остались. Ряды слишком длинные: нажми «Переделать»." : (this.chest <= 0 && bp ? "Блоков не хватило, и сундук пуст. Добавь блоки из рюкзака: нажми «Взять ещё блоков»." : "Блоков не хватило: пустые клетки обведены. Возьми ещё."), 0);
+      SFX.bad(); Frame.on = true; Frame.renderActions(); save(); return;
     }
-    if (bp && bp.type === "div" && surplus > 0) { this.partial = true; hint("Все ряды готовы, а блоки остались. Ряды слишком короткие: нажми «Переделать».", 0); Frame.on = true; Frame.renderActions(); return; }
+    if (bp && bp.type === "div" && surplus > 0) { this.partial = true; hint("Все ряды готовы, а блоки остались. Ряды слишком короткие: нажми «Переделать».", 0); Frame.on = true; Frame.renderActions(); save(); return; }
     this.complete();
   },
-  takeMore: function () { if (!this.partial) return; this.openChest(); },
+  takeMore: function () { if (!this.partial) return; if (Frame.bp && Frame.bp.type === "div") return; if (Frame.bp && this.chest <= 0 && (S.blocks[this.block] || 0) <= 0) { hint("Сундук пуст, и в рюкзаке нет таких блоков. Купи их у торговца или добудь.", 4000); return; } this.openChest(); },
   undo: function () {
-    var self = this; this.placed.forEach(function (p) { World.set(p.x, p.py, p.z, AIR); }); rebuildTerrain(); refreshSprites();
-    if (Frame.bp) this.chest = Frame.bp.type === "div" ? Frame.bp.total : Frame.bp.chest; else S.blocks[this.block] = (S.blocks[this.block] || 0) + this.placed.length;
+    this.placed.forEach(function (p) { World.set(p.x, p.py, p.z, AIR); }); rebuildTerrain(); refreshSprites();
+    if (Frame.bp) { this.chest = Frame.bp.type === "div" ? Frame.bp.total : (this.chest + this.placed.length); Frame.bp.chestLeft = this.chest; } else S.blocks[this.block] = (S.blocks[this.block] || 0) + this.placed.length;
     this.placed = []; this.partial = false; setMissCells([]); Frame.reset(); frameHint(); if (Frame.bp && Frame.bp.type === "div") this.attempts++;
   },
   complete: function () {
     var bp = Frame.bp, q = this.q; SFX.ok();
     var anchor = this.cells[Math.floor(this.cells.length / 2)];
     var exact = this.firstExact === true && (bp ? (bp.type !== "div" || this.attempts === 1) : true);
-    var fid = bp ? bp.factId : factIdOfFrame();
+    var fid = bp ? bp.factId : null;
     if (fid) {
       recordResult("mult", fid, exact);
       if (exact && !Frame.used) { var c = card(fid); if (c.cutFree.indexOf(todayKey()) < 0) c.cutFree.push(todayKey()); if (c.cutFree.length >= 2) S.cutHidden[fid] = true; }
@@ -1037,14 +1373,19 @@ var Build = {
     var cells = this.cells.slice(), wall = this.wall;
     this.partial = false; this.placed = []; Frame.reset();
     if (q) {
-      q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; S.builds++; S.today.built.push(q.title);
-      toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1.5, anchor.z + 0.5, "+" + q.reward + " монет", "good"); SFX.coin();
-      this.q = null; Frame.bp = null;
+      q.status = "done"; S.coins += q.reward; S.today.coinsIn += q.reward; if (q.kind === "build") S.builds++; else if (q.kind === "job") S.jobs = (S.jobs || 0) + 1; S.today.built.push(q.title);
+      toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 1.5, anchor.z + 0.5, "+" + q.reward + " " + plural(q.reward, "монета", "монеты", "монет"), "good"); SFX.coin();
+      if (bp.fromBag) { var back = Math.min(bp.chestLeft || 0, bp.fromBag); if (back > 0) { S.blocks[this.bagBlock()] = (S.blocks[this.bagBlock()] || 0) + back; toastWorld(anchor.x + 0.5, cellTopY(anchor.x, anchor.z) + 2.5, anchor.z + 0.5, "свои " + back + " " + plural(back, "блок", "блока", "блоков") + " вернулись в рюкзак", "good"); } }
+      this.q = null; Frame.bp = null; setOutline([]); S.build = null;
       var d = rectOf(cells);
       if (bp.house) growHouse(d, q);
       if (bp.type === "double") plantBeds(cells);
-      if (bp.type === "div") { S.props.push({ kind: "flag", x: d.x0, z: d.z0 }); }
-      setTimeout(function () { ensureQuests(); updateHud(); hint("Готово! " + q.v_name + " доволен. Загляни в «Задания».", 4000); }, 600);
+      if (bp.type === "div" && q.kind === "build") { S.props.push({ kind: "flag", x: d.x0, z: d.z0 }); }
+      if (bp.type === "bridge") { var I = islandById(bp.island); S.props.push({ kind: "flag", x: bp.flagX, z: bp.flagZ }); setMode("hero"); hint("Мост на «" + I.name + "» готов! Нажми на тот берег, и человечек пойдёт туда.", 6000); }
+      var vv = S.villagers.filter(function (x) { return x.id === q.v; })[0], fem = !!(vv && vv.fem);
+      if (q.kind === "job") { setTimeout(function () { ensureQuests(); updateHud(); hint("Работа сделана! " + q.v_name + (fem ? " заплатила " : " заплатил ") + q.reward + ".", 4000); }, 600); }
+      else if (bp.type !== "bridge") setTimeout(function () { ensureQuests(); updateHud(); hint("Готово! " + q.v_name + (fem ? " довольна." : " доволен.") + " Загляни в «Задания».", 4000); }, 600);
+      else setTimeout(function () { ensureQuests(); updateHud(); }, 600);
     } else { S.today.built.push("своя постройка " + rectOf(cells).cols + " × " + rectOf(cells).rows); hint("Построено!", 2500); }
     refreshSprites(); save(); updateHud();
   }
@@ -1052,7 +1393,6 @@ var Build = {
 function factIdOfFrame() { var d = Frame.dims(); if (!d) return null; var a = Frame.isWall() ? Math.max(d.cols, d.rows) : d.cols, b = Frame.isWall() ? Frame.hgt : d.rows; if (a < 2 || b < 2 || a > 10 || b > 10) return null; return factId(a, b); }
 function rectOf(cells) { var xs = cells.map(function (c) { return c.x; }), zs = cells.map(function (c) { return c.z; }); var d = { x0: Math.min.apply(null, xs), x1: Math.max.apply(null, xs), z0: Math.min.apply(null, zs), z1: Math.max.apply(null, zs) }; d.cols = d.x1 - d.x0 + 1; d.rows = d.z1 - d.z0 + 1; return d; }
 function growHouse(d, q) {
-  /* the villager raises walls and a roof on the finished floor */
   var steps = [];
   var floorY = {}; for (var x = d.x0; x <= d.x1; x++) for (var z = d.z0; z <= d.z1; z++) floorY[x + "," + z] = World.top(x, z);
   var baseY = Math.max.apply(null, Object.keys(floorY).map(function (k) { return floorY[k]; }));
@@ -1063,6 +1403,8 @@ function growHouse(d, q) {
     var t = (lvl === 2 && (x + z) % 3 === 0) ? GLASS : BRICK; steps.push([x, baseY + lvl, z, t]);
   }
   for (x = d.x0; x <= d.x1; x++) for (z = d.z0; z <= d.z1; z++) steps.push([x, baseY + 3, z, ROOF]);
+  if (S.player.x >= d.x0 && S.player.x < d.x1 + 1 && S.player.z >= d.z0 && S.player.z < d.z1 + 1) { S.player.x = doorX + 0.5; S.player.z = d.z1 + 1.5; Player.stop(); updatePlayerSprite(); }
+  S.houses = S.houses || []; S.houses.push({ x0: d.x0, x1: d.x1, z0: d.z0, z1: d.z1, y: baseY, name: q.house || q.title, holes: [] });
   var i = 0; (function step() { for (var k = 0; k < 4 && i < steps.length; k++, i++) { var s = steps[i]; if (World.get(s[0], s[1], s[2]) === AIR) World.set(s[0], s[1], s[2], s[3]); } rebuildTerrain(); if (i < steps.length) setTimeout(step, 60); else { refreshSprites(); addSignQuest(q, doorX, d.z1 + 1); save(); } })();
 }
 function plantBeds(cells) { cells.forEach(function (c, i) { if (i % 3 === 0) S.props.push({ kind: "flower", x: c.x, z: c.z }); }); refreshSprites(); }
@@ -1079,80 +1421,135 @@ function openNumber(opt) {
   board.appendChild(h("div", { class: "bhead" }, [opt.who ? villagerFace(opt.who) : null, h("h2", { text: opt.title })]));
   if (opt.text) board.appendChild(h("p", { class: "bubble", text: opt.text }));
   board.appendChild(h("div", { class: "entry" }, [h("div", { style: "display:grid;gap:10px" }, [readout, pad]), h("div", { style: "display:grid;gap:10px" }, [h("p", { class: "small muted", text: "Стопками: по десять и по одному" }), stackBtns, stacks])]));
-  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Отмена", onclick: function () { closeModal(); if (opt.onCancel) opt.onCancel(); } }), h("button", { class: "btn primary big", text: opt.button || "Готово", onclick: function () { var n = +val || 0; if (opt.max != null && n > opt.max) { hint("Столько нет: всего " + opt.max + ".", 2500); SFX.bad(); return; } closeModal(); opt.onDone(n); } })]));
+  var row = h("div", { class: "row end" });
+  if (opt.extra) row.appendChild(h("button", { class: "btn", text: opt.extra.label, style: "margin-right:auto", onclick: function () { closeModal(); opt.extra.onclick(); } }));
+  row.appendChild(h("button", { class: "btn", text: "Отмена", onclick: function () { closeModal(); if (opt.onCancel) opt.onCancel(); } }));
+  row.appendChild(h("button", { class: "btn primary big", text: opt.button || "Готово", onclick: function () { var n = +val || 0; if (opt.max != null && n > opt.max) { hint("Столько нет: всего " + opt.max + ".", 2500); SFX.bad(); return; } closeModal(); opt.onDone(n); } }));
+  board.appendChild(row);
   draw(); showModal();
 }
-function showModal() { $("modal").hidden = false; Game.modal = true; }
-function closeModal() { $("modal").hidden = true; $("board").innerHTML = ""; Game.modal = false; }
+function showModal() { $("modal").hidden = false; Game.modal = true; Player.held = null; }
+function closeModal() { $("modal").hidden = true; $("board").innerHTML = ""; $("board").className = "board"; Game.modal = false; }
 function villagerFace(id) {
-  var v = S.villagers.filter(function (x) { return x.id === id; })[0]; var skin = v ? v.skin : 0; var tool = id === "fedor" ? "hammer" : id === "marfa" ? "basket" : id === "ilyas" ? "coin" : null;
-  var c = pixelCanvas(16, 24, function (g) { drawVillager(g, skin, tool); }); c.className = "who"; return c;
+  var v = S.villagers.filter(function (x) { return x.id === id; })[0]; var skin = v ? v.skin : 0;
+  var c = pixelCanvas(16, 24, function (g) { drawVillager(g, skin, v ? villagerTool(v) : null); }); c.className = "who"; return c;
 }
 
 /* ===================== QUESTS ===================== */
-var VNAME = { fedor: "Мастер Фёдор", marfa: "Бабушка Марфа", ilyas: "Торговец Ильяс" };
+var VNAME = { fedor: "Мастер Фёдор", marfa: "Бабушка Марфа", ilyas: "Торговец Ильяс", grisha: "Рудокоп Гриша", petr: "Лесоруб Пётр", vera: "Тётя Вера", marat: "Капитан Марат", zima: "Бабушка Зима" };
 var FLOOR_NAMES = ["Пол для мастерской", "Пол для пекарни", "Пол для школы", "Пол для сарая", "Пол для библиотеки", "Пол для гончарной", "Пол для кузницы", "Пол для амбара"];
+var HOUSE_NAMES = ["Мастерская", "Пекарня", "Школа", "Сарай", "Библиотека", "Гончарная", "Кузница", "Амбар"];
+var BRIDGE_ORDER = ["rock", "forest", "west", "sand"];
+function vname(id) { var v = S.villagers.filter(function (x) { return x.id === id; })[0]; return v ? v.name : (VNAME[id] || id); }
 function openQuest(kind) { return S.quests.filter(function (q) { return q.status === "open" && q.kind === kind; })[0]; }
 function ensureQuests() {
-  if (!openQuest("build")) S.quests.push(makeBuildQuest());
+  if (!openQuest("build") && !openQuest("bridge")) { var bq = makeBridgeQuest(); S.quests.push(bq || makeBuildQuest()); }
   if (!openQuest("craft")) S.quests.push(makeCraftQuest());
   if (!openQuest("trade")) S.quests.push(makeTradeQuest());
   S.quests = S.quests.filter(function (q) { return q.status === "open" || S.quests.indexOf(q) >= S.quests.length - 30; });
   updateHud();
 }
+function chestFor(need, short) { return short ? Math.max(10, need - (5 + Math.floor(Math.random() * 8))) : need + 10 + Math.floor(Math.random() * 20); }
 function makeBuildQuest() {
   var f = pickFact(), n = S.builds, id = "q" + (++S.qseq);
   var cycle = ["rect", "rect", "rect", "double", "wall", "rect", "div", "rect", "wall", "double"];
   var type = cycle[n % cycle.length];
   if (type === "div" && recentRate("m") < 0.75) type = "rect";
-  var bp = { type: type, factId: f.id, block: PLANK, chest: 100 }, title, text, reward = 20;
-  if (type === "rect") { bp.r = f.a; bp.c = f.b; bp.house = true; title = FLOOR_NAMES[n % FLOOR_NAMES.length] + " " + f.a + " × " + f.b; text = "Нужен " + FLOOR_NAMES[n % FLOOR_NAMES.length].toLowerCase() + ": " + f.a + " × " + f.b + ". В сундуке 100 блоков, возьми сколько нужно. Заплачу " + reward + " монет."; }
-  if (type === "double") { bp.r = f.a; bp.c = f.b; bp.block = BED; bp.chest = f.a * f.b * 2 > 100 ? 200 : 100; reward = 30; title = "Две грядки по " + f.a + " × " + f.b; text = "Для огорода нужны две грядки, каждая " + f.a + " × " + f.b + ". Возьми из сундука блоки сразу на обе. Заплачу " + reward + " монет."; }
-  if (type === "wall") { bp.len = Math.max(f.a, f.b); bp.h = Math.min(f.a, f.b); bp.block = FENCE; reward = 30; title = "Забор " + bp.len + " в длину и " + bp.h + " в высоту"; text = "Поставь забор: " + bp.len + " в длину и " + bp.h + " в высоту. В сундуке 100 блоков. Заплачу " + reward + " монет."; }
-  if (type === "div") { bp.total = f.a * f.b; bp.rows = f.a; bp.chest = bp.total; reward = 30; title = bp.total + " блоков в " + f.a + " " + plural(f.a, "ряд", "ряда", "рядов"); text = "В сундуке ровно " + bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + ". Разложи их на склад в " + f.a + " " + plural(f.a, "одинаковый ряд", "одинаковых ряда", "одинаковых рядов") + ", чтобы ни один не остался и ни одного не не хватило. Заплачу " + reward + " монет."; }
-  return { id: id, kind: "build", v: "fedor", v_name: VNAME.fedor, bp: bp, title: title, text: text, reward: reward, status: "open" };
+  var short = n >= 3 && n % 3 === 2;
+  var bp = { type: type, factId: f.id, block: PLANK, v: "fedor", island: "home" }, title, text, reward = 20;
+  var house = HOUSE_NAMES[n % HOUSE_NAMES.length];
+  if (type === "rect") { bp.r = f.a; bp.c = f.b; bp.house = true; bp.chest = chestFor(f.a * f.b, short); title = FLOOR_NAMES[n % FLOOR_NAMES.length] + " " + f.a + " × " + f.b; text = "Нужен " + FLOOR_NAMES[n % FLOOR_NAMES.length].toLowerCase() + ": " + f.a + " × " + f.b + ". "; }
+  if (type === "double") { bp.r = f.a; bp.c = f.b; bp.block = BED; bp.chest = chestFor(f.a * f.b * 2, short); reward = 30; title = "Две грядки по " + f.a + " × " + f.b; text = "Для огорода нужны две грядки, каждая " + f.a + " × " + f.b + ". Возьми из сундука блоки сразу на обе. "; }
+  if (type === "wall") { bp.len = Math.max(f.a, f.b); bp.h = Math.min(f.a, f.b); bp.block = FENCE; bp.chest = chestFor(bp.len * bp.h, short); reward = 30; title = "Забор " + bp.len + " в длину и " + bp.h + " в высоту"; text = "Поставь забор: " + bp.len + " в длину и " + bp.h + " в высоту. "; }
+  if (type === "div") { bp.total = f.a * f.b; bp.rows = f.a; bp.chest = bp.total; reward = 30; title = bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + " в " + f.a + " " + plural(f.a, "ряд", "ряда", "рядов"); text = "В сундуке ровно " + bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + ". Разложи их на склад в " + f.a + " " + plural(f.a, "одинаковый ряд", "одинаковых ряда", "одинаковых рядов") + ", чтобы ничего не осталось и всего хватило. "; }
+  if (type !== "div") text += (short ? "В сундуке только " + bp.chest + " " + plural(bp.chest, "блок", "блока", "блоков") + ", остальные добавь из своего рюкзака (доски: распили брёвна или купи). " : "В сундуке " + bp.chest + " " + plural(bp.chest, "блок", "блока", "блоков") + ", возьми сколько нужно. ");
+  text += "Заплачу " + reward + " монет.";
+  return { id: id, kind: "build", v: "fedor", v_name: VNAME.fedor, bp: bp, title: title, text: text, reward: reward, status: "open", island: "home", house: house };
+}
+function makeBridgeQuest() {
+  if (S.builds < 2) return null;
+  var next = null; for (var i = 0; i < BRIDGE_ORDER.length; i++) { var I = islandById(BRIDGE_ORDER[i]); if (!World.bridgeDone(I) && I.bridge.cells && I.bridge.cells.length) { next = I; break; } }
+  if (!next) return null;
+  if (S.quests.some(function (q) { return q.kind === "bridge" && q.status === "open"; })) return null;
+  var B = next.bridge, need = B.len * B.width;
+  var cells = B.cells.filter(function (c) { return !c.pier; });
+  var flag = cells.reduce(function (best, c) { return !best || Math.hypot(c.x - next.cx, c.z - next.cz) < Math.hypot(best.x - next.cx, best.z - next.cz) ? c : best; }, null);
+  var bp = { type: "bridge", island: next.id, x0: B.x0, x1: B.x1, z0: B.z0, z1: B.z1, len: B.len, width: B.width, cells: cells, block: PLANK, factId: factId(B.len, B.width), chest: Math.max(10, need - 12), v: "fedor", flagX: flag.x, flagZ: flag.z };
+  var reward = 40;
+  return { id: "q" + (++S.qseq), kind: "bridge", v: "fedor", v_name: VNAME.fedor, bp: bp, title: "Мост на «" + next.name + "»", text: "Жители хотят ходить на остров «" + next.name + "». Нужен мост: " + B.len + " в длину и " + B.width + " в ширину, от причала до причала. В сундуке " + bp.chest + " " + plural(bp.chest, "доска", "доски", "досок") + ", остальные добавь из рюкзака: распили брёвна на верстаке или купи доски у Ильяса. Заплачу " + reward + " монет.", reward: reward, status: "open", island: "home" };
 }
 function makeCraftQuest() {
   var C = content(), id = "q" + (++S.qseq), n = S.crafts;
   var sub = ["morph", "check", "dict", "morph", "dict", "check"][n % 6];
   if (sub === "morph" && !C.morph.length) sub = "dict"; if (sub === "check" && !C.check.length) sub = "dict"; if (sub === "dict" && !C.dict.length) sub = "morph";
-  var q = { id: id, kind: "craft", v: "marfa", v_name: VNAME.marfa, sub: sub, reward: 15, status: "open" };
+  var q = { id: id, kind: "craft", v: "marfa", v_name: VNAME.marfa, sub: sub, reward: 15, status: "open", island: "home" };
   if (sub === "morph") { q.ref = pickWord(C.morph, "mo:"); var m = C.morph[q.ref]; q.title = "Собрать: " + m.item; q.text = "Собери на верстаке «" + m.item + "» (" + m.hint + "). Части слова лежат в руде, копай скалы киркой. Дам " + q.reward + " монет."; }
   if (sub === "check") { q.ref = pickWord(C.check, "ch:"); var cw = C.check[q.ref]; q.title = "Починить слово: " + gapForm({ w: cw[0], i: cw[1] }); q.text = "В скалах есть слово с дыркой: «" + gapForm({ w: cw[0], i: cw[1] }) + "». Добудь его и почини молотом ударения на верстаке. Дам " + q.reward + " монет."; }
   if (sub === "dict") { q.ref = pickWord(C.dict, "d:"); q.title = "Редкий чертёж"; q.text = "Я нашла редкий чертёж. Открой его на верстаке во вкладке «Чертежи»: посмотри, запомни и собери слово из букв. Дам " + q.reward + " монет."; }
   return q;
 }
 function makeTradeQuest() {
-  var id = "q" + (++S.qseq), n = S.trades, C = content();
+  var id = "q" + (++S.qseq), n = S.trades, C = { goods: goodsList() };
   var lvl = n < 2 ? 0 : (n < 5 ? 1 : (n % 3 === 2 ? 3 : 2)); if (lvl >= 2 && recentRate("c") < 0.7) lvl = 1;
   var g = pick(C.goods); var price = lvl === 0 ? Math.max(3, Math.min(20, g.base - 10 + Math.floor(Math.random() * 10))) : g.base + Math.floor(Math.random() * 9) - 4;
-  var q = { id: id, kind: "trade", v: "ilyas", v_name: VNAME.ilyas, lvl: lvl, good: g.id, price: price, qty: 1, status: "open", reward: 0 };
+  if (price < 2) price = 2;
+  var q = { id: id, kind: "trade", v: "ilyas", v_name: VNAME.ilyas, lvl: lvl, good: g.id, price: price, qty: 1, status: "open", reward: 0, island: "home" };
   if (lvl === 3) { q.qty = 2 + Math.floor(Math.random() * 3); q.budget = q.price * q.qty + (Math.random() < 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 15)); }
   var gname = g.name;
   q.title = "Купить: " + gname + (q.qty > 1 ? " × " + q.qty : "");
-  q.text = lvl === 0 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 1 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 2 ? gname + " стоит " + price + ". Заплатишь крупной купюрой, а сдачу посчитаем вместе." : "Нужно " + q.qty + " " + plural(q.qty, "штука", "штуки", "штук") + ": " + gname + " по " + price + ". У тебя на это " + q.budget + " монет. Хватит ли?";
+  q.text = lvl <= 1 ? "Продаю " + gname + " за " + price + " " + plural(price, "монету", "монеты", "монет") + ". Заплати без сдачи." : lvl === 2 ? gname + " стоит " + price + ". Заплатишь крупной купюрой, а сдачу посчитаем вместе." : "Нужно " + q.qty + " " + plural(q.qty, "штука", "штуки", "штук") + ": " + gname + " по " + price + ". У тебя на это " + q.budget + " " + plural(q.budget, "монета", "монеты", "монет") + ". Хватит ли?";
   return q;
 }
 function addSignQuest(buildQ, x, z) {
   var C = content(); if (!C.tsya.length) return;
   var ref = pickWord(C.tsya, "t:");
-  S.quests.push({ id: "q" + (++S.qseq), kind: "sign", v: "fedor", v_name: VNAME.fedor, ref: ref, at: { x: Math.max(0, Math.min(W - 1, x)), z: Math.max(0, Math.min(D - 1, z)) }, title: "Табличка: " + buildQ.title.replace(/^Пол для /, ""), text: "Дом готов! Поставь у двери табличку с правильной надписью.", reward: 10, status: "open" });
+  S.quests.push({ id: "q" + (++S.qseq), kind: "sign", v: "fedor", v_name: VNAME.fedor, ref: ref, at: { x: Math.max(0, Math.min(W - 1, x)), z: Math.max(0, Math.min(D - 1, z)) }, title: "Табличка: " + (buildQ.house || buildQ.title), text: "Дом готов! Поставь у двери табличку с правильной надписью.", reward: 10, status: "open", island: "home" });
   updateHud(); hint("Новое задание: табличка для дома.", 3000);
+}
+/* jobs: paid frame tasks from the island villagers, one per villager per day */
+var JOBS = {
+  grisha: { block: STONE, names: ["Склад руды", "Площадка для вагонеток"], types: ["div", "rect"], pay: 25 },
+  petr: { block: PLANK, names: ["Штабель досок", "Настил для лесопилки"], types: ["div", "rect"], pay: 20 },
+  vera: { block: BED, names: ["Клумба", "Две грядки"], types: ["rect", "double"], pay: 20 },
+  marat: { block: PLANK, names: ["Ящики на палубу", "Настил причала"], types: ["div", "rect"], pay: 25 },
+  zima: { block: SNOW, names: ["Снежная стена", "Снежная крепость"], types: ["wall", "rect"], pay: 30 }
+};
+function makeJobQuest(vid) {
+  var J = JOBS[vid]; if (!J) return null; var f = pickFact(); var type = pick(J.types); if (type === "div" && recentRate("m") < 0.75) type = "rect";
+  var v = S.villagers.filter(function (x) { return x.id === vid; })[0]; var I = islandAt(v.x, v.z);
+  var bp = { type: type, factId: f.id, block: J.block, v: vid, island: I ? I.id : "home" }, title = J.names[J.types.indexOf(type)] || J.names[0], text;
+  if (type === "rect") { bp.r = f.a; bp.c = f.b; bp.chest = chestFor(f.a * f.b, false); text = title + ": " + f.a + " × " + f.b + ". В сундуке " + bp.chest + ", возьми сколько нужно."; title += " " + f.a + " × " + f.b; }
+  if (type === "double") { bp.r = f.a; bp.c = f.b; bp.chest = chestFor(f.a * f.b * 2, false); text = "Две грядки по " + f.a + " × " + f.b + ". Возьми блоки сразу на обе."; title = "Две грядки по " + f.a + " × " + f.b; }
+  if (type === "wall") { bp.len = Math.max(f.a, f.b); bp.h = Math.min(f.a, f.b); bp.chest = chestFor(bp.len * bp.h, false); text = title + ": " + bp.len + " в длину и " + bp.h + " в высоту. В сундуке " + bp.chest + "."; title += " " + bp.len + " × " + bp.h; }
+  if (type === "div") { bp.total = f.a * f.b; bp.rows = f.a; bp.chest = bp.total; text = title + ": разложи " + bp.total + " " + plural(bp.total, "блок", "блока", "блоков") + " в " + f.a + " " + plural(f.a, "одинаковый ряд", "одинаковых ряда", "одинаковых рядов") + " без остатка."; title += ": " + bp.total + " в " + f.a + " " + plural(f.a, "ряд", "ряда", "рядов"); }
+  text = "Работа. " + text + " Заплачу " + J.pay + " монет.";
+  return { id: "q" + (++S.qseq), kind: "job", v: vid, v_name: vname(vid), bp: bp, title: "Работа у " + (v.gen || vname(vid)) + ": " + title, text: text, reward: J.pay, status: "open", island: bp.island };
+}
+function addRepairQuests() {
+  (S.houses || []).forEach(function (hs) {
+    hs.holes = (hs.holes || []).filter(function (hole) { return World.get(hole.x, hole.y, hole.z) === AIR; });
+    if (!hs.holes.length) return;
+    if (S.quests.some(function (q) { return q.status === "open" && q.kind === "repair"; })) return;
+    var bricks = hs.holes.filter(function (hole) { return hole.t === BRICK; }).length, glass = hs.holes.length - bricks;
+    S.quests.push({ id: "q" + (++S.qseq), kind: "repair", v: "fedor", v_name: VNAME.fedor, title: "Починить дом: " + hs.name, text: "Ночью гремлины откусили от дома " + hs.holes.length + " " + plural(hs.holes.length, "блок", "блока", "блоков") + (bricks ? ": кирпич × " + bricks : "") + (glass ? (bricks ? ", " : ": ") + "стекло × " + glass : "") + ". Дырки обведены белым. Поставь блоки инструментом «Блок»; кирпич и стекло продаёт Ильяс. Чтобы гремлины не приходили, поставь у дома фонарь и купи масла.", reward: 10, status: "open", island: "home" });
+  });
+  refreshHoleOutline(); updateHud();
 }
 
 /* ===================== QUEST PANELS ===================== */
+function questButtonLabel(q, active) { return q.kind === "build" || q.kind === "bridge" || q.kind === "job" ? (active ? "Продолжить" : "Взяться") : q.kind === "craft" ? "К верстаку" : q.kind === "trade" ? "К торговцу" : q.kind === "sign" ? "Поставить табличку" : q.kind === "repair" ? "Показать дырки" : "Ок"; }
 function openQuests() {
   var board = $("board"); board.innerHTML = "";
   board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Задания жителей" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
   var list = h("div", { class: "list" });
   var open = S.quests.filter(function (q) { return q.status === "open"; });
-  if (!open.length) list.appendChild(h("p", { class: "muted", text: "Пока заданий нет." }));
+  if (!open.length) list.appendChild(h("p", { class: "muted", text: "Пока заданий нет. Поговори с жителями на других островах: у них есть работа." }));
   open.forEach(function (q) {
-    var active = Build.q === q;
+    var active = Build.q === q; var I = islandById(q.island || "home");
     var card = h("div", { class: "card" + (active ? " active" : "") }, [
       h("h3", {}, [villagerFace(q.v), q.title, active ? h("span", { class: "pill go", text: "в работе" }) : null]),
       h("p", { text: q.text }),
-      h("div", { class: "row end" }, [q.reward ? h("span", { class: "pill", text: "+" + q.reward + " монет" }) : null, h("button", { class: "btn primary", text: q.kind === "build" ? (active ? "Продолжить" : "Взяться") : q.kind === "craft" ? "К верстаку" : q.kind === "trade" ? "К торговцу" : "Поставить табличку", onclick: function () { takeQuest(q); } })])
+      h("div", { class: "row end" }, [I && I.id !== "home" ? h("span", { class: "pill", text: "остров: " + I.name }) : null, q.reward ? h("span", { class: "pill", text: "+" + q.reward + " " + plural(q.reward, "монета", "монеты", "монет") }) : null, h("button", { class: "btn primary", text: questButtonLabel(q, active), onclick: function () { takeQuest(q); } })])
     ]);
     list.appendChild(card);
   });
@@ -1163,18 +1560,91 @@ function openQuests() {
 }
 function takeQuest(q) {
   closeModal();
-  if (q.kind === "build") { if (Build.partial && Build.q !== q) { hint("Сначала закончи начатую стройку.", 3000); return; } Build.q = q; Frame.bp = q.bp; Frame.reset(); setTool("frame"); }
+  if (Build.busy) { hint("Подожди, идёт стройка.", 2000); return; }
+  if (q.kind === "build" || q.kind === "bridge" || q.kind === "job") {
+    if (Build.partial && Build.q !== q) { hint("Сначала закончи начатую стройку.", 3000); return; }
+    if (q.kind === "job" && !S.visited[q.island]) { hint("Эта работа на острове «" + islandById(q.island).name + "»: сначала доберись туда.", 3500); return; }
+    Build.q = q; Frame.bp = q.bp; Frame.reset(); setTool("frame");
+    if (q.kind === "bridge") { R.target.x = (q.bp.x0 + q.bp.x1) / 2; R.target.z = (q.bp.z0 + q.bp.z1) / 2; if (S.mode === "hero") setMode("cam"); }
+  }
   if (q.kind === "craft") openCraft(q.sub);
-  if (q.kind === "trade") openTrade(q);
+  if (q.kind === "trade") approachVillager("ilyas");
   if (q.kind === "sign") openSign(q);
+  if (q.kind === "repair") { refreshHoleOutline(); var hs = (S.houses || []).filter(function (x) { return x.holes && x.holes.length; })[0]; if (hs) { R.target.x = (hs.x0 + hs.x1) / 2; R.target.z = hs.z1; if (S.mode === "hero") setMode("cam"); } hint("Белые рамки — дырки в стене. Выбери кирпич или стекло в рюкзаке и поставь инструментом «Блок».", 5000); }
 }
 function openVillager(id) {
-  var q = S.quests.filter(function (x) { return x.status === "open" && x.v === id; })[0];
+  var v = S.villagers.filter(function (x) { return x.id === id; })[0];
+  if (id === "ilyas") return openShop(openQuest("trade"));
+  if (id === "marat") return openShip(true);
+  var qs = S.quests.filter(function (x) { return x.status === "open" && x.v === id; });
   var board = $("board"); board.innerHTML = "";
-  board.appendChild(h("div", { class: "bhead" }, [villagerFace(id), h("h2", { text: VNAME[id] || id }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
-  if (q) { board.appendChild(h("p", { class: "bubble", text: q.text })); board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: q.kind === "build" ? "Берусь!" : q.kind === "craft" ? "К верстаку" : q.kind === "trade" ? "Торговать" : "Поставить табличку", onclick: function () { takeQuest(q); } })])); }
-  else board.appendChild(h("p", { class: "bubble", text: id === "fedor" ? "Хороший день для стройки!" : id === "marfa" ? "Слова — как бусины: собирай по одной." : id === "ilyas" ? "Приходи, когда будут монеты." : "Привет!" }));
+  board.appendChild(h("div", { class: "bhead" }, [villagerFace(id), h("h2", { text: vname(id) }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  if (JOBS[id] && !qs.some(function (q) { return q.kind === "job"; })) {
+    if ((S.jobDay || {})[id] === S.day) board.appendChild(h("p", { class: "bubble", text: "Сегодня ты уже поработал у меня. Приходи завтра, будет новая работа." }));
+    else {
+      var jq = makeJobQuest(id);
+      board.appendChild(h("p", { class: "bubble", text: jq.text }));
+      board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Берусь!", onclick: function () { S.jobDay = S.jobDay || {}; S.jobDay[id] = S.day; S.quests.push(jq); updateHud(); save(); takeQuest(jq); } })]));
+    }
+  }
+  qs.forEach(function (q) {
+    board.appendChild(h("p", { class: "bubble", text: q.text }));
+    board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: questButtonLabel(q, Build.q === q), onclick: function () { takeQuest(q); } })]));
+  });
+  if (!qs.length && !JOBS[id]) board.appendChild(h("p", { class: "bubble", text: id === "fedor" ? "Хороший день для стройки!" : id === "marfa" ? "Слова — как бусины: собирай по одной." : "Привет! Хорошо, что ты добрался сюда." }));
+  if (v && v.lore) board.appendChild(h("p", { class: "small muted", text: v.lore }));
   showModal();
+}
+
+/* ===================== SHIP (voyages) ===================== */
+var ROUTES = { "sand>snow": { from: "sand", to: "snow", hours: 4, speed: 9, land: { x: 92, z: 83 } }, "snow>sand": { from: "snow", to: "sand", hours: 4, speed: 9, land: { x: 48, z: 91 } } };
+function shipJobBlock(board) {
+  var qs = S.quests.filter(function (x) { return x.status === "open" && x.v === "marat" && x.kind === "job"; });
+  if (qs.length) { qs.forEach(function (q) { board.appendChild(h("p", { class: "bubble", text: q.text })); board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: questButtonLabel(q, Build.q === q), onclick: function () { takeQuest(q); } })])); }); return; }
+  if ((S.jobDay || {}).marat === S.day) return;
+  var jq = makeJobQuest("marat"); if (!jq) return;
+  board.appendChild(h("p", { class: "bubble", text: jq.text }));
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Берусь за работу", onclick: function () { S.jobDay = S.jobDay || {}; S.jobDay.marat = S.day; S.quests.push(jq); updateHud(); save(); takeQuest(jq); } })]));
+}
+function openShip(viaVillager) {
+  var here = islandAt(Math.floor(S.player.x), Math.floor(S.player.z)); var hereId = here ? here.id : null;
+  var board = $("board"); board.innerHTML = "";
+  board.appendChild(h("div", { class: "bhead" }, [villagerFace("marat"), h("h2", { text: "Капитан Марат" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  var routes = Object.keys(ROUTES).filter(function (k) { return ROUTES[k].from === hereId; });
+  if (hereId === "sand" && S.visited.sand) shipJobBlock(board);
+  if (!routes.length) { board.appendChild(h("p", { class: "bubble", text: "Корабль стоит у причала на «Песках». Приходи туда, и поплывём к «Снегам»." })); showModal(); return; }
+  var key = routes[0], rt = ROUTES[key], dest = islandById(rt.to);
+  board.appendChild(h("p", { class: "bubble", text: "Плывём на «" + dest.name + "»? Сначала заполним судовой журнал: без него в море нельзя." }));
+  var f = pickFact(); var hours = Math.min(f.a, f.b), speed = Math.max(f.a, f.b); var variant = (S.voyages || 0) % 2;
+  var q = variant === 0 ? { text: "Сегодня ветер такой, что за час корабль проходит " + speed + " " + plural(speed, "милю", "мили", "миль") + ". Плыть " + hours + " " + plural(hours, "час", "часа", "часов") + ". Сколько миль запишем в журнал?", ans: hours * speed, show: Array.apply(null, { length: hours }).map(function (_, i) { return speed * (i + 1); }), unit: "миль" }
+    : { text: "В команде " + hours + " " + plural(hours, "матрос", "матроса", "матросов") + ", каждому по " + speed + " " + plural(speed, "сухарю", "сухаря", "сухарей") + " на плавание. Сколько сухарей взять?", ans: hours * speed, show: Array.apply(null, { length: hours }).map(function (_, i) { return speed * (i + 1); }), unit: "сухарей" };
+  q.fid = f.id;
+  var ro = h("div", { class: "readout", text: "0" }), val = "", msg = h("p", { class: "muted" }), tries = 0;
+  var pad = h("div", { class: "keypad" }); ["7", "8", "9", "4", "5", "6", "1", "2", "3", "⌫", "0", "C"].forEach(function (k) { pad.appendChild(h("button", { class: "btn", text: k, onclick: function () { if (k === "⌫") val = val.slice(0, -1); else if (k === "C") val = ""; else if (val.length < 3) val = (val + k).replace(/^0+(?=\d)/, ""); ro.textContent = val || "0"; } })); });
+  board.appendChild(h("div", { class: "sign", text: "Судовой журнал" }));
+  board.appendChild(h("p", { class: "q", text: q.text }));
+  board.appendChild(h("div", { class: "entry" }, [h("div", { style: "display:grid;gap:10px" }, [ro, pad]), h("div", { class: "small muted", text: "Запиши число " + q.unit + " и нажми «Отплываем»." })]));
+  board.appendChild(msg);
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Отплываем!", onclick: function () {
+    tries++; var n = +val || 0;
+    if (n === q.ans) { recordResult("mult", q.fid, tries === 1); SFX.ok(); S.voyages = (S.voyages || 0) + 1; closeModal(); sail(rt); return; }
+    SFX.bad(); msg.textContent = "Капитан показывает карту: " + q.show.join(", ") + ". Посчитай ещё раз.";
+  } })]));
+  showModal();
+}
+function sail(rt) {
+  var dest = islandById(rt.to); Game.modal = true; Player.stop();
+  var sx = S.player.x, sz = S.player.z, tx = rt.land.x + 0.5, tz = rt.land.z + 0.5, t0 = performance.now(), dur = 4000;
+  var ship = S.props.filter(function (p) { return p.kind === "ship"; })[0];
+  hint("Плывём на «" + dest.name + "»…", 0);
+  if (S.mode !== "hero") setMode("hero");
+  (function anim() {
+    var k = Math.min(1, (performance.now() - t0) / dur); var e = k < 0.5 ? 2 * k * k : -1 + (4 - 2 * k) * k;
+    S.player.x = sx + (tx - sx) * e; S.player.z = sz + (tz - sz) * e; R.target.x = S.player.x; R.target.z = S.player.z;
+    if (ship) { ship.x = Math.floor(S.player.x); ship.z = Math.floor(S.player.z); }
+    if (playerSprite) playerSprite.position.set(S.player.x, SEA + 0.6, S.player.z);
+    if (k < 1) requestAnimationFrame(anim); else { S.player.x = tx; S.player.z = tz; if (ship) { ship.x = rt.to === "snow" ? 92 : 48; ship.z = rt.to === "snow" ? 85 : 93; } Game.modal = false; Player.arrived(); refreshSprites(); updatePlayerSprite(); save(); hint("Приплыли на «" + dest.name + "»!", 4000); }
+  })();
 }
 
 /* ===================== BACKPACK ===================== */
@@ -1183,15 +1653,17 @@ function openBag() {
   board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Рюкзак" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
   board.appendChild(h("p", { class: "small muted", text: "Выбери, что ставить инструментом «Блок»." }));
   var grid = h("div", { class: "recipes" });
-  Object.keys(S.blocks).forEach(function (k) { var n = S.blocks[k]; if (!n) return; var id = "b" + k; var tile = TILES[+k] ? TILES[+k][0] : 3; var c = document.createElement("canvas"); c.width = 16; c.height = 16; c.getContext("2d").drawImage(atlasTex.canvas, tile * 16, 0, 16, 16, 0, 0, 16, 16); grid.appendChild(h("button", { class: "recipe" + (S.sel === id ? " active" : ""), style: S.sel === id ? "border-color:var(--gold);background:#fff3c4" : "", onclick: function () { S.sel = id; setTool("place"); closeModal(); save(); } }, [c, h("b", { text: BLOCK_NAME[k] }), h("span", { class: "pill", text: n + " шт." })])); });
+  Object.keys(S.blocks).forEach(function (k) { var n = S.blocks[k]; if (!n) return; var id = "b" + k; var tile = TILES[+k] ? TILES[+k][0] : 3; var c = document.createElement("canvas"); c.width = 16; c.height = 16; c.getContext("2d").drawImage(atlasTex.canvas, tile * 16, 0, 16, 16, 0, 0, 16, 16); grid.appendChild(h("button", { class: "recipe", style: S.sel === id ? "border-color:var(--gold);background:#fff3c4" : "", onclick: function () { S.sel = id; setTool("place"); closeModal(); save(); } }, [c, h("b", { text: BLOCK_NAME[k] }), h("span", { class: "pill", text: n + " шт." })])); });
   Object.keys(S.items).forEach(function (k) { var it = S.items[k]; if (!it.n) return; grid.appendChild(h("button", { class: "recipe", style: S.sel === k ? "border-color:var(--gold);background:#fff3c4" : "", onclick: function () { S.sel = k; setTool("place"); closeModal(); save(); } }, [propCanvas(it.kind), h("b", { text: it.name }), h("span", { class: "pill", text: it.n + " шт." })])); });
   if (!grid.children.length) grid.appendChild(h("p", { class: "muted", text: "Пусто. Копай киркой или покупай у торговца." }));
   board.appendChild(grid);
+  var logs = S.blocks[LOG] || 0;
+  if (logs > 0) board.appendChild(h("div", { class: "row" }, [h("span", { text: "Брёвна: " + logs + ". Одно бревно — это 4 доски." }), h("button", { class: "btn", text: "Распилить все брёвна", onclick: function () { var n = S.blocks[LOG] || 0; S.blocks[LOG] = 0; S.blocks[PLANK] = (S.blocks[PLANK] || 0) + n * 4; SFX.ok(); hint(n + " " + plural(n, "бревно", "бревна", "брёвен") + " по 4 доски = " + (n * 4) + " " + plural(n * 4, "доска", "доски", "досок") + ".", 4000); save(); openBag(); } })]));
   if (S.parts.length || S.gaps.length) {
     board.appendChild(h("h3", { text: "Части слов" }));
     board.appendChild(h("div", { class: "tiles" }, S.parts.map(function (p) { return h("span", { class: "tile part", text: p }); }).concat(S.gaps.map(function (g) { return h("span", { class: "tile gap", text: gapForm(g) }); }))));
   }
-  board.appendChild(h("p", { class: "small muted", text: "Монеты: " + S.coins }));
+  board.appendChild(h("p", { class: "small muted", text: "Монеты: " + S.coins + ". Масло для фонарей: " + (S.oil || 0) + "." }));
   showModal();
 }
 
@@ -1199,7 +1671,7 @@ function openBag() {
 function openCraft(tab) {
   tab = tab || "morph";
   var C = content(), board = $("board"); board.innerHTML = ""; board.className = "board wide";
-  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Верстак" }), h("button", { class: "btn close", text: "Закрыть", onclick: function () { closeModal(); board.className = "board"; } })]));
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Верстак" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
   var tabs = h("div", { class: "tabs" });
   [["morph", "Рецепты"], ["check", "Молот ударения"], ["dict", "Чертежи"]].forEach(function (t) { tabs.appendChild(h("button", { class: "btn" + (t[0] === tab ? " on" : ""), text: t[1], onclick: function () { openCraft(t[0]); } })); });
   board.appendChild(tabs);
@@ -1226,7 +1698,7 @@ function craftMorphOne(i) {
   var chosen = [];
   body.appendChild(h("div", { class: "bhead" }, [propCanvas(m.kind), h("h2", { text: m.item }), h("button", { class: "btn close", text: "Назад", onclick: function () { openCraft("morph"); } })]));
   body.appendChild(h("p", { class: "bubble", text: m.hint + ". Из каких частей это слово?" }));
-  var slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted", text: "" });
+  var slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted", text: "" }), tries = 0;
   var avail = S.parts.slice();
   function draw() {
     slots.innerHTML = ""; for (var k = 0; k < m.parts.length; k++) slots.appendChild(h("div", { class: "slot" + (chosen[k] ? " filled" : ""), text: chosen[k] ? chosen[k].p : "" }));
@@ -1238,10 +1710,11 @@ function craftMorphOne(i) {
   body.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Убрать часть", onclick: function () { chosen.pop(); draw(); } }), h("button", { class: "btn primary big", text: "Склеить", onclick: function () {
     if (chosen.length < m.parts.length) { msg.textContent = "Не хватает частей: " + (m.parts.length - chosen.length) + "."; return; }
     var ok = chosen.every(function (c, k) { return c.p === m.parts[k]; });
-    recordResult("morph", "mo:" + i, ok);
+    tries++;
     if (!ok) { SFX.bad(); msg.textContent = "Части не склеились: в этом порядке слово не получается. Попробуй иначе."; chosen = []; draw(); save(); return; }
+    recordResult("morph", "mo:" + i, tries === 1);
     chosen.forEach(function (c) { var at = S.parts.indexOf(c.p); if (at >= 0) S.parts.splice(at, 1); });
-    SFX.ok(); craftReward(m.item, m.kind, "mo:" + i, "morph", i); closeModal(); $("board").className = "board";
+    SFX.ok(); craftReward(m.item, m.kind, "mo:" + i, "morph", i); closeModal();
   } })]));
 }
 function craftReward(word, kind, cardId, sub, ref) {
@@ -1255,11 +1728,11 @@ function craftReward(word, kind, cardId, sub, ref) {
 }
 function freeSpot() {
   var taken = {}; S.props.forEach(function (p) { taken[p.x + "," + p.z] = 1; }); S.villagers.forEach(function (v) { taken[v.x + "," + v.z] = 1; });
-  for (var r = 1; r < 14; r++) for (var dx = -r; dx <= r; dx++) for (var dz = -r; dz <= r; dz++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue; var x = 16 + dx, z = 18 + dz; if (x < 1 || z < 1 || x >= W - 1 || z >= D - 1) continue; var y = World.top(x, z); if (y < 3 || World.get(x, y, z) === WATER) continue; if (World.get(x, y + 1, z) !== AIR) continue; var t = World.get(x, y, z); if (t !== GRASS && t !== SAND && t !== PATH && t !== DIRT) continue; if (taken[x + "," + z]) continue; return { x: x, z: z }; }
-  return { x: 16, z: 18 };
+  var cx = Math.floor(S.player.x), cz = Math.floor(S.player.z); var I = islandAt(cx, cz); if (!I) { cx = 48; cz = 50; }
+  for (var r = 1; r < 16; r++) for (var dx = -r; dx <= r; dx++) for (var dz = -r; dz <= r; dz++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue; var x = cx + dx, z = cz + dz; if (x < 1 || z < 1 || x >= W - 1 || z >= D - 1) continue; var y = World.top(x, z); if (y < SEA || World.isWater(x, z)) continue; if (World.get(x, y + 1, z) !== AIR) continue; var t = World.get(x, y, z); if (t !== GRASS && t !== SAND && t !== PATH && t !== DIRT && t !== SNOW) continue; if (taken[x + "," + z]) continue; return { x: x, z: z }; }
+  return { x: 48, z: 50 };
 }
 function craftCheck(body) {
-  var C = content();
   body.appendChild(h("p", { class: "small muted", text: "В слове с дыркой гласную не слышно. Молот ударения ищет слово из той же семьи, где эта гласная под ударением, и она переходит в дырку." }));
   if (!S.gaps.length) { body.appendChild(h("p", { class: "bubble", text: "Слов с дыркой в рюкзаке нет. Копай руду в скалах." })); return; }
   var grid = h("div", { class: "recipes" });
@@ -1280,7 +1753,7 @@ function hammerOne(gi) {
   var tries = 0;
   opts.forEach(function (o) { tiles.appendChild(h("button", { class: "tile", text: o.w, onclick: function () {
     tries++;
-    if (o.ok) { recordResult("check", "ch:" + g.ref, tries === 1); SFX.ok(); drawWord(true); msg.textContent = "Под ударением слышно ясно: " + cw[2] + ". Гласная перешла в слово."; tiles.innerHTML = ""; S.gaps.splice(gi, 1); setTimeout(function () { craftReward(cw[0], "museum", "ch:" + g.ref, "check", g.ref); $("board").className = "board"; closeModal(); }, 1600); }
+    if (o.ok) { recordResult("check", "ch:" + g.ref, tries === 1); SFX.ok(); drawWord(true); msg.textContent = "Под ударением слышно ясно: " + cw[2] + ". Гласная перешла в слово."; tiles.innerHTML = ""; S.gaps.splice(gi, 1); setTimeout(function () { craftReward(cw[0], "museum", "ch:" + g.ref, "check", g.ref); closeModal(); }, 1600); }
     else { SFX.bad(); msg.textContent = "В слове «" + o.w + "» ударение падает на другую букву, и дырку оно не закрывает."; }
   } })); });
   body.appendChild(tiles); body.appendChild(msg);
@@ -1297,9 +1770,10 @@ function craftDict(body) {
 function dictOne(i) {
   var C = content(), d = C.dict[i], word = d[0], syl = d[1], body = $("board"); body.innerHTML = "";
   var bySyl = false, chosen = [], attempt = 0, letters = [];
-  body.appendChild(h("div", { class: "bhead" }, [propCanvas("sign"), h("h2", { text: "Редкий чертёж" }), h("button", { class: "btn close", text: "Назад", onclick: function () { openCraft("dict"); } })]));
+  body.appendChild(h("div", { class: "bhead" }, [propCanvas("sign"), h("h2", { text: "Редкий чертёж" }), h("button", { class: "btn close", text: "Назад", onclick: function () { clearTimeout(dictTimer); openCraft("dict"); } })]));
   var big = h("div", { class: "bigword" }), slots = h("div", { class: "slots" }), tiles = h("div", { class: "tiles" }), msg = h("p", { class: "muted" }), actions = h("div", { class: "row end" });
   body.appendChild(big); body.appendChild(slots); body.appendChild(tiles); body.appendChild(msg); body.appendChild(actions);
+  var dictTimer = null;
   function showWord() {
     chosen = []; slots.innerHTML = ""; tiles.innerHTML = ""; actions.innerHTML = "";
     big.innerHTML = ""; if (bySyl) syl.split("-").forEach(function (s, k) { big.appendChild(h("span", { class: k % 2 ? "syl" : "", text: s })); }); else big.textContent = word;
@@ -1307,7 +1781,6 @@ function dictOne(i) {
     msg.textContent = "Смотри и запоминай…";
     clearTimeout(dictTimer); dictTimer = setTimeout(hideWord, 3000);
   }
-  var dictTimer = null;
   function hideWord() {
     big.textContent = "• • •"; msg.textContent = "Теперь собери слово из букв.";
     letters = shuffle(word.split("").map(function (ch, k) { return { ch: ch, k: k }; }));
@@ -1322,10 +1795,9 @@ function dictOne(i) {
     attempt++;
     var holes = 0; slots.innerHTML = "";
     for (var k = 0; k < word.length; k++) { var ok = chosen[k] && chosen[k].ch === word[k]; if (!ok) holes++; slots.appendChild(h("div", { class: "slot " + (ok ? "filled" : "hole"), text: ok ? word[k] : "" })); }
-    if (!holes) { recordResult("dict", "d:" + i, attempt === 1); SFX.ok(); msg.textContent = "Слово собрано без дырок!"; tiles.innerHTML = ""; actions.innerHTML = ""; setTimeout(function () { craftReward(word, "museum", "d:" + i, "dict", i); $("board").className = "board"; closeModal(); }, 1200); return; }
+    if (!holes) { recordResult("dict", "d:" + i, attempt === 1); SFX.ok(); msg.textContent = "Слово собрано без дырок!"; tiles.innerHTML = ""; actions.innerHTML = ""; setTimeout(function () { craftReward(word, "museum", "d:" + i, "dict", i); closeModal(); }, 1200); return; }
     SFX.bad(); msg.textContent = "Предмет собрался с " + holes + " " + plural(holes, "дыркой", "дырками", "дырками") + ": они подсвечены. Посмотри слово ещё раз и собери заново.";
     tiles.innerHTML = ""; actions.innerHTML = ""; actions.appendChild(h("button", { class: "btn primary", text: "Посмотреть ещё раз", onclick: showWord }));
-    if (attempt >= 3) recordResult("dict", "d:" + i, false);
   }
   showWord();
 }
@@ -1349,7 +1821,7 @@ function openSign(q) {
       } })); });
     } else {
       var soft = /ть\?$/.test(chosenQ);
-      qline.innerHTML = ""; qline.appendChild(document.createTextNode("Шаг 2. Вопрос «" + chosenQ.replace(/ть\?$/, "") )); qline.appendChild(h("em", { text: soft ? "ть?" : "" })); qline.appendChild(document.createTextNode((soft ? "»" : "ет?»".replace("ет?", chosenQ.slice(-3))) + " Какое окончание?"));
+      qline.innerHTML = ""; qline.appendChild(document.createTextNode("Шаг 2. Вопрос «" + (soft ? chosenQ.replace(/ть\?$/, "") : chosenQ))); if (soft) qline.appendChild(h("em", { text: "ть?" })); qline.appendChild(document.createTextNode("» Какое окончание?"));
       tiles.innerHTML = "";
       shuffle(["-тся", "-ться"]).forEach(function (e) { tiles.appendChild(h("button", { class: "tile", text: e, onclick: function () {
         var right = (e === "-ться") === soft;
@@ -1364,22 +1836,82 @@ function openSign(q) {
   ask(); showModal();
 }
 
-/* ===================== TRADE (mechanic 3) ===================== */
-function openTrade(q) {
-  var C = content(), board = $("board"); board.innerHTML = "";
-  var g = C.goods.filter(function (x) { return x.id === q.good; })[0];
+/* ===================== SHOP (mechanic 3) ===================== */
+var SELL_PRICES = { 3: 2, 2: 1, 6: 4, 4: 1 };
+function goodsList() { return CONTENT.goods; }
+function payMode() { var n = S.trades; if (n < 3) return "exact"; return n % 2 ? "change" : "exact"; }
+function openShop(q, tab) {
+  tab = tab || (q ? "quest" : "buy");
+  var board = $("board"); board.innerHTML = ""; board.className = "board wide";
   board.appendChild(h("div", { class: "bhead" }, [villagerFace("ilyas"), h("h2", { text: "Лавка Ильяса" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
-  var bubble = h("p", { class: "bubble", text: q.text }); board.appendChild(bubble);
-  board.appendChild(h("p", { class: "small muted", text: "У тебя " + S.coins + " монет." }));
-  var total = q.price * q.qty;
-  if (q.lvl === 3 && !q.answered) {
-    board.appendChild(h("div", { class: "row center" }, [h("button", { class: "btn big", text: "Хватит", onclick: function () { budgetAnswer(q, true); } }), h("button", { class: "btn big", text: "Не хватит", onclick: function () { budgetAnswer(q, false); } })]));
-    showModal(); return;
-  }
-  if (S.coins < total) { board.appendChild(h("p", { class: "bubble", text: "Монет пока не хватает: нужно " + total + ". Выполни задания мастера, и приходи." })); showModal(); return; }
-  if (q.lvl === 2) { board.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Дай крупную купюру, а сдачу посчитаем вместе." })); payWithBill(board, q, total, g); showModal(); return; }
-  payExact(board, q, total, g);
+  var tabs = h("div", { class: "tabs" });
+  [["quest", "Задание"], ["buy", "Купить"], ["sell", "Продать"]].forEach(function (t) { if (t[0] === "quest" && !q) return; tabs.appendChild(h("button", { class: "btn" + (t[0] === tab ? " on" : ""), text: t[1], onclick: function () { openShop(q, t[0]); } })); });
+  board.appendChild(tabs);
+  board.appendChild(h("p", { class: "small muted", text: "У тебя " + S.coins + " " + plural(S.coins, "монета", "монеты", "монет") + "." }));
+  if (tab === "quest") shopQuest(board, q);
+  if (tab === "buy") shopBuy(board);
+  if (tab === "sell") shopSell(board);
   showModal();
+}
+function shopQuest(board, q) {
+  var g = goodsList().filter(function (x) { return x.id === q.good; })[0];
+  board.appendChild(h("p", { class: "bubble", text: q.text }));
+  var total = q.price * q.qty;
+  if (q.lvl === 3 && !q.answered) { board.appendChild(h("div", { class: "row center" }, [h("button", { class: "btn big", text: "Хватит", onclick: function () { budgetAnswer(q, true); } }), h("button", { class: "btn big", text: "Не хватит", onclick: function () { budgetAnswer(q, false); } })])); return; }
+  if (S.coins < total) { board.appendChild(h("p", { class: "bubble", text: "Монет пока не хватает: нужно " + total + ". Выполни задания или продай камни и брёвна." })); return; }
+  if (q.lvl === 2) { board.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Дай крупную купюру, а сдачу посчитаем вместе." })); payWithBill(board, total, function (ok) { recordResult("money", "chg:" + q.id, ok); finishTrade(q, total, g, q.qty); }); return; }
+  payExact(board, total, function (ok) { recordResult("money", "pay:" + q.id, ok); finishTrade(q, total, g, q.qty); });
+}
+function shopBuy(board) {
+  var grid = h("div", { class: "shop" });
+  goodsList().forEach(function (g) {
+    grid.appendChild(h("button", { class: "btn", onclick: function () { buyFlow(g); } }, [propCanvas(g.kind === "block" ? "crate" : g.kind), h("span", { text: g.name + (g.pack ? " × " + g.pack : "") }), h("span", { class: "price", text: g.base })]));
+  });
+  board.appendChild(grid);
+  board.appendChild(h("p", { class: "small muted", text: "Нажми на товар, выбери сколько штук и заплати." }));
+}
+function buyFlow(g) {
+  var board = $("board"); board.innerHTML = "";
+  board.appendChild(h("div", { class: "bhead" }, [villagerFace("ilyas"), h("h2", { text: g.name }), h("button", { class: "btn close", text: "Назад", onclick: function () { openShop(openQuest("trade"), "buy"); } })]));
+  board.appendChild(h("p", { class: "bubble", text: g.name + (g.pack ? " (" + g.pack + " шт. в связке)" : "") + " стоит " + g.base + " " + plural(g.base, "монету", "монеты", "монет") + ". Сколько берёшь?" }));
+  var qty = 1, qtyEl = h("span", { class: "btn ghost", text: "1" }), totalEl = h("p", { class: "q" });
+  function upd() { qtyEl.textContent = String(qty); totalEl.textContent = qty === 1 ? "Цена: " + g.base : qty + " по " + g.base + " = ?"; }
+  board.appendChild(h("div", { class: "row center" }, [h("button", { class: "btn sq", text: "−", onclick: function () { qty = Math.max(1, qty - 1); upd(); } }), qtyEl, h("button", { class: "btn sq", text: "+", onclick: function () { qty = Math.min(5, qty + 1); upd(); } })]));
+  board.appendChild(totalEl); upd();
+  var pay = h("div", { style: "display:grid;gap:12px" }); board.appendChild(pay);
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: "Платить", onclick: function () {
+    var total = g.base * qty; pay.innerHTML = "";
+    if (S.coins < total) { pay.appendChild(h("p", { class: "bubble", text: "Монет не хватает: нужно " + total + ", у тебя " + S.coins + "." })); return; }
+    var mode = payMode(); var cid = "buy:" + g.id + ":" + qty;
+    if (mode === "change" && total > 10 && total < 100) { pay.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Дай крупную купюру, а сдачу посчитаем вместе." })); payWithBill(pay, total, function (ok) { recordResult("money", cid, ok); finishTrade(null, total, g, qty); }); }
+    else { pay.appendChild(h("p", { class: "bubble", text: "Цена " + total + ". Заплати без сдачи." })); payExact(pay, total, function (ok) { recordResult("money", cid, ok); finishTrade(null, total, g, qty); }); }
+  } })]));
+}
+function shopSell(board) {
+  board.appendChild(h("p", { class: "bubble", text: "Покупаю камень, землю, песок и брёвна. Скажи, сколько отдаёшь, и посчитай, сколько я должен." }));
+  var grid = h("div", { class: "shop" });
+  Object.keys(SELL_PRICES).forEach(function (k) {
+    var have = S.blocks[k] || 0, price = SELL_PRICES[k];
+    grid.appendChild(h("button", { class: "btn", disabled: !have, onclick: function () { sellFlow(+k); } }, [h("span", { text: BLOCK_NAME[k] + ": " + have }), h("span", { class: "price", text: price + " за 1" })]));
+  });
+  board.appendChild(grid);
+}
+function sellFlow(bt) {
+  var have = S.blocks[bt] || 0, price = SELL_PRICES[bt];
+  openNumber({ title: "Продать: " + BLOCK_NAME[bt], who: "ilyas", text: "У тебя " + have + " шт. Беру по " + price + " " + plural(price, "монете", "монеты", "монет") + " за штуку. Сколько продаёшь?", max: Math.min(have, 10), button: "Столько", onCancel: function () { openShop(openQuest("trade"), "sell"); },
+    onDone: function (n) {
+      if (!n) return openShop(openQuest("trade"), "sell");
+      var total = n * price, tries = 0;
+      function ask(msgText) {
+        openNumber({ title: "Сколько я должен?", who: "ilyas", text: (msgText ? msgText + " " : "") + n + " " + plural(n, "штука", "штуки", "штук") + " по " + price + ". Сколько монет я тебе должен?", button: "Столько", onCancel: function () { openShop(openQuest("trade"), "sell"); },
+          onDone: function (ans) {
+            tries++;
+            if (ans === total) { recordResult("money", "sell:" + bt + ":" + n, tries === 1); S.blocks[bt] = have - n; S.coins += total; S.today.coinsIn += total; S.trades++; SFX.coin(); save(); updateHud(); hint("Продано: +" + total + " " + plural(total, "монета", "монеты", "монет") + ".", 3000); openShop(openQuest("trade"), "sell"); return; }
+            SFX.bad(); var seq = []; for (var i = 1; i <= n; i++) seq.push(price * i); ask("Считаю по штуке: " + seq.join(", ") + ".");
+          } });
+      }
+      ask("");
+    } });
 }
 function budgetAnswer(q, yes) {
   var total = q.price * q.qty, enough = q.budget >= total;
@@ -1387,8 +1919,8 @@ function budgetAnswer(q, yes) {
   var ok = yes === enough; recordResult("money", "bud:" + q.id, ok);
   if (!ok) { SFX.bad(); board.appendChild(h("p", { class: "bubble", text: "Давай проверим по монетам: " + Array.apply(null, { length: q.qty }).map(function (_, i) { return q.price * (i + 1); }).join(", ") + ". Всего " + total + ", а у тебя на это " + q.budget + ". " + (enough ? "Хватает, ещё " + (q.budget - total) + " останется." : "Не хватает " + (total - q.budget) + ".") })); }
   else { SFX.ok(); board.appendChild(h("p", { class: "bubble", text: "Верно! " + q.qty + " по " + q.price + " — это " + total + ". " + (enough ? "Хватает." : "Не хватает " + (total - q.budget) + ".") })); }
-  q.answered = true; q.text = "Продаю " + content().goods.filter(function (x) { return x.id === q.good; })[0].name + " × " + q.qty + " за " + total + ". Заплати без сдачи.";
-  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: "Дальше", onclick: function () { openTrade(q); } })]));
+  q.answered = true; q.text = "Продаю " + goodsList().filter(function (x) { return x.id === q.good; })[0].name + " × " + q.qty + " за " + total + ". Заплати без сдачи.";
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: "Дальше", onclick: function () { openShop(q, "quest"); } })]));
   save();
 }
 function coinButtons(onCoin) {
@@ -1396,7 +1928,7 @@ function coinButtons(onCoin) {
   [1, 2, 5, 10, 50, 100].forEach(function (v) { row.appendChild(h("button", { class: "coin" + (v >= 50 ? " bill" : ""), text: v, onclick: function () { onCoin(v); } })); });
   return row;
 }
-function payExact(board, q, total, g) {
+function payExact(board, total, done) {
   var laid = [], counter = h("div", { class: "counter" }), msg = h("p", { class: "muted" }), tries = 0;
   function draw() { counter.innerHTML = ""; laid.forEach(function (v, i) { counter.appendChild(h("button", { class: "coin" + (v >= 50 ? " bill" : ""), text: v, onclick: function () { laid.splice(i, 1); draw(); } })); }); if (!laid.length) counter.appendChild(h("span", { class: "muted small", text: "Выкладывай монеты сюда. Нажми на монету, чтобы убрать." })); }
   draw();
@@ -1405,13 +1937,15 @@ function payExact(board, q, total, g) {
   board.appendChild(counter); board.appendChild(msg);
   board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Отдать", onclick: function () {
     var sum = laid.reduce(function (a, b) { return a + b; }, 0); tries++;
-    if (sum === total) { recordResult("money", "pay:" + q.id, tries === 1); SFX.coin(); finishTrade(q, total, g); return; }
+    if (sum === total) { SFX.coin(); done(tries === 1); return; }
     SFX.bad(); var seq = []; var acc = 0; laid.forEach(function (v) { acc += v; seq.push(acc); });
     msg.textContent = "Считаю: " + seq.join(", ") + ". Тут " + sum + ". " + (sum > total ? "Лишние " + (sum - total) + "." : "Не хватает " + (total - sum) + ".");
   } })]));
 }
-function payWithBill(board, q, total, g) {
+function payWithBill(board, total, done) {
   var bill = total > 50 ? 100 : 50, tries = 0, msg = h("p", { class: "muted" });
+  if (bill <= total) { payExact(board, total, done); return; }
+  if (S.coins < bill) { board.appendChild(h("p", { class: "bubble", text: "Крупной купюры у тебя нет, заплати без сдачи." })); payExact(board, total, done); return; }
   board.appendChild(h("div", { class: "coins" }, [h("button", { class: "coin bill", text: bill, onclick: function () { SFX.tap(); step2(); } })]));
   board.appendChild(msg);
   function step2() {
@@ -1422,32 +1956,36 @@ function payWithBill(board, q, total, g) {
     board.appendChild(h("div", { class: "entry" }, [h("div", { style: "display:grid;gap:10px" }, [ro, pad]), h("div", { class: "muted small", text: "Подсказка: считай от цены вверх до купюры." })]));
     board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Проверить", onclick: function () {
       tries++; var n = +val || 0;
-      if (n === bill - total) { recordResult("money", "chg:" + q.id, tries === 1); SFX.coin(); finishTrade(q, total, g); return; }
+      if (n === bill - total) { SFX.coin(); done(tries === 1); return; }
       SFX.bad(); var steps = []; var acc = total; while (acc < bill) { var step = acc % 10 ? 10 - acc % 10 : Math.min(10, bill - acc); acc += step; steps.push(step + " → " + acc); }
       msg.textContent = "Посчитаем вместе от " + total + ": " + steps.join(", ") + ". Сложи шаги и попробуй снова.";
     } })]));
   }
 }
-function finishTrade(q, total, g) {
-  S.coins -= total; S.today.coinsOut += total; q.status = "done"; S.trades++;
-  if (g.kind === "block") S.blocks[g.block] = (S.blocks[g.block] || 0) + q.qty * (g.block === BRICK ? 5 : 3);
-  else { var it = S.items[g.id] || (S.items[g.id] = { name: g.name, kind: g.kind, n: 0 }); it.n += q.qty; }
-  closeModal(); hint("Купил: " + g.name + (q.qty > 1 ? " × " + q.qty : "") + ". Поставь это инструментом «Блок».", 4000);
-  ensureQuests(); save(); updateHud();
+function finishTrade(q, total, g, qty) {
+  S.coins -= total; S.today.coinsOut += total; S.trades++; if (q) q.status = "done";
+  if (g.kind === "block") S.blocks[g.block] = (S.blocks[g.block] || 0) + qty * (g.pack || 1);
+  else if (g.kind === "oil") S.oil = (S.oil || 0) + qty * (g.pack || 1);
+  else { var it = S.items[g.id] || (S.items[g.id] = { name: g.name, kind: g.kind, n: 0 }); it.n += qty; }
+  closeModal(); hint("Купил: " + g.name + (qty > 1 ? " × " + qty : "") + (g.kind === "block" || g.kind === "oil" ? "." : ". Поставь это инструментом «Блок»."), 4000);
+  refreshSprites(); ensureQuests(); save(); updateHud();
 }
 
 /* ===================== DAY CYCLE ===================== */
 var DAY_SECONDS = 12 * 60;
-var Game = { paused: false, modal: false, night: false, last: 0, running: false };
+var Game = { paused: false, modal: false, night: false, last: 0, running: false, spawnedNight: 0 };
 function tick(now) {
   requestAnimationFrame(tick);
   var dt = Math.min(0.1, (now - Game.last) / 1000 || 0); Game.last = now;
   if (!Game.running) return;
-  if (!Game.paused && !Game.modal && !Game.night && !Build.busy) {
+  var live = !Game.paused && !Game.modal && !Game.night;
+  if (live && !Build.busy) {
     S.t += dt / DAY_SECONDS;
+    if (S.t >= 0.85) Mobs.spawn();
     if (S.t >= 1) { S.t = 1; nightFall(); }
     if (Math.floor(now / 1000) % 15 === 0 && now - savedAt > 15000) { savedAt = now; save(); }
   }
+  if (live) { Player.update(dt); Mobs.update(dt); }
   setSun(S.t);
   var d = R.azTarget - R.az; if (Math.abs(d) > 0.01) R.az += d * Math.min(1, dt * 8); else R.az = R.azTarget;
   updateCamera(); Frame.relabel();
@@ -1455,22 +1993,25 @@ function tick(now) {
 }
 function nightFall() {
   if (Game.night) return; Game.night = true; $("night").hidden = false; $("b-more").hidden = S.extra;
-  $("nighttext").textContent = S.extra ? "Совсем темно. Пора спать: завтра жители принесут новые чертежи." : "Солнце село. Жители идут спать, и строить уже темно.";
-  save(true);
+  var bit = houseHoles().length;
+  $("nighttext").textContent = (S.extra ? "Совсем темно. Пора спать: завтра жители принесут новые чертежи." : "Солнце село. Жители идут спать, и строить уже темно.") + (bit ? " Гремлины откусили " + bit + " " + plural(bit, "блок", "блока", "блоков") + " от домов: утром Фёдор попросит починить." : "");
+  Player.held = null; save(true);
 }
-function moreTime() { S.extra = true; S.t = 0.86; Game.night = false; $("night").hidden = true; }
+function moreTime() { S.extra = true; S.t = 0.86; Game.night = false; $("night").hidden = true; hint("Ещё немного. Гремлины всё ещё ходят у неосвещённых домов.", 4000); }
 function endDay() {
   $("night").hidden = true; Game.night = false; Game.modal = true;
   var dueM = allFacts().filter(function (id) { var c = S.cards[id]; return c && c.due && c.due <= todayKey(1); }).length;
   var dueW = Object.keys(S.cards).filter(function (id) { var c = S.cards[id]; return id[0] !== "m" && c.due && c.due <= todayKey(1); }).length;
+  var lit = (S.houses || []).filter(function (hs) { return Mobs.lit(hs); }).length; if (lit && S.oil > 0) S.oil = Math.max(0, S.oil - lit);
   var board = $("board"); board.innerHTML = "";
   board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Итоги дня " + S.day })]));
-  var built = S.today.built, words = S.today.words;
+  var built = S.today.built, words = S.today.words, bit = houseHoles().length;
   board.appendChild(h("div", { class: "grid2" }, [
     h("div", { class: "card" }, [h("h3", { text: "Построено" }), built.length ? h("ul", { style: "margin:0;padding-left:1.2em" }, built.map(function (b) { return h("li", { text: b }); })) : h("p", { class: "muted", text: "Сегодня без построек." })]),
     h("div", { class: "card" }, [h("h3", { text: "Слова" }), words.length ? h("p", { text: words.join(", ") }) : h("p", { class: "muted", text: "Сегодня без новых слов." })]),
     h("div", { class: "card" }, [h("h3", { text: "Монеты" }), h("p", { text: "Заработано " + S.today.coinsIn + ", потрачено " + S.today.coinsOut + ". В кошельке " + S.coins + "." })]),
-    h("div", { class: "card" }, [h("h3", { text: "Вернётся завтра" }), h("p", { text: (dueM ? dueM + " " + plural(dueM, "пример", "примера", "примеров") : "примеры по плану") + " и " + (dueW ? dueW + " " + plural(dueW, "слово", "слова", "слов") : "новые слова") + ". Жители принесут новые чертежи." })])
+    h("div", { class: "card" }, [h("h3", { text: "Ночь" }), h("p", { text: (S.today.shooed ? "Прогнал гремлинов: " + S.today.shooed + ". " : "") + (bit ? "Откушено блоков: " + bit + ", утром будет ремонт. " : (S.houses && S.houses.length ? "Дома целы. " : "")) + (lit ? "Фонари горели у " + lit + " " + plural(lit, "дома", "домов", "домов") + ", масла осталось " + S.oil + "." : "") })]),
+    h("div", { class: "card" }, [h("h3", { text: "Вернётся завтра" }), h("p", { text: (dueM ? dueM + " " + plural(dueM, "пример", "примера", "примеров") : "примеры по плану") + " и " + (dueW ? dueW + " " + plural(dueW, "слово", "слова", "слов") : "новые слова") + ". Жители на островах дадут новую работу." })])
   ]));
   board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Спать", onclick: function () { newDay(); closeModal(); } })]));
   $("modal").hidden = false;
@@ -1478,42 +2019,53 @@ function endDay() {
 }
 function newDay() {
   S.day++; S.t = 0; S.extra = false; S.today = { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() };
-  if (World.countOre() < 20) World.seedOre(null, 24);
-  S.quests.forEach(function (q) { if (q.status === "open" && q.kind === "build" && Build.q !== q && Math.random() < 0.5) q.status = "skip"; });
-  Build.q = null; Frame.bp = null; Frame.reset();
-  ensureQuests(); rebuildTerrain(); refreshSprites(); updateHud(); save(true);
-  hint("Новый день! Загляни в «Задания».", 4000);
+  Mobs.clear();
+  if (World.countOre() < 30) World.seedOre(null, 30);
+  S.quests.forEach(function (q) { if (q.status === "open" && (q.kind === "build" || q.kind === "job") && Build.q !== q && q.bp && q.bp.chestLeft == null && Math.random() < 0.5) q.status = "skip"; });
+  if (!Build.partial) { Build.q = null; Frame.bp = null; Frame.reset(); setOutline([]); }
+  addRepairQuests(); ensureQuests(); rebuildTerrain(); refreshSprites(); updateHud(); save(true);
+  hint("Новый день! Загляни в «Задания» или сходи к жителям на островах.", 4000);
 }
 
 /* ===================== PARENT SCREEN ===================== */
 function openParent() {
   var board = $("board"); board.innerHTML = ""; board.className = "board wide";
-  var close = function () { closeModal(); board.className = "board"; };
-  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Для взрослого" }), h("button", { class: "btn close", text: "Закрыть", onclick: close })]));
-  var types = [["mult", "Умножение (стройка)"], ["dict", "Словарные слова"], ["check", "Безударные гласные"], ["morph", "Состав слова"], ["tsya", "-тся / -ться"], ["money", "Деньги"]];
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Для взрослого" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
+  var types = [["mult", "Умножение (стройка, мосты, корабль)"], ["dict", "Словарные слова"], ["check", "Безударные гласные"], ["morph", "Состав слова"], ["tsya", "-тся / -ться"], ["money", "Деньги"]];
   var tbl = h("table", {}, [h("thead", {}, [h("tr", {}, [h("th", { text: "Тип" }), h("th", { text: "Попыток" }), h("th", { text: "Точность" }), h("th", { text: "" })])])]);
-  var tb = h("tbody"); types.forEach(function (t) { var st = S.stats[t[0]] || { n: 0, ok: 0 }; var pct = st.n ? Math.round(st.ok / st.n * 100) : null; tb.appendChild(h("tr", {}, [h("td", { text: t[1] }), h("td", { text: st.n }), h("td", { text: pct === null ? "—" : pct + " %" }), h("td", {}, [h("div", { class: "meter", style: "width:120px" }, [h("i", { style: "width:" + (pct || 0) + "%" })])])])); });
+  var tb = h("tbody"); types.forEach(function (t) { var st = S.stats[t[0]] || { n: 0, ok: 0 }; var pct = st.n ? Math.round(st.ok / st.n * 100) : null; tb.appendChild(h("tr", {}, [h("td", { text: t[1] }), h("td", { text: st.n }), h("td", { text: pct === null ? "—" : pct + " %" }), h("td", {}, [h("div", { class: "meter" }, [h("i", { style: "width:" + (pct || 0) + "%" })])])])); });
   tbl.appendChild(tb); board.appendChild(h("div", { class: "tablewrap" }, [tbl]));
   var hard = Object.keys(S.cards).map(function (id) { var c = S.cards[id]; return { id: id, c: c, acc: c.n ? c.ok / c.n : 1 }; }).filter(function (o) { return o.c.n >= 2 && o.acc < 0.6; }).sort(function (a, b) { return a.acc - b.acc; }).slice(0, 12);
   board.appendChild(h("h3", { text: "Трудные примеры и слова" }));
   board.appendChild(hard.length ? h("p", { text: hard.map(function (o) { return cardLabel(o.id) + " (" + o.c.ok + " из " + o.c.n + ")"; }).join("; ") }) : h("p", { class: "muted", text: "Пока ничего не выделяется: нужно хотя бы две попытки по карточке." }));
   var due = Object.keys(S.cards).filter(function (id) { return S.cards[id].due && S.cards[id].due <= todayKey(); }).length;
-  board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " примеров." }));
+  var visited = ISLANDS.filter(function (I) { return S.visited[I.id]; }).map(function (I) { return I.name; }).join(", ");
+  board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Открытые острова: " + visited + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " " + plural(Object.keys(S.cutHidden).length, "примера", "примеров", "примеров") + "." }));
+  board.appendChild(h("h3", { text: "Сохранение" }));
+  board.appendChild(h("p", { class: "small muted", text: "Прогресс хранится в этом браузере. Чтобы перенести на другое устройство: «Скопировать» здесь, «Вставить» там." }));
+  var saveTa = h("textarea", { id: "savejson", style: "min-height:80px" }); saveTa.value = "";
+  var saveMsg = h("p", { class: "muted" });
+  board.appendChild(h("div", { class: "row" }, [
+    h("button", { class: "btn", text: "Скопировать сохранение", onclick: function () { save(true); var txt = JSON.stringify(S); saveTa.value = txt; try { navigator.clipboard.writeText(txt).then(function () { saveMsg.textContent = "Скопировано в буфер обмена (" + Math.round(txt.length / 1024) + " КБ)."; }, function () { saveTa.select(); saveMsg.textContent = "Выделено в поле ниже: скопируй вручную."; }); } catch (e) { saveTa.select(); saveMsg.textContent = "Выделено в поле ниже: скопируй вручную."; } } }),
+    h("button", { class: "btn", text: "Вставить сохранение из поля", onclick: function () { try { var o = JSON.parse(saveTa.value); if (!o || (o.v !== 1 && o.v !== 2)) throw new Error("не похоже на сохранение"); noSave = true; o.savedAt = Date.now(); try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} if (dbRef) dbRef.set({ json: JSON.stringify(o), savedAt: o.savedAt }).catch(function () {}); saveMsg.textContent = "Загружено, перезапускаю…"; setTimeout(function () { location.reload(); }, 600); } catch (e) { saveMsg.textContent = "Не удалось прочитать: " + e.message; } } })
+  ]));
+  board.appendChild(saveTa); board.appendChild(saveMsg);
   board.appendChild(h("h3", { text: "Свой список слов" }));
   board.appendChild(h("p", { class: "small muted", text: "Формат как в задании: dict — [слово, слоги]; check — [слово, номер буквы с нуля, проверочное с ударением, [два слова без ударения на этой гласной]]; morph — {parts, item, kind, hint}; tsya — [предложение с {глаголом}, глагол, верный вопрос, неверный вопрос]. Поля можно задавать не все: остальные возьмутся из встроенного списка." }));
   var ta = h("textarea", { id: "customjson" }); ta.value = S.custom ? JSON.stringify(S.custom, null, 1) : JSON.stringify({ dict: [["корова", "ко-ро-ва"]], check: [["вода", 1, "во́ды", ["водяно́й", "водопа́д"]]], tsya: [["Здесь можно {купаться}", "купаться", "что делать?", "что делает?"]] }, null, 1);
   board.appendChild(ta);
   var msg = h("p", { class: "muted" });
   board.appendChild(h("div", { class: "row end" }, [
-    h("button", { class: "btn", text: "Встроенный список", onclick: function () { S.custom = null; save(true); msg.textContent = "Снова используется встроенный список."; } }),
-    h("button", { class: "btn primary", text: "Применить список", onclick: function () { try { var o = JSON.parse(ta.value); var merged = {}; ["dict", "check", "morph", "tsya", "goods"].forEach(function (k) { merged[k] = Array.isArray(o[k]) && o[k].length ? o[k] : CONTENT[k]; }); merged.check.forEach(function (c) { if (typeof c[1] !== "number" || !c[2] || !Array.isArray(c[3])) throw new Error("check"); }); S.custom = merged; save(true); msg.textContent = "Список применён: " + merged.dict.length + " словарных, " + merged.check.length + " с проверкой, " + merged.morph.length + " рецептов, " + merged.tsya.length + " табличек."; } catch (e) { msg.textContent = "Не удалось прочитать JSON: " + e.message; } } })
+    h("button", { class: "btn", text: "Встроенный список", onclick: function () { S.custom = null; resetWordQuests(); save(true); msg.textContent = "Снова используется встроенный список."; } }),
+    h("button", { class: "btn primary", text: "Применить список", onclick: function () { try { var o = JSON.parse(ta.value); var merged = {}; ["dict", "check", "morph", "tsya", "goods"].forEach(function (k) { merged[k] = Array.isArray(o[k]) && o[k].length ? o[k] : CONTENT[k]; }); merged.check.forEach(function (c) { if (typeof c[1] !== "number" || !c[2] || !Array.isArray(c[3])) throw new Error("check"); }); S.custom = merged; resetWordQuests(); save(true); msg.textContent = "Список применён: " + merged.dict.length + " словарных, " + merged.check.length + " с проверкой, " + merged.morph.length + " рецептов, " + merged.tsya.length + " табличек."; } catch (e) { msg.textContent = "Не удалось прочитать JSON: " + e.message; } } })
   ]));
   board.appendChild(msg);
   var confirmRow = h("div", { class: "row end" });
-  confirmRow.appendChild(h("button", { class: "btn", text: "Сбросить весь прогресс", onclick: function () { confirmRow.innerHTML = ""; confirmRow.appendChild(h("span", { class: "muted", text: "Точно? Остров и карточки будут удалены." })); confirmRow.appendChild(h("button", { class: "btn", text: "Нет", onclick: function () { openParent(); } })); confirmRow.appendChild(h("button", { class: "btn", text: "Да, сбросить", style: "background:var(--bad);color:#fff", onclick: function () { try { localStorage.removeItem(LS); } catch (e) {} S = freshState(); if (dbRef) dbRef.set({ json: JSON.stringify(S), savedAt: Date.now() }).catch(function () {}); location.reload(); } })); } }));
+  confirmRow.appendChild(h("button", { class: "btn", text: "Сбросить весь прогресс", onclick: function () { confirmRow.innerHTML = ""; confirmRow.appendChild(h("span", { class: "muted", text: "Точно? Острова и карточки будут удалены." })); confirmRow.appendChild(h("button", { class: "btn", text: "Нет", onclick: function () { openParent(); } })); confirmRow.appendChild(h("button", { class: "btn", text: "Да, сбросить", style: "background:var(--bad);color:#fff", onclick: function () { noSave = true; try { localStorage.removeItem(LS); } catch (e) {} S = freshState(); if (dbRef) dbRef.set({ json: JSON.stringify(S), savedAt: Date.now() }).catch(function () {}); location.reload(); } })); } }));
   board.appendChild(confirmRow);
   showModal();
 }
+function resetWordQuests() { S.quests.forEach(function (q) { if (q.status === "open" && (q.kind === "craft" || q.kind === "sign")) q.status = "skip"; }); S.gaps = []; S.parts = []; ensureQuests(); }
 function cardLabel(id) {
   var C = content(); var m = id.match(/^m:(\d+)x(\d+)$/); if (m) return m[1] + " × " + m[2];
   if (id.slice(0, 2) === "d:") return (C.dict[+id.slice(2)] || [id])[0];
@@ -1530,16 +2082,29 @@ function drawStartArt() {
   for (var x = 8; x < 88; x += 8) { var hh = 20 + Math.round(Math.sin(x / 9) * 8); g.fillStyle = "#8b5a2b"; g.fillRect(x, 64 - hh, 8, hh); g.fillStyle = "#5fb24a"; g.fillRect(x, 64 - hh, 8, 4); }
   g.fillStyle = "#6b4423"; g.fillRect(40, 20, 4, 14); g.fillStyle = "#3e8f32"; g.fillRect(34, 10, 16, 12);
   g.fillStyle = "#c9a063"; g.fillRect(56, 26, 20, 10); g.fillStyle = "#b85c3a"; g.fillRect(54, 20, 24, 6);
-  drawVillager(g, 0, "hammer");
+  drawVillager(g, 0, "hammer"); g.save(); g.translate(72, 30); drawPlayer(g, false); g.restore();
+}
+function migrate(o) {
+  /* version 1 had one 32×32 island; keep the learning progress, start a fresh archipelago */
+  if (o.v === 2) return o;
+  var f = freshState();
+  ["day", "coins", "cards", "stats", "recent", "log", "custom", "sound", "cutHidden", "crafts", "trades", "items"].forEach(function (k) { if (o[k] !== undefined) f[k] = o[k]; });
+  if (f.custom) delete f.custom.goods;
+  f.blocks[8] = Math.max(40, (o.blocks && o.blocks[8]) || 0); f.migrated = true;
+  return f;
 }
 function applyState(saved) {
-  S = saved || freshState();
-  if (S.world) World.decode(S.world); else World.generate(20261009);
-  if (!S.world) S.world = World.encode();
-  if (S.today && S.today.date !== todayKey() && S.t > 0 && S.t < 1) { /* a new calendar day while the game day was unfinished: keep it, due dates follow the calendar */ }
+  S = saved ? migrate(saved) : freshState();
+  S.player = S.player || { x: 48.5, z: 50.5 }; S.visited = S.visited || { home: true }; S.houses = S.houses || []; S.jobDay = S.jobDay || {}; S.mode = S.mode || "hero";
+  if (!S.villagers.some(function (v) { return v.id === "grisha"; })) S.villagers = defaultVillagers().concat(S.villagers.filter(function (v) { return !VNAME[v.id]; }));
+  if (!S.props.some(function (p) { return p.kind === "ship"; })) S.props.push({ kind: "ship", x: 48, z: 93 });
+  var ok = S.world ? World.decode(S.world) : false;
+  if (!ok) { World.generate(20261009); S.world = World.encode(); } else World.computeBridges();
   if (!S.quests.length) ensureQuests();
+  Build.restore(S.build);
   $("b-sound").setAttribute("aria-pressed", S.sound);
-  rebuildTerrain(); refreshSprites(); updateHud(); setSun(S.t);
+  R.target.x = S.player.x; R.target.z = S.player.z;
+  rebuildTerrain(true); refreshSprites(); refreshHoleOutline(); updateHud(); setSun(S.t);
 }
 function boot() {
   initRender(); bindInput(); drawStartArt();
@@ -1548,21 +2113,22 @@ function boot() {
   $("b-play").addEventListener("click", function () {
     $("start").hidden = true; Game.running = true; S.started = true;
     try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
-    if (S.t >= 1) nightFall(); else hint(S.day === 1 && !S.builds ? "Это Блокоград. Нажми на Мастера Фёдора (человечек с молотком) или открой «Задания»." : "С возвращением! Открой «Задания».", 6000);
+    if (S.t >= 1) nightFall();
+    else if (S.migrated) { S.migrated = false; hint("Блокоград вырос: теперь это архипелаг. Твои примеры, слова и монеты сохранились, остров новый.", 7000); }
+    else hint(S.day === 1 && !S.builds ? "Это Блокоград. Ты — человечек на площади. Нажми на землю, чтобы идти, или подойди к Мастеру Фёдору (с молотком)." : "С возвращением! Открой «Задания» или сходи к жителям.", 6000);
     save();
   });
   $("b-sleep").addEventListener("click", endDay);
   $("b-more").addEventListener("click", moreTime);
   document.addEventListener("visibilitychange", function () { if (document.hidden) save(true); });
   window.addEventListener("pagehide", function () { save(true); });
-  /* mirror progress to the artifact store when the page runs inside claude.ai */
   try {
     if (window.claude && typeof window.claude.use === "function") {
       window.claude.use("db").then(function (db) {
         if (!db) return;
         var ref = db.doc("blokograd/save");
         ref.get().then(function (snap) {
-          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && o.v === 1) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
+          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && (o.v === 1 || o.v === 2) && !Game.running) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
           dbRef = ref; save();
         }, function () { dbRef = ref; });
       }, function () {});
@@ -1570,6 +2136,6 @@ function boot() {
   } catch (e) {}
 }
 boot();
-window.BLOKOGRAD = { state: function () { return S; }, World: World, Frame: Frame, Build: Build, pickAt: pickAt, setTool: setTool, takeQuest: takeQuest, openQuest: openQuest, openCraft: openCraft, hammerOne: hammerOne, project: project, save: save, content: content, Game: Game, nightFall: nightFall, cellTopY: cellTopY };
+window.BLOKOGRAD = { state: function () { return S; }, World: World, Frame: Frame, Build: Build, Player: Player, Mobs: Mobs, ISLANDS: ISLANDS, pickAt: pickAt, setTool: setTool, setMode: setMode, takeQuest: takeQuest, openQuest: openQuest, openCraft: openCraft, hammerOne: hammerOne, openShop: openShop, openShip: openShip, openVillager: openVillager, makeBridgeQuest: makeBridgeQuest, makeJobQuest: makeJobQuest, project: project, save: save, content: content, Game: Game, nightFall: nightFall, cellTopY: cellTopY, islandAt: islandAt, refreshSprites: refreshSprites, rebuildTerrain: rebuildTerrain, addRepairQuests: addRepairQuests, endDay: endDay, migrate: migrate, applyState: applyState };
 })();
 </script>
