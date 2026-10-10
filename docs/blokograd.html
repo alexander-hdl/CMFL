@@ -202,6 +202,13 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
 .meter { height: 12px; width: 80px; background: var(--board-2); border-radius: 6px; overflow: hidden; }
 .meter i { display: block; height: 100%; background: var(--grass); }
 
+/* Diary */
+.diary-ta { min-height: 120px; font: 600 1.15rem/1.4 var(--f-body); border-color: var(--wood); }
+.entry-card { background: #fff; border: 3px solid var(--board-line); border-radius: 14px; padding: 10px 14px; display: grid; gap: 6px; }
+.entry-card .when { font-size: 0.85rem; color: var(--muted); }
+.entry-card .reply { background: #e8f5e9; border-left: 4px solid var(--grass); padding: 6px 10px; border-radius: 8px; }
+.entry-card .txt { white-space: pre-wrap; user-select: text; -webkit-user-select: text; }
+
 /* Night & start overlays */
 #night { position: absolute; inset: 0; z-index: 60; background: rgba(8, 12, 40, 0.55); display: grid; place-items: center; padding: 16px; }
 #night[hidden] { display: none; }
@@ -233,10 +240,12 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
     <div class="ibtns">
       <button class="ibtn" id="b-rotl" aria-label="Повернуть влево">⟲</button>
       <button class="ibtn" id="b-rotr" aria-label="Повернуть вправо">⟳</button>
+      <button class="ibtn" id="b-tilt" aria-label="Наклон камеры: ниже, выше, вид сверху">👁</button>
       <button class="ibtn" id="b-zin" aria-label="Приблизить">+</button>
       <button class="ibtn" id="b-zout" aria-label="Отдалить">−</button>
       <button class="ibtn" id="b-mode" aria-label="Режим: человечек или камера" aria-pressed="true">🧍</button>
       <button class="ibtn" id="b-home" aria-label="Показать человечка">◎</button>
+      <button class="ibtn" id="b-diary" aria-label="Мой дневник">📓</button>
       <button class="ibtn" id="b-pause" aria-label="Пауза" aria-pressed="false">❚❚</button>
       <button class="ibtn" id="b-sound" aria-label="Звук" aria-pressed="true">♪</button>
       <button class="ibtn" id="b-gear" aria-label="Для взрослого (удерживать 2 секунды)">⚙</button>
@@ -426,7 +435,7 @@ function freshState() {
     quests: [], qseq: 0, builds: 0, crafts: 0, trades: 0,
     props: [{ kind: "ship", x: 48, z: 93 }], villagers: defaultVillagers(),
     today: { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() },
-    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}, build: null, leafCount: 0, oreSeq: 0
+    log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}, build: null, leafCount: 0, oreSeq: 0, diary: []
   };
 }
 function defaultVillagers() {
@@ -650,7 +659,8 @@ var World = {
 function surfaceY(x, z) { return World.isWater(x, z) ? SEA : World.top(x, z) + 1; }
 
 /* ===================== RENDER ===================== */
-var R = { azTarget: 0, az: 0, zoom: 22, target: new THREE.Vector3(48, 4, 50) };
+var TILTS = [35.264, 55, 72, 89];
+var R = { azTarget: 0, az: 0, zoom: 22, tilt: 0, el: 35.264, target: new THREE.Vector3(48, 4, 50) };
 var scene, camera, renderer, atlasTex, chunks = {}, chunkMeshes = [], waterMeshes = [], frameMesh, missMesh, sunLight, hemi, spriteGroup, outlineMesh, matOpaque, matWater;
 var TILES = {};
 function makeAtlas() {
@@ -760,7 +770,7 @@ function resize() {
   var k = R.zoom / hh; camera.left = -w / 2 * k; camera.right = w / 2 * k; camera.top = hh / 2 * k; camera.bottom = -hh / 2 * k; camera.updateProjectionMatrix();
 }
 function updateCamera() {
-  var az = (R.az + 45) * Math.PI / 180, el = 35.264 * Math.PI / 180;
+  var az = (R.az + 45) * Math.PI / 180, el = R.el * Math.PI / 180;
   var dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
   camera.position.copy(R.target).addScaledVector(dir, 120); camera.lookAt(R.target); camera.updateMatrixWorld();
 }
@@ -1088,8 +1098,10 @@ function bindInput() {
   }
   el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
   el.addEventListener("wheel", function (e) { e.preventDefault(); setZoom(R.zoom * (e.deltaY > 0 ? 1.1 : 0.9)); }, { passive: false });
-  $("b-rotl").addEventListener("click", function () { R.azTarget -= 90; SFX.tap(); });
-  $("b-rotr").addEventListener("click", function () { R.azTarget += 90; SFX.tap(); });
+  $("b-rotl").addEventListener("click", function () { R.azTarget -= 45; SFX.tap(); });
+  $("b-rotr").addEventListener("click", function () { R.azTarget += 45; SFX.tap(); });
+  $("b-tilt").addEventListener("click", function () { setTilt((R.tilt + 1) % TILTS.length); SFX.tap(); });
+  $("b-diary").addEventListener("click", function () { SFX.tap(); openDiary(); });
   $("b-zin").addEventListener("click", function () { setZoom(R.zoom * 0.8); });
   $("b-zout").addEventListener("click", function () { setZoom(R.zoom * 1.25); });
   $("b-mode").addEventListener("click", function () { SFX.tap(); setMode(S.mode === "hero" ? "cam" : "hero"); });
@@ -1121,26 +1133,25 @@ function bindInput() {
   document.addEventListener("keyup", function (e) { if (keys[e.code]) Player.held = null; });
 }
 function screenDir(d) {
-  /* "up" on screen is away from the camera; rotate by the camera azimuth (multiples of 90) */
-  var q = ((Math.round(R.azTarget / 90) % 4) + 4) % 4;
-  var base = { up: [-1, -1], down: [1, 1], left: [-1, 1], right: [1, -1] }[d];
-  /* at azimuth 0 the camera looks from +x,+z towards the origin: screen-up is (-1,-1) diagonal; snap to an axis for grid walking */
-  var vx = base[0], vz = base[1];
-  for (var i = 0; i < q; i++) { var t = vx; vx = -vz; vz = t; }
-  /* prefer the axis that the hero can actually step onto */
-  var c = Player.cell(), cy = World.walkTop(c.x, c.z);
+  /* screen "up" is the camera's up vector flattened onto the ground; snap to the nearest grid axis, prefer a step the hero can take */
+  var up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1); up.y = 0; if (up.length() < 0.01) { up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 2).negate(); up.y = 0; } up.normalize();
+  var right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0); right.y = 0; right.normalize();
+  var v = d === "up" ? up : d === "down" ? up.clone().negate() : d === "right" ? right : right.clone().negate();
+  var vx = v.x, vz = v.z;
   var opts = Math.abs(vx) >= Math.abs(vz) ? [[Math.sign(vx), 0], [0, Math.sign(vz)]] : [[0, Math.sign(vz)], [Math.sign(vx), 0]];
-  if (d === "up" || d === "down") opts = [[0, Math.sign(vz)], [Math.sign(vx), 0]]; else opts = [[Math.sign(vx), 0], [0, Math.sign(vz)]];
+  var c = Player.cell(), cy = World.walkTop(c.x, c.z);
   for (var k = 0; k < opts.length; k++) { var o = opts[k]; if (!o[0] && !o[1]) continue; var ny = World.walkTop(c.x + o[0], c.z + o[1]); if (ny >= 0 && Math.abs(ny - cy) <= 1) return o; }
   return opts[0][0] || opts[0][1] ? opts[0] : opts[1];
 }
+var TILT_NAMES = ["обычный вид", "повыше", "почти сверху", "вид сверху"];
+function setTilt(i) { R.tilt = Math.max(0, Math.min(TILTS.length - 1, i)); hint("Камера: " + TILT_NAMES[R.tilt] + ".", 1800); }
 function setZoom(z) { R.zoom = Math.max(8, Math.min(60, z)); resize(); }
 function pan(dx, dy) {
   if (S.mode === "hero") return;
   var el = $("c3d"), k = R.zoom / el.clientHeight;
   var right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0); right.y = 0; right.normalize();
-  var up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1); up.y = 0; up.normalize();
-  R.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k / Math.sin(35.264 * Math.PI / 180));
+  var up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1); up.y = 0; if (up.length() < 0.01) { up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 2).negate(); up.y = 0; } up.normalize();
+  R.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k / Math.max(0.2, Math.sin(R.el * Math.PI / 180)));
   R.target.x = Math.max(-4, Math.min(W + 4, R.target.x)); R.target.z = Math.max(-4, Math.min(D + 4, R.target.z));
 }
 function tap(cx, cy) {
@@ -1577,7 +1588,7 @@ function takeQuest(q) {
     if (Build.partial && Build.q !== q) { hint("Сначала закончи начатую стройку.", 3000); return; }
     if (q.kind === "job" && !S.visited[q.island]) { hint("Эта работа на острове «" + islandById(q.island).name + "»: сначала доберись туда.", 3500); return; }
     Build.q = q; Frame.bp = q.bp; Frame.reset(); setTool("frame");
-    if (q.kind === "bridge") { R.target.x = (q.bp.x0 + q.bp.x1) / 2; R.target.z = (q.bp.z0 + q.bp.z1) / 2; if (S.mode === "hero") setMode("cam"); }
+    if (q.kind === "bridge") { R.target.x = (q.bp.x0 + q.bp.x1) / 2; R.target.z = (q.bp.z0 + q.bp.z1) / 2; if (S.mode === "hero") setMode("cam"); setTilt(TILTS.length - 1); setZoom(18); hint("Камера встала над мостом: так рамку видно целиком. Кнопка 👁 меняет наклон.", 5000); }
   }
   if (q.kind === "craft") openCraft(q.sub);
   if (q.kind === "trade") approachVillager("ilyas");
@@ -2000,6 +2011,7 @@ function tick(now) {
   if (live) { Player.update(dt); Mobs.update(dt); }
   setSun(S.t);
   var d = R.azTarget - R.az; if (Math.abs(d) > 0.01) R.az += d * Math.min(1, dt * 8); else R.az = R.azTarget;
+  var de = TILTS[R.tilt] - R.el; if (Math.abs(de) > 0.05) R.el += de * Math.min(1, dt * 6); else R.el = TILTS[R.tilt];
   updateCamera(); Frame.relabel();
   renderer.render(scene, camera);
 }
@@ -2025,7 +2037,7 @@ function endDay() {
     h("div", { class: "card" }, [h("h3", { text: "Ночь" }), h("p", { text: (S.today.shooed ? "Прогнал гремлинов: " + S.today.shooed + ". " : "") + (bit ? "Откушено блоков: " + bit + ", утром будет ремонт. " : (S.houses && S.houses.length ? "Дома целы. " : "")) + (lit ? "Фонари горели у " + lit + " " + plural(lit, "дома", "домов", "домов") + ", масла осталось " + S.oil + "." : "") })]),
     h("div", { class: "card" }, [h("h3", { text: "Вернётся завтра" }), h("p", { text: (dueM ? dueM + " " + plural(dueM, "пример", "примера", "примеров") : "примеры по плану") + " и " + (dueW ? dueW + " " + plural(dueW, "слово", "слова", "слов") : "новые слова") + ". Жители на островах дадут новую работу." })])
   ]));
-  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Спать", onclick: function () { newDay(); closeModal(); } })]));
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "📓 Написать в дневник", onclick: function () { openDiary(function () { endDay(); }); } }), h("button", { class: "btn primary big", text: "Спать", onclick: function () { newDay(); closeModal(); } })]));
   $("modal").hidden = false;
   S.log.push({ day: S.day, date: S.today.date, built: built.length, words: words.length, coinsIn: S.today.coinsIn }); if (S.log.length > 60) S.log.shift();
 }
@@ -2037,6 +2049,34 @@ function newDay() {
   if (!Build.partial) { Build.q = null; Frame.bp = null; Frame.reset(); setOutline([]); }
   addRepairQuests(); ensureQuests(); rebuildTerrain(); refreshSprites(); updateHud(); save(true);
   hint("Новый день! Загляни в «Задания» или сходи к жителям на островах.", 4000);
+}
+
+/* ===================== DIARY ===================== */
+function openDiary(onClose) {
+  var board = $("board"); board.innerHTML = ""; var wasModal = Game.modal;
+  var close = function () { closeModal(); if (onClose) onClose(); };
+  board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Мой дневник" }), h("button", { class: "btn close", text: "Закрыть", onclick: close })]));
+  board.appendChild(h("p", { class: "small muted", text: "Пиши сюда, что понравилось, что не получилось и чего хочется в Блокограде. Родители прочитают и ответят здесь же." }));
+  var ta = h("textarea", { class: "diary-ta", id: "diaryta", placeholder: "Например: хочу, чтобы у Фёдора была собака…" });
+  ta.addEventListener("keydown", function (e) { e.stopPropagation(); });
+  board.appendChild(ta);
+  var msg = h("p", { class: "muted" });
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Записать", onclick: function () {
+    var t = ta.value.trim(); if (!t) { msg.textContent = "Сначала напиши что-нибудь."; return; }
+    S.diary = S.diary || []; S.diary.push({ date: todayKey(), day: S.day, text: t.slice(0, 2000) }); if (S.diary.length > 200) S.diary.shift();
+    ta.value = ""; SFX.ok(); save(true); msg.textContent = "Записано!"; renderEntries();
+  } })]));
+  board.appendChild(msg);
+  var list = h("div", { class: "list" }); board.appendChild(list);
+  function renderEntries() {
+    list.innerHTML = ""; var entries = (S.diary || []).slice().reverse();
+    if (!entries.length) { list.appendChild(h("p", { class: "muted", text: "Пока записей нет." })); return; }
+    entries.slice(0, 30).forEach(function (e) {
+      list.appendChild(h("div", { class: "entry-card" }, [h("div", { class: "when", text: "День " + e.day + " · " + e.date }), h("div", { class: "txt", text: e.text }), e.reply ? h("div", { class: "reply", text: "Ответ: " + e.reply }) : null]));
+    });
+  }
+  renderEntries();
+  showModal(); setTimeout(function () { try { ta.focus(); } catch (e) {} }, 50);
 }
 
 /* ===================== PARENT SCREEN ===================== */
@@ -2053,6 +2093,19 @@ function openParent() {
   var due = Object.keys(S.cards).filter(function (id) { return S.cards[id].due && S.cards[id].due <= todayKey(); }).length;
   var visited = ISLANDS.filter(function (I) { return S.visited[I.id]; }).map(function (I) { return I.name; }).join(", ");
   board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Открытые острова: " + visited + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " " + plural(Object.keys(S.cutHidden).length, "примера", "примеров", "примеров") + "." }));
+  board.appendChild(h("h3", { text: "Дневник ребёнка" }));
+  var diary = (S.diary || []).slice().reverse();
+  if (!diary.length) board.appendChild(h("p", { class: "muted", text: "Записей пока нет. Кнопка 📓 в игре открывает дневник." }));
+  else {
+    var dl = h("div", { class: "list" });
+    diary.slice(0, 15).forEach(function (e) {
+      var inp = h("textarea", { style: "min-height:48px", placeholder: "Ответить…" }); inp.value = e.reply || "";
+      inp.addEventListener("keydown", function (ev) { ev.stopPropagation(); });
+      dl.appendChild(h("div", { class: "entry-card" }, [h("div", { class: "when", text: "День " + e.day + " · " + e.date }), h("div", { class: "txt", text: e.text }), inp, h("div", { class: "row end" }, [h("button", { class: "btn", text: "Сохранить ответ", onclick: function () { e.reply = inp.value.trim(); save(true); hint("Ответ сохранён, ребёнок увидит его в дневнике.", 2500); } })])]));
+    });
+    board.appendChild(dl);
+    board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Скопировать дневник текстом", onclick: function () { var txt = (S.diary || []).map(function (e) { return "День " + e.day + " (" + e.date + "): " + e.text + (e.reply ? "\n  Ответ: " + e.reply : ""); }).join("\n"); try { navigator.clipboard.writeText(txt).then(function () { hint("Дневник скопирован.", 2000); }, function () { hint("Не удалось скопировать.", 2000); }); } catch (ex) { hint("Не удалось скопировать.", 2000); } } })]));
+  }
   board.appendChild(h("h3", { text: "Сохранение" }));
   board.appendChild(h("p", { class: "small muted", text: "Прогресс хранится в этом браузере. Чтобы перенести на другое устройство: «Скопировать» здесь, «Вставить» там." }));
   var saveTa = h("textarea", { id: "savejson", style: "min-height:80px" }); saveTa.value = "";
