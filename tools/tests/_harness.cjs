@@ -34,7 +34,7 @@ async function run(game, body, opts = {}) {
   t.page = page;
   t.context = context;
   t.file = file;
-  t.reload = async () => { await page.goto("file://" + file); await page.waitForFunction(() => window[game.toUpperCase()] && window[game.toUpperCase()].ready, null, { timeout: 10000 }); };
+  t.reload = async () => { await page.goto("file://" + file); await page.waitForFunction((g) => window[g.toUpperCase()] && window[g.toUpperCase()].ready, game, { timeout: 10000 }); };
   console.log(`== ${game}: ${file}`);
   let fatal = null;
   try {
