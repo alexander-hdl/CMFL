@@ -566,11 +566,21 @@ const Sim = {
       Bus.emit("enemy_reached_castle", { id: e.id, number: e.number, hearts: L.hearts });
     }
   },
+  timers(L, dt) {                                // надписи, мигание, гибель, звёздочки
+    for (const e of L.enemies) {
+      if (!e.alive) e.deadT += dt;
+      if (e.noteT > 0) { e.noteT -= dt; if (e.noteT <= 0) { e.noteT = 0; e.note = e.cutNote; } }
+    }
+    for (const b of L.beams) if (b.blinkT > 0) b.blinkT = Math.max(0, b.blinkT - dt);
+    for (const f of L.fx) { f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 160 * dt; }
+    if (L.fx.length) L.fx = L.fx.filter((f) => f.t < f.life);
+  },
   step(dt) {
     const L = Game.level;
     if (!L) return;
-    if (L.phase === "waveEnd") {                 // плашка «Волна отбита» ждёт 2 с и ведёт в следующую подготовку
-      if (L.plaqueT > 0) { L.plaqueT -= dt; if (L.plaqueT <= 0) Game.nextWave(); }
+    if (L.phase === "waveEnd" || L.phase === "levelEnd") {
+      Sim.timers(L, dt);                         // последний побеждённый враг и звёздочки доигрывают, а не застывают
+      if (L.phase === "waveEnd" && L.plaqueT > 0) { L.plaqueT -= dt; if (L.plaqueT <= 0) Game.nextWave(); }   // плашка «Волна отбита» 2 с
       return;
     }
     if (L.phase !== "battle") return;
@@ -581,13 +591,7 @@ const Sim = {
       if (L.spawnT <= 0) { const e = Sim.spawn(L); L.spawnT += (e.armored ? GAP_BOSS : GAP) / v; }
     }
     for (const e of L.enemies) if (e.alive) Sim.moveEnemy(L, e, v, dt);   // (2) движение, лучи, крепость
-    for (const e of L.enemies) {                 // (3) таймеры
-      if (!e.alive) e.deadT += dt;
-      if (e.noteT > 0) { e.noteT -= dt; if (e.noteT <= 0) { e.noteT = 0; e.note = e.cutNote; } }
-    }
-    for (const b of L.beams) if (b.blinkT > 0) b.blinkT = Math.max(0, b.blinkT - dt);
-    for (const f of L.fx) { f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 160 * dt; }
-    L.fx = L.fx.filter((f) => f.t < f.life);
+    Sim.timers(L, dt);                           // (3) таймеры
     if (!L.queue.length && !L.enemies.some((e) => e.alive)) Game.endWave();   // (4) конец волны
   },
 };
@@ -896,9 +900,15 @@ const Render = {
     c.restore();
     if (e.alive && e.note) {                     // «56, а луч даёт 42» уходит вверх; «56 − 35 = 21» висит
       const sticky = e.noteT <= 0, rise = sticky ? 0 : 20 * (1 - e.noteT);
-      const y = Math.max(128, pt.y - R - (sticky ? 52 : 26) - rise);
       c.font = "800 30px " + Render.F_BODY;
-      const w = c.measureText(e.note).width + 30, x = Util.clamp(pt.x, w / 2 + 8, W - w / 2 - 8);
+      const w = c.measureText(e.note).width + 30, h = 44, x = Util.clamp(pt.x, w / 2 + 8, W - w / 2 - 8);
+      // Не под подписью луча и не на чужой надписи: над врагом, иначе под щитом, иначе выше мешающих подписей.
+      const cy = (v) => Util.clamp(v, FIELD_TOP + h / 2 + 2, FIELD_BOTTOM - h / 2 - 2);
+      const box = (v) => ({ x: x - w / 2, y: v - h / 2, w, h }), busy = last.labels.concat(last.notes);
+      const hits = (v) => busy.filter((o) => Render.overlap(box(v), o, 4));
+      const up = cy(pt.y - R - (sticky ? 52 : 26) - rise), down = cy(pt.y + (e.armored ? 66 : 41) + 30 + (sticky ? 0 : 20 - rise));
+      const blk = hits(up), over = blk.length ? cy(Math.min(...blk.map((o) => o.y)) - h / 2 - 6) : up;
+      const y = [up, down, over].find((v) => !hits(v).length) ?? up;
       if (sticky) {
         c.fillStyle = k.paper; c.strokeStyle = k.ink; c.lineWidth = 4;
         Render.rr(c, x - w / 2, y - 22, w, 44, 12); c.fill(); c.stroke();
@@ -906,7 +916,7 @@ const Render = {
       } else {
         Render.txt(c, e.note, x, y, 30, "#fff", k.ink, 7, false);
       }
-      last.notes.push({ enemyId: e.id, text: e.note });
+      last.notes.push({ enemyId: e.id, text: e.note, x: x - w / 2, y: y - h / 2, w, h });
     }
   },
   enemies(c, L, last) {
@@ -922,12 +932,13 @@ const Render = {
     c.globalAlpha = 1;
   },
 
+  overlap: (a, b, m) => a.x < b.x + b.w + m && b.x < a.x + a.w + m && a.y < b.y + b.h + m && b.y < a.y + a.h + m,
+
   // --- подписи «a × b = c» ---
   // Точка — на луче в 95 лп от оси дороги к верхнему концу; если занято, к нижнему; затем сдвиг наружу по лучу шагами по 20 лп (до 3).
   // Если и так не вышло, перебираем ещё несколько расстояний (60…200), и только потом ставим «как есть».
   labels(c, L, last) {
-    const k = Render.col, placed = [];
-    const hit = (a, b) => a.x < b.x + b.w + 6 && b.x < a.x + a.w + 6 && a.y < b.y + b.h + 6 && b.y < a.y + a.h + 6;
+    const placed = [], hit = (a, b) => Render.overlap(a, b, 6);
     c.font = "400 34px " + Render.F_NUM;
     for (const b of L.beams.slice().sort((m, n) => m.id - n.id)) {
       const pa = Level.pad(L, b.a), pb = Level.pad(L, b.b), C = Render.crossPoint(L, b);
@@ -943,6 +954,9 @@ const Render = {
       placed.push(r);
       last.labels.push({ beamId: b.id, text: b.label, x: r.x, y: r.y, w: r.w, h: r.h });
     }
+  },
+  drawLabels(c, last) {                          // рисуются поверх всего, кроме призрака; раскладка уже в last.labels
+    const k = Render.col;
     for (const r of last.labels) {
       c.fillStyle = k.paper; c.strokeStyle = k.gold; c.lineWidth = 5;
       Render.rr(c, r.x, r.y, r.w, r.h, 14); c.fill(); c.stroke();
@@ -975,8 +989,9 @@ const Render = {
     const last = { labels: [], notes: [], hints: [], del: null };
     Render.ground(c);
     if (L && Game.screen === "game") {
+      Render.labels(c, L, last);                 // сначала раскладка подписей: надписи над врагами её обходят
       Render.lanes(c, L); Render.castle(c); Render.pads(c, L); Render.beams(c, L); Render.towers(c, L);
-      Render.enemies(c, L, last); Render.fx(c, L); Render.labels(c, L, last); Render.drag(c);
+      Render.enemies(c, L, last); Render.fx(c, L); Render.drawLabels(c, last); Render.drag(c);
     }
     Render.last = last;
   },
@@ -1003,6 +1018,8 @@ const Input = {
     window.addEventListener("pointerup", Input.onUp);
     window.addEventListener("pointercancel", () => { Input.drag = null; Input.down = null; });
     window.addEventListener("keydown", () => Audio.unlock());
+    // Долгое касание пером в Windows — это правый клик: контекстное меню браузера сорвало бы перетаскивание.
+    document.getElementById("app").addEventListener("contextmenu", (e) => e.preventDefault());
   },
   onHandDown(e) {
     Audio.unlock();
