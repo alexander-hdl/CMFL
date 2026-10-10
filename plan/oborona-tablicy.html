@@ -315,6 +315,9 @@ const Content = {
   },
   // Разрезание для Solver и подсказки: две части или (3×3) целый луч.
   demandsOf(card) { const sp = Content.split(card); return sp || [Content.cardNumber(card)]; },
+  // Какими цифрами строить часть p босса: общий множитель босса и частное (7 × 8 → 7 × 5 и 7 × 3, 4 × 23 → 4 × 20 и 4 × 3).
+  // Solver пробует это разложение первым, поэтому план и призрак подсказки учат разрезанию, а не «3 × 10» для 6 × 8.
+  prefOf(card, p) { const c = Content.cardOf(card), a = c ? Math.min(c.a, c.b) : 0; return a && p % a === 0 ? [a, p / a] : null; },
   // Проверка шаблона: расстояния, соседи, места под подписи, решаемость трёх наборов. Возвращает список замечаний.
   validate(tid) {
     const t = Content.TEMPLATES[tid];
@@ -438,8 +441,9 @@ const Solver = {
   canBuild(level, demands, opts) {
     opts = opts || {};
     const hand = level.hand || Content.HAND, all = level.lanes.map((l) => l.id);
-    const dem = demands.map((d) => typeof d === "number" ? { n: d, lanes: all, tag: null, part: false }
-      : { n: d.n, lanes: d.lanes && d.lanes.length ? d.lanes : all, tag: d.tag || null, part: !!d.part });
+    const dem = demands.map((d) => typeof d === "number" ? { n: d, lanes: all, tag: null, part: false, xs: hand }
+      : { n: d.n, lanes: d.lanes && d.lanes.length ? d.lanes : all, tag: d.tag || null, part: !!d.part,
+          xs: d.pref ? [...new Set(d.pref.filter((x) => hand.includes(x)).concat(hand))] : hand });   // pref — разложение, которое пробуется первым
     const edges = Object.keys(level.pairs).sort().map((k) => level.pairs[k]);
     const digit = {}, cnt = {}, used = new Set(), plan = [];
     for (const id of Object.keys(level.towers)) if (level.towers[id].fixed) digit[id] = level.towers[id].digit;
@@ -448,12 +452,12 @@ const Solver = {
     const go = (i) => {
       if (i === dem.length) return !opts.enemies || Solver.simulate(level, plan, opts.enemies);
       if (++nodes > Solver.LIMIT) return false;
-      const { n, lanes, tag, part } = dem[i];
+      const { n, lanes, tag, part, xs } = dem[i];
       if (!part && plan.some((p) => p.da * p.db === n && lanes.every((l) => level.pairs[Solver.pairKey(p.a, p.b)].cross[l] !== undefined))) return go(i + 1);   // уже есть такой луч
       for (const e of edges) {
         if (used.has(e.key) || (cnt[e.a] || 0) >= 2 || (cnt[e.b] || 0) >= 2) continue;
         if (!lanes.every((l) => e.cross[l] !== undefined)) continue;
-        for (const x of hand) {
+        for (const x of xs) {
           if (n % x) continue;
           const y = n / x;
           if (!hand.includes(y)) continue;
@@ -563,7 +567,7 @@ const WaveGen = {
       if (!m.has(key)) m.set(key, new Set());
       m.get(key).add(e.lane);
     }
-    for (const [card, ls] of bossLanes) for (const p of Content.demandsOf(card)) dem.push({ n: p, lanes: [...ls].sort(), tag: card, part: true });
+    for (const [card, ls] of bossLanes) for (const p of Content.demandsOf(card)) dem.push({ n: p, lanes: [...ls].sort(), tag: card, part: true, pref: Content.prefOf(card, p) });
     for (const [num, ls] of numLanes) dem.push({ n: num, lanes: [...ls].sort(), tag: null, part: false });
     return dem;
   },
@@ -1518,7 +1522,7 @@ const Input = {
       if (!Build.editable()) return;
       if (d.kind === "digit") {
         if (!d.moved) Input.armed = Input.armed === d.digit ? null : d.digit;   // тап по цифре
-        else Build.dropDigit(d.digit, d.x, d.y);                                // отпустили над полем
+        else { const r = Build.dropDigit(d.digit, d.x, d.y); if (!r.ok && r.reason === "fixed") Render.shake(r.pad); }   // отпустили над полем; заранее стоящая покачивается
       } else {
         if (d.y > FIELD_BOTTOM) Build.remove(d.from);                           // унесли на руку — башня убрана
         else {
