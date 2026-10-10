@@ -788,6 +788,6 @@ input[type="text"] { background: var(--panel); border: 2px solid var(--line); bo
   if (!LOCAL) use("downloads").then(function (dl) { if (!dl) { $("dl").hidden = true; $("v-dl").hidden = true; } });
 })();
 </script>
-<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function () {});</script>
+<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").then(function (reg) { reg.update().catch(function () {}); reg.addEventListener("updatefound", function () { var nw = reg.installing; if (!nw || !navigator.serviceWorker.controller) return; nw.addEventListener("statechange", function () { if (nw.state === "activated") location.reload(); }); }); }).catch(function () {});</script>
 </body>
 </html>

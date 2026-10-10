@@ -49,7 +49,11 @@ REWORDS = {
 
 RESET = "body{margin:0}[hidden]{display:none!important}"
 SW_REGISTER = ('<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) '
-               'navigator.serviceWorker.register("sw.js").catch(function () {});</script>')
+               'navigator.serviceWorker.register("sw.js").then(function (reg) { '
+               'reg.update().catch(function () {}); '
+               'reg.addEventListener("updatefound", function () { var nw = reg.installing; if (!nw || !navigator.serviceWorker.controller) return; '
+               'nw.addEventListener("statechange", function () { if (nw.state === "activated") location.reload(); }); }); '
+               '}).catch(function () {});</script>')
 
 
 def relink(html):
@@ -155,7 +159,7 @@ footer a { color: var(--accent); }
   </div>
   <footer>Исходники и исследования: <a href="https://github.com/alexander-hdl/CMFL">github.com/alexander-hdl/CMFL</a></footer>
 </main>
-<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function () {});</script>
+__SW__
 </body>
 </html>
 """
@@ -224,7 +228,7 @@ def main():
     for src, out, name, short, color, icon in PAGES:
         files[out] = page(src, out, name, color, icon)
         files[f"manifest-{icon}.webmanifest"] = manifest(name, short, out, color, icon)
-    files["index.html"] = INDEX
+    files["index.html"] = INDEX.replace("__SW__", SW_REGISTER)
     files["manifest-home.webmanifest"] = manifest("Учебный уголок", "Уголок", "index.html", "#f6f7f3", "plan")
     files["README.md"] = README
     files[".nojekyll"] = ""
