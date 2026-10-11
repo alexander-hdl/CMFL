@@ -7,6 +7,7 @@ const { run } = require("./_harness.cjs");
 run("ferma", async (t, page) => {
   const pageErrors = [];
   page.on("pageerror", (e) => pageErrors.push(e.message));
+  page.on("crash", () => console.log("  !!! страница упала (crash)"));
   const S = () => page.evaluate(() => FERMA.state());
   const api = (name, ...a) => page.evaluate(([n, args]) => FERMA.api[n](...args), [name, a]);
   const L = (name, ...a) => page.evaluate(([n, args]) => FERMA.logic[n](...args), [name, a]);
@@ -100,7 +101,7 @@ run("ferma", async (t, page) => {
     [[0], [0, 1], [{ day: 3, t: "пример" }], 2, 1, 0.75, null], "M7 recordAttempt и skillAcc");
   t.eq(await page.evaluate(() => { let s = null; for (let i = 0; i < 10; i++) s = FERMA.logic.recordAttempt(s, true, "", 1); return s.level; }), 2, "M7 уровень растёт после 10 попыток с 9 верными");
   t.eq(await page.evaluate(() => { let s = FERMA.logic.recordAttempt(null, true, "", 1); s.level = 2; for (let i = 0; i < 6; i++) s = FERMA.logic.recordAttempt(s, i < 3 ? 1 : 0, "x", 1); return s.level; }), 1, "M7 уровень падает, если из 6 последних верных не больше 3");
-  t.eq(await page.evaluate(() => { const m = FERMA.logic.migrate({ day: 3 }); return [m.v, m.day, FERMA.logic.walletSum(m.wallet), m.beds.length]; }), [4, 3, 10000, 2], "M11 migrate({day:3}) даёт полное состояние схемы v4");
+  t.eq(await page.evaluate(() => { const m = FERMA.logic.migrate({ day: 3 }); return [m.v, m.day, FERMA.logic.walletSum(m.wallet), m.beds.length]; }), [5, 3, 10000, 2], "M11 migrate({day:3}) даёт полное состояние схемы v5");
 
   /* ---------- M12. Карты ---------- */
   await fresh();
@@ -265,7 +266,7 @@ run("ferma", async (t, page) => {
   await api("goTo", "shop"); t.eq((await dialog()).kind, "shop", "M4 в 16:10 магазин открыт");
   await fresh(); await api("setTime", 16 * 60 + 40); await api("travel", "shop"); await api("choose", "go"); s = await S();
   t.eq([s.time, s.skills.duration.hist], [1030, [0]], "M4 вышел в 16:40, пришёл в 17:10 — попытка неверная");
-  t.ok(s.skills.duration.errors[0].t.includes("в магазин") && s.skills.duration.errors[0].t.includes("16:40"), "M4 пример ошибки: «" + s.skills.duration.errors[0].t + "»");
+  t.ok(s.skills.duration.errors[0].t.includes("в магазин") && s.skills.duration.errors[0].t.includes("17:10"), "M4 пример ошибки: «" + s.skills.duration.errors[0].t + "»");
   await api("goTo", "shop"); t.ok((await dialog()).lines.join(" ").includes("Приходи завтра"), "M4 в 17:10 магазин закрыт");
   await api("goTo", "exitVillage"); dl = await dialog();
   t.eq([dl.title, dl.lines, dl.buttons.map((b) => b.id)], ["Дорога домой", ["Сейчас 17:10.", "Дорога 30 минут."], ["go", "stay"]], "M4 план по дороге домой: без выбора цели");
@@ -393,15 +394,15 @@ run("ferma", async (t, page) => {
   /* ---------- M11. Миграция сохранения ---------- */
   await page.evaluate(() => { localStorage.setItem("ferma-save", JSON.stringify({ day: 3 })); });
   await t.reload(); s = await S();
-  t.eq([s.v, s.day, s.money, s.ui.screen], [4, 3, 10000, null], "M11 старое сохранение {day:3} дополняется до схемы v4, прогресс не потерян");
+  t.eq([s.v, s.day, s.money, s.ui.screen], [5, 3, 10000, null], "M11 старое сохранение {day:3} дополняется до схемы v5, прогресс не потерян");
   await page.evaluate(() => { localStorage.setItem("ferma-save", "это не json"); });
   await t.reload(); s = await S();
-  t.eq([s.v, s.day, s.ui.screen], [4, 1, "start"], "M11 битое сохранение — новая игра и стартовый экран");
+  t.eq([s.v, s.day, s.ui.screen], [5, 1, "start"], "M11 битое сохранение — новая игра и стартовый экран");
   t.eq(await page.evaluate(() => localStorage.getItem("ferma-save-bad")), "это не json", "R5 битая строка не пропала, а скопирована в ferma-save-bad");
   t.ok((await text("#screen")).includes("Ферма у реки"), "M11 стартовый экран с названием");
   await page.click("#screen >> text=Играть"); t.eq((await S()).ui.screen, null, "M11 «Играть» начинает игру");
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("ferma-save")));
-  t.ok(saved.v === 4 && !("ui" in saved) && !("money" in saved) && saved.wallet && saved.goals, "M11 в localStorage лежит JSON схемы v4 без S.ui, с кошельком вместо числа");
+  t.ok(saved.v === 5 && !("ui" in saved) && !("money" in saved) && saved.wallet && saved.goals, "M11 в localStorage лежит JSON схемы v5 без S.ui, с кошельком вместо числа");
 
   /* ---------- A7. Тексты без ошибок, нет викторин: после каждого вызова ждём 1500 мс ---------- */
   await fresh(); await api("setRealDate", "2026-12-01");
@@ -579,7 +580,7 @@ run("ferma", async (t, page) => {
     ['{"real":null}', (st) => st.real && typeof st.real.date === "string"], ['{"wallet":null}', (st) => st.money === 10000], ['{"wallet":{"100":-5}}', (st) => st.money === 10000], ['{"wallet":{"1000":2}}', (st) => st.money === 2000],
     ['{"player":{"x":"a","y":null}}', (st) => st.player.x === 4 && st.player.y === 8], ['{"scene":"moon"}', (st) => st.scene === "farm"], ['{"time":99999}', (st) => st.time === 1260],
     ['{"time":423}', (st) => st.time === 420], ['{"skills":{"pay":null,"change":{"hist":"x"}}}', (st) => !("pay" in st.skills) && Array.isArray(st.skills.change.hist)], ['{"log":{"today":[1,"a"]}}', (st) => st.log.today.length === 1],
-    ['{"v":1,"money":6300,"day":3}', (st) => st.v === 4 && st.money === 6300 && st.day === 3 && !("money" in st.wallet)], ['{"wallet":null,"money":4200}', (st) => st.money === 4200], ['{"day":-4}', (st) => st.day === 1]
+    ['{"v":1,"money":6300,"day":3}', (st) => st.v === 5 && st.money === 6300 && st.day === 3 && !("money" in st.wallet)], ['{"wallet":null,"money":4200}', (st) => st.money === 4200], ['{"day":-4}', (st) => st.day === 1]
   ];
   for (const [raw, check] of BAD) {
     await page.evaluate((r) => { localStorage.removeItem("ferma-save-bad"); localStorage.setItem("ferma-save", r); localStorage.removeItem("ferma-testDate"); }, raw);
@@ -1040,7 +1041,7 @@ run("ferma", async (t, page) => {
   await api("close"); await day1({ day: 29 }); await giveAll({ "apple:red": 20 }); await api("setSetting", "split", false);
   await api("setTime", 1255); await api("goTo", "stall"); s = await S(); t.eq([s.ui.menu.buttons[0].enabled, s.ui.menu.buttons[0].reason], [false, "До 21:00 не успеть"], "Прилавок: поздно вечером кнопка серая «До 21:00 не успеть»");
   // рынок по субботам
-  await page.evaluate(() => { localStorage.clear(); FERMA.api.newGame({ seed: 1, day: 6 }); FERMA.api.closeScreen(); }); await giveAll({ "apple:red": 20, "carrot:big": 8, potato: 8 });
+  await page.evaluate(() => { localStorage.clear(); FERMA.api.newGame({ seed: 1, day: 6 }); FERMA.api.closeScreen(); }); await giveAll({ "apple:red": 20, "carrot:big": 8, potato: 8 }); await api("setSkill", "change", { level: 2 });   // «весовой» покупатель с картошкой — со 2-й ступени «сдачи» (на 1-й ему дают только 1 кг до 49 ₽)
   await api("setTime", 470); await api("goTo", "market"); dl = await dialog(); t.ok(dl.kind === "closed" && dl.buttons.some((b) => b.id === "wait" && b.label === "Подождать до 8:00 — 10 мин"), "Рынок: в 7:50 закрыто, можно подождать до 8:00");
   await api("choose", "wait"); s = await S(); t.eq([s.time, s.ui.menu.obj, s.ui.menu.title], [480, "market", "Рынок. Покупателей в очереди: 4."], "Рынок: в субботу в 8:00 открыт, в очереди 4 покупателя");
   await api("act", "trade"); dl = await dialog(); t.ok(dl.kind === "sale" && dl.title === "Рынок", "Рынок: «Торговать» открывает продажу");
@@ -1063,8 +1064,9 @@ run("ferma", async (t, page) => {
 
   /* ---------- Копилка ---------- */
   await day1(); await api("goTo", "house"); await api("act", "piggy"); dl = await dialog();
-  t.eq([dl.kind, dl.lines], ["piggy", ["Цель: Амбар — 900 ₽.", "Накоплено 0 ₽. Осталось 900 ₽."]], "Копилка: «Цель: Амбар — 900 ₽.», «Накоплено 0 ₽. Осталось 900 ₽.»");
-  t.eq(dl.buttons.filter((b) => b.row === 1).map((b) => b.label), ["Амбар — 900 ₽", "Курятник — 300 ₽", "Лодка — 1500 ₽"], "Копилка: цели — амбар, курятник, лодка");
+  t.eq([dl.kind, dl.lines], ["piggy", ["Цель: курятник — 300 ₽.", "Накоплено 0 ₽. Осталось 300 ₽."]], "Копилка: первая цель — курятник, строчная буква: «Цель: курятник — 300 ₽.», «Накоплено 0 ₽. Осталось 300 ₽.»");
+  t.eq(dl.buttons.filter((b) => b.row === 1).map((b) => b.label), ["Курятник — 300 ₽", "Амбар — 900 ₽", "Лодка — 1500 ₽"], "Копилка: цели — курятник, амбар, лодка (третья грядка — после курятника)");
+  await api("choose", "goal:2"); dl = await dialog(); t.eq(dl.lines, ["Цель: амбар — 900 ₽.", "Накоплено 0 ₽. Осталось 900 ₽."], "Копилка: цель можно выбрать — «Цель: амбар — 900 ₽.»");
   await api("coin", 5000); await api("coin", 1000); await api("coin", 1000); s = await S(); dl = s.ui.dialog;
   t.eq([s.piggy.saved, s.money, dl.lines[1]], [7000, 3000, "Накоплено 70 ₽. Осталось 830 ₽."], "Копилка: положил 50 + 10 + 10 — накоплено 70 ₽, осталось 830 ₽");
   const buyBtn = dl.buttons.find((b) => b.id === "buy"); t.eq([buyBtn.enabled, buyBtn.reason], [false, "Не хватает 830 рублей"], "Копилка: «Купить» серая — «Не хватает 830 рублей»");
@@ -1074,11 +1076,11 @@ run("ferma", async (t, page) => {
   t.eq([s.piggy.saved, dl.buttons.find((b) => b.id === "buy").enabled, await page.locator("#dlg .bar i").evaluate((e) => e.style.width)], [90000, true, "100%"], "Копилка: 900 ₽ накоплено — «Купить: амбар» доступна, полоса полная");
   const barnPx = () => page.evaluate(() => { FERMA.render(); const d = document.getElementById("cv").getContext("2d").getImageData(130, 475, 1, 1).data; return [d[0], d[1], d[2]]; });
   const px0 = await barnPx(); await api("choose", "buy"); s = await S();
-  t.eq([s.flags.barn, s.flags.kgCarrot, s.flags.tape, s.piggy.saved, s.piggy.bought, s.piggy.goal, s.ui.dialog.reply], [true, true, true, 0, ["barn"], 1, "Построен амбар!"], "Копилка: куплен амбар — флаги, копилка пуста, следующая цель — курятник");
+  t.eq([s.flags.barn, s.flags.kgCarrot, s.flags.tape, s.piggy.saved, s.piggy.bought, s.piggy.goal, s.ui.dialog.reply], [true, true, true, 0, ["barn"], 0, "Построен амбар!"], "Копилка: куплен амбар — флаги, копилка пуста, следующая цель — курятник");
   t.ok(s.log.today.includes("Построен амбар!"), "Копилка: событие дня «Построен амбар!»");
   const px1 = await barnPx(); t.ok(px0[0] > 200 && px1[0] < 200, "Копилка: на дворе вместо колышков появился амбар с воротами (пиксель " + JSON.stringify(px0) + " → " + JSON.stringify(px1) + ")");
-  t.ok((await text("#dlg")).includes("Цель: Курятник — 300 ₽.") && (await api("choose", "goal:2")).ok && (await S()).piggy.goal === 2, "Копилка: цель переключается: курятник, затем лодка");
-  await t.reload(); s = await S(); t.eq([s.piggy.bought, s.piggy.goal, s.flags.barn, s.piggy.saved], [["barn"], 2, true, 0], "Копилка: после перезагрузки купленное и цель на месте");
+  t.ok((await text("#dlg")).includes("Цель: курятник — 300 ₽.") && (await api("choose", "goal:3")).ok && (await S()).piggy.goal === 3, "Копилка: цель переключается: курятник, затем лодка");
+  await t.reload(); s = await S(); t.eq([s.piggy.bought, s.piggy.goal, s.flags.barn, s.piggy.saved], [["barn"], 3, true, 0], "Копилка: после перезагрузки купленное и цель на месте");
   await page.evaluate(() => { FERMA.api.setFlag("barn", false); FERMA.api.setFlag("coop", true); FERMA.api.setFlag("boat", true); FERMA.render(); });
   const farm1 = await page.screenshot({ clip: { x: 0, y: 96, width: 1024, height: 600 } }); t.ok(farm1.length > 5000, "Копилка: курятник с курами и лодка у причала рисуются без ошибок");
   await api("setFlag", "coop", false); await api("setFlag", "boat", false);
@@ -1192,7 +1194,7 @@ run("ferma", async (t, page) => {
   await api("close"); await api("goTo", "shed"); await api("act", "weigh"); await api("choose", "item:carrot"); for (const g of [500, 100]) await api("weight", g); await api("produce", 6); await api("submit"); s = await S();
   t.eq(s.bags, [{ item: "apple", g: 1000 }, { item: "carrot", g: 600 }], "Заказ T03: взвешены мешочки яблок 1 кг и моркови 600 г (ошибся на 100 г)");
   await api("close"); await api("goTo", "door_nyura"); await api("act", "deliver"); await api("toggleBag", 0); await api("toggleBag", 1); r = await api("submit"); s = await S();
-  t.eq([r.ok, s.ui.dialog.reply, s.skills.mass.hist, s.skills.mass.errors[0].t], [false, "Тут 600 г. А нужно 500 г.", [0], "взвесил не ту массу (заказ Нюры)"], "Заказ T03: «Тут 600 г. А нужно 500 г.», навык «масса» неверный");
+  t.eq([r.ok, s.ui.dialog.reply, s.skills.mass.hist, s.skills.mass.errors[0].t], [false, "Тут 600 г. А нужно 500 г.", [0], "взвесил 600 г вместо 500 г (заказ Нюры)"], "Заказ T03: «Тут 600 г. А нужно 500 г.», навык «масса» неверный");
 
   /* ---------- Почта и встречи у колодца ---------- */
   await ready({}); await page.evaluate(() => { FERMA.api.setDay(3); }); const t4 = await api("addOrder", "T04", { time: 720 }, "mailbox"); await api("goTo", "mailbox"); await api("choose", "note:" + t4.id); await api("choose", "take"); s = await S();
@@ -1201,7 +1203,7 @@ run("ferma", async (t, page) => {
   await api("act", "postSend"); s = await S(); t.eq([s.ui.dialog.reply.startsWith("Посылка отправлена."), s.time, s.inv.parcel, s.skills.duration.hist, s.skills.clock.hist, s.orders.active.length], [true, 650, 0, [1], [1], 0], "Почта T04: отправил в 10:40 до 12:00 — принято, навыки «длительность» и «часы» верные");
   await ready({}); await page.evaluate(() => FERMA.api.setDay(3)); const t4b = await api("addOrder", "T04", { time: 720 }, "active"); await api("setTime", 715); await api("goTo", "post"); await api("act", "postSend"); s = await S();
   t.eq([s.ui.dialog.reply, s.skills.duration.hist, s.skills.clock.errors[0].t, s.orders.active.length], ["Уже поздно: посылку нужно было отправить до 12:00.", [0], "отправил посылку в 11:55, а нужно было до 12:00", 0], "Почта T04: в 11:55 уже не успеть — «Уже поздно…», навыки неверные с примером");
-  await ready({}); await page.evaluate(() => FERMA.api.setDay(3)); await api("addOrder", "T13", {}, "active"); await api("goTo", "post"); await api("act", "postTake"); s = await S(); t.eq([s.inv["seed:carrot"], s.time, s.ui.dialog.reply], [20, 605, "Посылка получена. В ней — 2 пакетика семян моркови."], "Почта T13: забрал посылку — 2 пакетика (20 семян) моркови");
+  await ready({}); await page.evaluate(() => FERMA.api.setDay(3)); await api("addOrder", "T13", { time: 600 }, "active"); await api("goTo", "post"); await api("act", "postTake"); s = await S(); t.eq([s.inv["seed:carrot"], s.time, s.ui.dialog.reply], [20, 605, "Посылка получена. В ней — 2 пакетика семян моркови."], "Почта T13: забрал посылку — 2 пакетика (20 семян) моркови");
   await api("setTime", 1090); await api("goTo", "post"); t.eq((await dialog()).kind, "closed", "Почта: после 18:00 закрыта");
   await ready({}); await page.evaluate(() => FERMA.api.setDay(5)); await api("addOrder", "T08", { time: 900 }, "active"); await api("setTime", 840); await api("goTo", "well"); await api("act", "help"); dl = await dialog();
   t.eq([dl.kind, dl.lines[0], dl.buttons[0].label], ["meetWait", "Деда Егора ещё нет. Он будет в 15:00.", "Подождать до 15:00 — 60 мин"], "Встреча T08: пришёл в 14:00 — «Деда Егора ещё нет. Он будет в 15:00.» и «Подождать до 15:00 — 60 мин»");
@@ -1226,14 +1228,14 @@ run("ferma", async (t, page) => {
   await api("closeScreen");
   // схема v4 и миграция
   await page.evaluate(() => { localStorage.setItem("ferma-save", JSON.stringify({ v: 2, day: 4, wallet: { 5000: 1 }, inv: { "carrot:big": 3 } })); }); await t.reload(); s = await S();
-  t.eq([s.v, s.day, s.money, s.inv["carrot:big"], s.orders.lastTpl, s.stats, s.piggy], [4, 4, 5000, 3, {}, { sold: 0, ordersDone: 0, harvested: 0, hseq: 0 }, { saved: 0, goal: 0, bought: [] }], "Схема v4: сохранение v2 дополняется заказами, статистикой и копилкой без потери прогресса");
-  const BAD3 = [['{"orders":null}', (st) => Array.isArray(st.orders.board) && st.orders.seq === 0], ['{"orders":{"board":[{"id":"x"}],"active":"a"}}', (st) => st.orders.board.length === 0 && Array.isArray(st.orders.active)], ['{"buyers":"x"}', (st) => Array.isArray(st.buyers.gate)],
+  t.eq([s.v, s.day, s.money, s.inv["carrot:big"], s.orders.genDay, s.stats, s.piggy], [5, 4, 5000, 3, 4, { sold: 0, ordersDone: 0, harvested: 0, hseq: 0 }, { saved: 0, goal: 0, bought: [] }], "Схема v5: сохранение v2 дополняется заказами, статистикой и копилкой без потери прогресса");
+  const BAD3 = [['{"orders":null}', (st) => Array.isArray(st.orders.board) && st.orders.seq >= 0], ['{"orders":{"board":[{"id":"x"}],"active":"a"}}', (st) => !st.orders.board.some((o) => o.id === "x") && Array.isArray(st.orders.active)], ['{"buyers":"x"}', (st) => Array.isArray(st.buyers.gate)],
     ['{"piggy":{"saved":"много","goal":99,"bought":["дом"]}}', (st) => st.piggy.saved === 0 && st.piggy.goal === 0 && st.piggy.bought.length === 0], ['{"harvest":[{"id":"h1"},5,null]}', (st) => st.harvest.length === 0], ['{"stats":{"sold":-3}}', (st) => st.stats.sold === 0],
-    ['{"bags":[{"item":"x","g":"y"}],"baskets":[{"item":"apple:red","n":3}]}', (st) => st.bags.length === 0 && st.baskets.length === 1], ['{"neighbors":["nyura",7,"никто"]}', (st) => st.neighbors.length === 1]];
+    ['{"bags":[{"item":"x","g":"y"}],"baskets":[{"item":"apple:red","n":3}]}', (st) => st.bags.length === 0 && st.baskets.length === 1], ['{"neighbors":["nyura",7,"никто"]}', (st) => st.neighbors.includes("nyura") && !st.neighbors.includes(7) && !st.neighbors.includes("никто")]];
   for (const [raw, check] of BAD3) {
     await page.evaluate((r) => { localStorage.removeItem("ferma-save-bad"); localStorage.setItem("ferma-save", r); }, raw); const e0 = pageErrors.length; await t.reload(); await sleep(100);
     const res = await page.evaluate(() => { const st = FERMA.state(); FERMA.render(); return { st, ready: FERMA.ready }; });
-    t.ok(res.ready && pageErrors.length === e0 && res.st.v === 4 && check(res.st), `Схема v4: сохранение ${raw}: игра загружена, поля проверены, ошибок нет`);
+    t.ok(res.ready && pageErrors.length === e0 && res.st.v === 5 && check(res.st), `Схема v5: сохранение ${raw}: игра загружена, поля проверены, ошибок нет`);
   }
   // перезагрузка сохраняет заказы, копилку и конверт
   await page.evaluate(() => { localStorage.clear(); FERMA.api.newGame({ seed: 7, day: 3 }); FERMA.api.closeScreen(); FERMA.api.setTime(600); FERMA.api.setWallet({ 10000: 3, 1000: 2 }); });
@@ -1301,11 +1303,11 @@ run("ferma", async (t, page) => {
   t.ok(!(await api("tap", 28, 5)).ok || (await S()).ui.menu === null, "2б.1 колышки на месте будущего курятника не открывают меню");
   await waitIdle(); t.ok((await S()).ui.menu === null || (await S()).ui.menu.obj !== "coop", "2б.1 касание пустого места под курятник не открывает курятник");
   // покупка курятника через копилку: цель выбирает ребёнок
-  await api("setWallet", { 10000: 3 }); await api("goTo", "house"); await api("act", "piggy"); await api("choose", "goal:1");
+  await api("setWallet", { 10000: 3 }); await api("goTo", "house"); await api("act", "piggy"); await api("choose", "goal:0");
   for (let i = 0; i < 3; i++) await api("coin", 10000);
-  s = await S(); t.eq([s.piggy.goal, s.piggy.saved, s.ui.dialog.buttons.find((b) => b.id === "buy").label], [1, 30000, "Купить: курятник"], "2б.1 цель — курятник, 300 ₽ накоплено, кнопка «Купить: курятник»");
+  s = await S(); t.eq([s.piggy.goal, s.piggy.saved, s.ui.dialog.buttons.find((b) => b.id === "buy").label], [0, 30000, "Купить: курятник"], "2б.1 цель — курятник (первая), 300 ₽ накоплено, кнопка «Купить: курятник»");
   await api("choose", "buy"); s = await S();
-  t.eq([s.flags.coop, s.animals.hensWhite, s.animals.hensBrown, s.piggy.bought, s.piggy.goal, s.ui.dialog.reply], [true, 2, 2, ["coop"], 0, "Построен курятник!"], "2б.1 куплен курятник: 2 белые и 2 коричневые курицы, следующая цель — амбар");
+  t.eq([s.flags.coop, s.animals.hensWhite, s.animals.hensBrown, s.piggy.bought, s.piggy.goal, s.ui.dialog.reply], [true, 2, 2, ["coop"], 1, "Построен курятник!"], "2б.1 куплен курятник: 2 белые и 2 коричневые курицы, следующая цель — третья грядка");
   await api("close"); await api("goTo", "coop"); s = await S();
   t.eq([s.ui.menu.title, s.ui.menu.buttons.map((b) => [b.id, b.enabled, b.label])],
     ["Курятник: 4 курицы.", [["hens", true, "Покормить кур и собрать яйца — 15 мин"], ["packEggs", false, "Разложить яйца по коробкам — 10 мин"], ["close", true, "Закрыть"]]], "2б.1 меню курятника: «Покормить кур и собрать яйца — 15 мин», упаковка серая, пока нет яиц");
@@ -1356,8 +1358,8 @@ run("ferma", async (t, page) => {
   t.ok(!dl.buttons.some((b) => b.label.startsWith("Коровник")) && !dl.buttons.some((b) => b.label.startsWith("Третья")), "2б.1 пока не куплены лодка и амбар, коровник и участки в копилке не показаны");
   for (let i = 0; i < 3; i++) await api("coin", 50000);
   for (let i = 0; i < 5; i++) await api("coin", 10000);
-  await api("choose", "goal:2"); await api("choose", "buy"); s = await S(); dl = s.ui.dialog;
-  t.eq([s.flags.boat, s.piggy.bought, dl.buttons.filter((b) => b.row === 1).map((b) => b.label)], [true, ["boat"], ["Амбар — 900 ₽", "Курятник — 300 ₽", "Коровник и корова — 1200 ₽"]], "2б.1 куплена лодка — в копилке появился коровник за 1200 ₽");
+  await api("choose", "goal:3"); await api("choose", "buy"); s = await S(); dl = s.ui.dialog;
+  t.eq([s.flags.boat, s.piggy.bought, dl.buttons.filter((b) => b.row === 1).map((b) => b.label)], [true, ["boat"], ["Курятник — 300 ₽", "Амбар — 900 ₽", "Коровник и корова — 1200 ₽"]], "2б.1 куплена лодка — в копилке появился коровник за 1200 ₽");
   await api("choose", "goal:4"); t.eq((await S()).piggy.goal, 4, "2б.1 цель переключена на коровник");
   await api("setWallet", { 50000: 1, 10000: 3 }); await api("coin", 50000); for (let i = 0; i < 3; i++) await api("coin", 10000);
   s = await S(); t.eq([s.piggy.saved, s.ui.dialog.buttons.find((b) => b.id === "buy").enabled], [130000, true], "2б.1 в копилке 1300 ₽ — «Купить: коровник и корова» доступна");
@@ -1381,16 +1383,22 @@ run("ferma", async (t, page) => {
   }, features);
   t.eq([await genTpl({}), await genTpl({ coop: true }), await genTpl({ coop: true, cowshed: true }), await genTpl({ tape: true })], [[], ["T05", "T12"], ["T05", "T11", "T12", "T25"], ["T28"]], "2б.1 записки T05, T12 выдаются после курятника, T11, T25 — после коровника, T28 — после амбара; без них их нет");
   await day1({ day: 3 }); await api("setFlag", "coop", true); await api("setFlag", "cowshed", true);
+  await giveAll({ "egg:white": 30 });   // свои яйца лежат отдельно от яиц дяди Миши
   r = await api("addOrder", "T05", { n: 36 }, "active"); s = await S();
-  t.eq([s.inv["egg:white"], s.orders.active[0].need], [36, { kind: "pack", boxes: 3, noun: "коробка" }], "2б.1 T05: при взятии заказа дядя Миша даёт 36 яиц, нужны 3 полные коробки");
-  await api("goTo", "coop"); await api("act", "packEggs"); await api("numpad", "3"); await api("submit"); await api("numpad", "6"); await api("submit"); s = await S();
-  t.eq([s.inv["box:white"], s.inv["egg:white"], s.skills.divrem.hist], [3, 6, [1]], "2б.1 T05: 36 яиц — 3 коробки, остаток 6 яиц, навык «деление с остатком» верно");
-  await api("close"); await api("goTo", "door_misha"); await api("act", "deliver"); await api("offer", { items: { "box:white": 2 } }); r = await api("submit"); dl = await dialog();
-  t.eq([r.ok, dl.reply], [false, "Тут не все полные коробки."], "2б.1 T05: отдал 2 коробки вместо 3 — «Тут не все полные коробки.»");
-  await api("offer", { items: { "egg:white": 6 } }); r = await api("submit"); dl = await dialog(); t.eq([r.ok, dl.reply], [false, "Мне нужны только полные коробки."], "2б.1 T05: яйца россыпью — «Мне нужны только полные коробки.»");
-  t.ok((await S()).skills.divrem.hist.length === 2 && (await S()).skills.divrem.hist[1] === 0, "2б.1 T05: ошибка записана один раз (первая сдача), навык «деление с остатком»");
-  await api("offer", { items: { "egg:white": 0, "box:white": 3 } }); const wal = (await S()).money; r = await api("submit"); s = await S(); dl = s.ui.dialog;
-  t.ok(r.ok && s.inv["box:white"] === 0 && s.money === wal + 2000 && dl.reply.startsWith("Вот спасибо! Держи 20 рублей."), "2б.1 T05: 3 коробки — заказ выполнен, 20 рублей: «" + dl.reply + "»");
+  t.eq([s.inv["egg:misha"], s.inv["egg:white"], s.orders.active[0].need], [36, 30, { kind: "pack", boxes: 3, noun: "коробка", boxKey: "box:misha" }], "2б.1 T05: при взятии заказа дядя Миша даёт 36 своих яиц отдельным предметом («Яйца дяди Миши»), нужны 3 полные коробки; свои 30 белых яиц не смешиваются");
+  await api("goTo", "coop"); await api("act", "packEggs"); dl = await dialog();
+  t.eq([dl.data.color, dl.data.total, dl.lines[0], dl.buttons.filter((b) => b.row === 1).map((b) => b.label)], ["misha", 36, "У тебя 36 яиц дяди Миши. В коробку помещается 10 яиц.", ["Белые: 30", "Яйца дяди Миши: 36"]], "2б.1 T05: окно коробок сразу показывает яйца дяди Миши — «У тебя 36 яиц дяди Миши…», вкладки со своими яйцами рядом");
+  await api("numpad", "3"); await api("submit"); await api("numpad", "6"); await api("submit"); s = await S();
+  t.eq([s.inv["box:misha"], s.inv["egg:misha"], s.inv["box:white"] || 0, s.inv["egg:white"], s.skills.divrem.hist], [3, 6, 0, 30, [1]], "2б.1 T05: 36 яиц дяди Миши — 3 коробки, остаток 6 яиц; свои яйца не тронуты; навык «деление с остатком» верно");
+  await api("close"); await api("goTo", "door_misha"); await api("act", "deliver"); await api("offer", { items: { "box:misha": 2 } }); r = await api("submit"); dl = await dialog();
+  t.eq([r.ok, dl.reply], [false, "В записке — 3 коробки. А тут — 2 коробки."], "2б.1 T05: отдал 2 коробки вместо 3 — «В записке — 3 коробки. А тут — 2 коробки.»");
+  await api("offer", { items: { "box:misha": 0, "egg:misha": 6 } }); r = await api("submit"); dl = await dialog(); t.eq([r.ok, dl.reply], [false, "Мне нужны только полные коробки."], "2б.1 T05: яйца россыпью — «Мне нужны только полные коробки.»");
+  await api("give", "box:white", 3); await api("offer", { items: { "egg:misha": 0, "box:white": 3 } }); r = await api("submit"); dl = await dialog(); t.eq([r.ok, dl.reply], [false, "Это не из моих яиц. Мне нужны коробки с моими яйцами."], "2б.1 T05: коробки со своими яйцами — «Это не из моих яиц…»");
+  await api("give", "box:misha", 1); await api("offer", { items: { "box:white": 0, "box:misha": 4 } }); r = await api("submit"); dl = await dialog(); t.eq([r.ok, dl.reply], [false, "В записке — 3 коробки. А тут — 4 коробки."], "2б.1 T05: лишняя коробка — «В записке — 3 коробки. А тут — 4 коробки.»"); await api("give", "box:misha", -1);
+  s = await S(); t.ok(s.skills.divrem.hist.length === 2 && s.skills.divrem.hist[1] === 0 && s.skills.divrem.errors[0].t.startsWith("принёс 2 коробки вместо 3"), "2б.1 T05: ошибка записана один раз (первая сдача), навык «деление с остатком»: «" + s.skills.divrem.errors[0].t + "»");
+  await api("offer", { items: { "box:white": 0, "box:misha": 3 } }); const wal = (await S()).money; r = await api("submit"); s = await S(); dl = s.ui.dialog;
+  t.ok(r.ok && s.inv["box:misha"] === 0 && s.inv["box:white"] === 3 && s.money === wal + 2000 && dl.reply.startsWith("Вот спасибо! Держи 20 рублей.") && dl.reply.endsWith("Оставшиеся яйца оставь себе."), "2б.1 T05: 3 коробки — заказ выполнен, 20 рублей, оставшиеся 6 яиц дядя Миша оставил ребёнку: «" + dl.reply + "»");
+  t.eq([s.inv["egg:misha"] || 0, s.inv["egg:white"]], [0, 36], "2б.1 T05: оставшиеся яйца стали белыми яйцами ребёнка (30 + 6)");
   await api("close");
   r = await api("addOrder", "T12", { n: 4, wd: 4 }, "active"); await api("give", "egg:white", 5); await api("give", "egg:brown", 4);
   await api("goTo", "door_nyura"); await api("act", "deliver"); await api("offer", { items: { "egg:white": 4 } }); r = await api("submit"); dl = await dialog();
@@ -1470,7 +1478,7 @@ run("ferma", async (t, page) => {
   t.ok(await page.evaluate(() => { const L = FERMA.logic, c = (lvl) => ({ day: 3, wd: 2, lvl: () => lvl, inv: {}, beds: [], flags: {}, neighbors: [], features: {} }); let ok1 = true, ok2 = false; for (let i = 0; i < 40; i++) { if (L.TPL.T28.gen(L.rng(i), c(1)).L % 10) ok1 = false; if (L.TPL.T28.gen(L.rng(i), c(2)).L % 10 === 5) ok2 = true; } return ok1 && ok2; }), "2б.3 T28: на уровне 1 длины кратны 10 см, на уровне 2 — и 5 см");
   // измерение грядки (нечётный день) и забора (чётный)
   await day1({ day: 3 }); await api("setFlag", "tape", true); await api("setBed", 1, { rows: 4, cols: 6 }); await api("goTo", "shed"); await api("act", "tape"); dl = await dialog(); const tb0 = (await S()).time;
-  t.eq([dl.data.what, dl.data.len, dl.lines[0], dl.lines[1]], ["bed", 300, "Измерь грядку 1 в длину: растяни ленту вдоль неё.", "Запиши длину: сколько метров и сколько сантиметров."], "2б.3 нечётный день: измеряем грядку 1 (6 клеток по 50 см — 3 м)");
+  t.eq([dl.data.what, dl.data.len, dl.lines[0], dl.lines[1]], ["bed", 300, "Лента лежит вдоль грядки 1. Посмотри, до какой отметки она доходит.", "Запиши длину: сколько метров и сколько сантиметров."], "2б.3 нечётный день: измеряем грядку 1 (6 клеток по 50 см — 3 м)");
   await api("numpad", "2"); await api("submit"); await api("numpad", "50"); r = await api("submit"); dl = await dialog(); s = await S();
   t.eq([r.ok, dl.reply, dl.data.reveal, s.skills.length.errors[0].t, s.time], [false, "Давай прочитаем вместе: на ленте 3 м и ещё 0 см.", true, "записал 2 м 50 см вместо 3 м", tb0], "2б.3 неверно прочитал ленту: «Давай прочитаем вместе…», время не потрачено");
   await api("numpad", "3"); await api("submit"); await api("numpad", "0"); r = await api("submit"); s = await S();
@@ -1516,20 +1524,27 @@ run("ferma", async (t, page) => {
   const coinsL1 = await page.evaluate(() => {
     const L = FERMA.logic, invs = [{ "apple:red": 30 }, { "apple:green": 30, "carrot:big": 30 }, { "zucchini:big": 9 }, { "cabbage:big": 9, "carrot:big": 9 }, { potato: 20, "carrot:big": 9 }, { "pumpkin:big": 4, "zucchini:big": 2, "apple:red": 5 }, { "carrot:big": 30 }, { "box:white": 5, "jar": 5, "carrot:big": 9 }, { jar: 5, "apple:red": 3 }];
     let max = 0, n = 0, bad = [], notes = new Set(), lo = 1e9, hi = 0;
-    for (const inv of invs) for (let day = 1; day <= 28; day++) for (let idx = 0; idx < 4; idx++) { const w = L.buyerWish(inv, day, {}, 1, idx); if (!w) continue; const note = L.payNote(w.total, 1), c = L.coinCount(note - w.total); n++; max = Math.max(max, c); notes.add(note); lo = Math.min(lo, w.total); hi = Math.max(hi, w.total); if (c > 3) bad.push([JSON.stringify(inv), day, idx, w.total, note, c]); }
+    for (const inv of invs) for (let day = 1; day <= 28; day++) for (let idx = 0; idx < 4; idx++) { const w = L.buyerWish(inv, day, {}, 1, idx); if (!w || w.none) continue; const note = L.payNote(w.total, 1), c = L.coinCount(note - w.total); n++; max = Math.max(max, c); notes.add(note); lo = Math.min(lo, w.total); hi = Math.max(hi, w.total); if (c > 3) bad.push([JSON.stringify(inv), day, idx, w.total, note, c]); }
     return { n, max, bad: bad.slice(0, 5), notes: [...notes].sort((a, b) => a - b), lo, hi };
   });
-  t.ok(coinsL1.n > 200 && coinsL1.max <= 3 /* у каждого набора есть товар до 49 ₽ */ && JSON.stringify(coinsL1.notes) === "[5000,10000]", "2б.4 уровень 1: сдача не больше 3 монет (проверено " + coinsL1.n + " покупателей, максимум " + coinsL1.max + "), купюры 50 и 100 ₽, суммы от " + coinsL1.lo / 100 + " до " + coinsL1.hi / 100 + " ₽ " + JSON.stringify(coinsL1.bad));
+  t.ok(coinsL1.n > 200 && coinsL1.max <= 3 /* у каждого набора есть товар до 49 ₽ */ && coinsL1.notes.length > 0 && coinsL1.notes.every((n) => n === 5000 || n === 10000), "2б.4 уровень 1: сдача не больше 3 монет (проверено " + coinsL1.n + " покупателей, максимум " + coinsL1.max + "), купюры 50 и 100 ₽, суммы от " + coinsL1.lo / 100 + " до " + coinsL1.hi / 100 + " ₽ " + JSON.stringify(coinsL1.bad));
   t.eq(await page.evaluate(() => [[3000, 1], [5000, 1], [2600, 1], [4900, 1], [6300, 2], [23000, 4], [15000, 3]].map((a) => FERMA.logic.payNote(...a))), [5000, 10000, 5000, 5000, 10000, 50000, 50000], "2б.4 payNote: 50, 100 и 500 ₽ по уровням");
   const L2 = await page.evaluate(() => { const L = FERMA.logic, inv = { "apple:red": 30, "zucchini:big": 9, "cabbage:big": 9 }, out = []; for (let d = 1; d <= 28; d++) for (let i = 0; i < 3; i++) { const w = L.buyerWish(inv, d, {}, 2, i); out.push([w.total, L.payNote(w.total, 2)]); } return out; });
   t.ok(L2.every((x) => x[0] >= 1100 && x[0] <= 9900 && x[1] === 10000), "2б.4 уровень 2: суммы от 11 до 99 ₽ и купюра 100 ₽");
-  const L3 = await page.evaluate(() => { const L = FERMA.logic, inv = { "apple:red": 30, "zucchini:big": 9, "cabbage:big": 9, potato: 20, "pumpkin:big": 4 }, out = []; for (let d = 1; d <= 28; d++) for (let i = 0; i < 3; i++) { const w = L.buyerWish(inv, d, { kopecks: true }, 3, i, { items: i === 1 }); out.push([w.total, L.payNote(w.total, 3), w.want, w.items.length]); } return out; });
-  t.ok(L3.every((x) => x[0] >= 11000 && x[0] <= 49000 && x[1] === 50000) && L3.some((x) => x[2] === "items" && x[3] === 2) && L3.some((x) => x[0] % 100 !== 0), "2б.4 уровень 3: суммы от 110 до 490 ₽ (числа до 1000), купюра 500 ₽, покупатель с двумя товарами, с копейками встречаются суммы вроде 120 ₽ 30 к");
+  const L25 = await page.evaluate(() => { const L = FERMA.logic, inv = { "apple:red": 30, "zucchini:big": 9, "cabbage:big": 9, potato: 20, "pumpkin:big": 4 }, out = []; for (let d = 1; d <= 28; d++) for (let i = 0; i < 3; i++) { const w = L.buyerWish(inv, d, { kopecks: true }, 2.5, i); out.push([w.total, L.payNote(w.total, 2.5), w.items.length, w.total % 100]); } return out; });
+  t.ok(L25.every((x) => x[0] >= 11000 && x[0] <= 49000 && x[1] === 50000 && x[2] === 1 && x[3] === 0), "2б.4 уровень 2 позже: суммы от 110 до 490 ₽ целыми рублями (даже если копейки уже на доске), купюра 500 ₽, один товар");
+  const L3 = await page.evaluate(() => { const L = FERMA.logic, inv = { "apple:red": 30, "zucchini:big": 9, "cabbage:big": 9, potato: 20, "pumpkin:big": 4 }, out = []; for (let d = 1; d <= 28; d++) for (let i = 0; i < 3; i++) { const w = L.buyerWish(inv, d, { kopecks: true }, 3, i, { items: true }); out.push([w.total, L.payNote(w.total, 3), w.want, w.items.length]); } return out; });
+  t.ok(L3.every((x) => x[0] >= 1100 && x[0] <= 9999 && x[1] === 10000 && x[2] === "total" && x[3] === 1) && L3.some((x) => x[0] % 100 !== 0), "2б.4 уровень 3 (копейки): суммы только до 100 ₽, купюра 100 ₽, один товар, суммы вроде 12 ₽ 30 к встречаются (" + L3.filter((x) => x[0] % 100 !== 0).length + " из " + L3.length + ")");
+  const L4 = await page.evaluate(() => { const L = FERMA.logic, inv = { "apple:red": 30, "zucchini:big": 9, "cabbage:big": 9, potato: 20, "pumpkin:big": 4 }, out = []; for (let d = 1; d <= 28; d++) for (let i = 0; i < 3; i++) { const w = L.buyerWish(inv, d, { kopecks: true }, 4, i, { items: i === 1 }); out.push([w.total, L.payNote(w.total, 4), w.want, w.items.length]); } return out; });
+  t.ok(L4.every((x) => x[0] >= 11000 && x[0] <= 49999 && x[1] === 50000) && L4.some((x) => x[2] === "items" && x[3] === 2) && L4.some((x) => x[0] % 100 !== 0), "2б.4 уровень 4: копейки и суммы от 110 до 499 ₽ (числа до 1000), купюра 500 ₽, покупатель с двумя товарами");
+  // уровень 1: покупатель берёт только товар до 49 ₽; если такого нет, просит именно его и уходит
+  t.eq(await page.evaluate(() => { const L = FERMA.logic, out = []; for (let d = 1; d <= 28; d++) for (let i = 0; i < 4; i++) { const w = L.buyerWish({ "pumpkin:big": 4 }, d, {}, 1, i); out.push([w.none, w.ask, w.total]); } return [out.every((x) => x[0] === true && x[2] === 0), out[0][1], out[1][1]]; }), [true, "carrot", "apple"], "2б.4 уровень 1: только тыквы на руках — покупатель просит морковь или яблоки и не покупает дорогое");
+  t.eq(await page.evaluate(() => { const L = FERMA.logic, ks = ["zucchini:big", "cabbage:big", "potato"], bad = []; for (const k of ks) for (let d = 1; d <= 56; d++) { const w = L.buyerWish({ [k]: 20 }, d, {}, 1, 0); if (!w.none && (w.total > 4900 || L.coinCount(L.payNote(w.total, 1) - w.total) > 3)) bad.push([k, d, w.total]); } return bad; }), [], "2б.4 уровень 1: кабачки, капуста и картофель — только в дни, когда цена до 49 ₽, и сдача не больше 3 монет (56 дней)");
   // два товара и табличка цен
-  await day1({ day: 8 }); await api("setSkill", "change", { hist: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], n: 10, ok: 10, level: 3, atLevel: 0 }); await api("sleep"); await api("wake"); s = await S();
-  t.eq([s.day, s.buyers.gate.map((b) => b.want)], [9, ["total", "items"]], "2б.4 на уровне 3 «сдачи» второй покупатель дня хочет два товара");
-  await api("setSkill", "change", { level: 2 }); await api("sleep"); await api("wake"); s = await S(); t.eq(s.buyers.gate.map((b) => b.want), ["total", "total"], "2б.4 на уровне 2 все покупатели называют сумму");
-  await api("setSkill", "change", { level: 3 }); await api("sleep"); await api("wake"); await api("allowMore"); await giveAll({ "pumpkin:big": 2, "cabbage:big": 3, "zucchini:big": 4, potato: 12 });
+  await day1({ day: 8 }); await api("setSkill", "change", { hist: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], n: 10, ok: 10, level: 4, atLevel: 0 }); await api("sleep"); await api("wake"); s = await S();
+  t.eq([s.day, s.buyers.gate.map((b) => b.want)], [9, ["total", "items"]], "2б.4 на уровне 4 «сдачи» второй покупатель дня хочет два товара");
+  await api("setSkill", "change", { level: 3 }); await api("sleep"); await api("wake"); s = await S(); t.eq(s.buyers.gate.map((b) => b.want), ["total", "total"], "2б.4 на уровне 3 (копейки, один товар) все покупатели называют сумму");
+  await api("setSkill", "change", { level: 4 }); await api("sleep"); await api("wake"); await api("allowMore"); await giveAll({ "pumpkin:big": 2, "cabbage:big": 3, "zucchini:big": 4, potato: 12 });
   const payOut = async () => { const d0 = (await dialog()).data; for (const [den, n] of Object.entries(await L("makeChange", d0.paid - d0.price))) for (let i = 0; i < n; i++) await api("coin", +den); };
   await api("goTo", "stall"); await api("act", "serve"); dl = await dialog(); t.ok(dl.data.want === "total" && dl.lines[0].includes("С меня"), "2б.4 первый покупатель называет сумму: «" + dl.lines[0] + "»");
   await payOut(); await api("submit"); await api("close"); await api("goTo", "stall"); await api("act", "serve"); dl = await dialog();
@@ -1539,8 +1554,13 @@ run("ferma", async (t, page) => {
   t.ok(r.ok && s.skills.twostep && s.skills.twostep.hist.length === 1 && s.skills.twostep.hist[0] === 1 && s.skills.change.hist.length === chBefore + 1, "2б.4 верная сдача по двум товарам записывается в «сдачу» и в «задачи в 2 действия»");
   await api("close");
   // копейки: только при устойчивой сдаче
-  t.eq(await page.evaluate(() => { const K = FERMA.logic.kopecksReady, ones = (n) => new Array(n).fill(1); return [K({ level: 2, hist: ones(20) }), K({ level: 3, hist: ones(19) }), K({ level: 3, hist: ones(17).concat([0, 0, 0]) }), K({ level: 3, hist: ones(18).concat([0, 0]) }), K({ level: 3, hist: ones(20) }), K(null)]; }),
-    [false, false, false, true, true, false], "2б.4 kopecksReady: нужны уровень 3 и точность не меньше 0,9 за 20 попыток");
+  t.eq(await page.evaluate(() => { const K = FERMA.logic.kopecksReady, ones = (n) => new Array(n).fill(1); return [K({ level: 2, hist: ones(20) }), K({ level: 1, hist: ones(20) }), K({ level: 3, hist: ones(5) }), K({ level: 4, hist: ones(20) }), K(null)]; }),
+    [false, false, true, true, false], "2б.4 kopecksReady: копейки — с уровня 3 «сдачи» (на него переходят только после 20 попыток на уровне 2 с точностью не меньше 0,9)");
+  t.eq(await page.evaluate(() => {
+    const L = FERMA.logic, ones = (n) => new Array(n).fill(1), mk = (hist, level, atLevel) => ({ hist, n: 40, ok: 30, level, atLevel, last: 1, errors: [] }), r = (sk, ok) => L.recordAttempt(sk, ok, "", 1, "change");
+    const a = r(mk(ones(19), 2, 19), 1), b = r(mk([0, 0, 0].concat(ones(16)), 2, 19), 1), c = r(mk(ones(19), 2, 18), 1), d = r(mk(ones(10), 3, 9), 1), e = r(mk(ones(10), 4, 9), 1), f = r(mk(ones(10), 1, 9), 1);
+    return [a.level, a.atLevel, b.level, c.level, d.level, e.level, f.level, L.changeStage(mk(ones(10), 2, 10)), L.changeStage(mk(ones(5).concat([0, 0]), 2, 10)), L.changeStage(mk(ones(10), 2, 9)), L.changeStage(mk(ones(10), 3, 10)), L.changeStage(null)];
+  }), [3, 0, 2, 2, 4, 4, 2, 2.5, 2, 2, 3, 1], "2б.4 «сдача»: со 2-го на 3-й уровень (копейки) — только после 20 попыток на уровне 2 с точностью не меньше 0,9 (19 из 20 → да, 17 из 20 → нет, 19 попыток → нет), с 3-го на 4-й и с 1-го на 2-й — как у всех, выше 4 не бывает; ступень 2,5 — после 10 попыток на уровне 2 с 9 верными");
   await day1({ day: 2 }); await api("setSkill", "change", { hist: new Array(17).fill(1).concat([0, 0, 0]), n: 20, ok: 17, level: 3, atLevel: 5 }); await giveAll({ "apple:red": 30 }); await api("startSale", { price: 2000, paid: 5000 });
   for (let i = 0; i < 3; i++) await api("coin", 1000); r = await api("submit"); s = await S();
   t.eq([r.ok, s.flags.kopecks, s.skills.change.hist.length, s.ui.dialog.reply], [true, false, 20, "Спасибо!"], "2б.4 сдача на уровне 3, но точность 0,85 — копеек пока нет");
@@ -1621,12 +1641,12 @@ run("ferma", async (t, page) => {
 
   /* ---------- 2б.6. Участки 3 и 4, лодка, перетаскивание яблок ---------- */
   await day1({ day: 3 }); await api("setWallet", { 50000: 1, 10000: 6 }); await api("goTo", "house"); await api("act", "piggy"); dl = await dialog();
-  t.ok(!dl.buttons.some((b) => b.label.startsWith("Третья")) && !dl.buttons.some((b) => b.label.startsWith("Четвёртая")), "2б.6 участки в копилке не видны, пока не построен амбар");
-  await api("choose", "goal:0"); await api("coin", 50000); for (let i = 0; i < 4; i++) await api("coin", 10000); await api("choose", "buy"); s = await S(); dl = s.ui.dialog;
-  t.eq([s.flags.barn, s.piggy.bought, dl.buttons.filter((b) => b.row === 1).map((b) => b.label)], [true, ["barn"], ["Курятник — 300 ₽", "Лодка — 1500 ₽", "Третья грядка — 200 ₽"]], "2б.6 после амбара в копилке появилась «Третья грядка — 200 ₽»");
-  await api("choose", "goal:3"); await api("coin", 10000); await api("coin", 10000); await api("choose", "buy"); s = await S();
-  t.eq([s.flags.plot3, s.beds.map((b) => [b.id, b.rows]), s.ui.dialog.reply], [true, [[1, 0], [2, 0], [3, 0]], "Появился участок для третьей грядки!"], "2б.6 куплена третья грядка: участок 3, грядка 3 ещё не размечена");
-  t.ok((await page.locator("#dlg button", { hasText: "Четвёртая грядка — 300 ₽" }).count()) === 1, "2б.6 после третьей грядки в копилке — «Четвёртая грядка — 300 ₽»");
+  t.ok(!dl.buttons.some((b) => b.label.startsWith("Третья")) && !dl.buttons.some((b) => b.label.startsWith("Четвёртая")), "2б.6 участки в копилке не видны: третья грядка — после курятника, четвёртая — после коровника");
+  for (let i = 0; i < 3; i++) await api("coin", 10000); await api("choose", "buy"); s = await S(); dl = s.ui.dialog;
+  t.eq([s.flags.coop, s.piggy.bought, dl.buttons.filter((b) => b.row === 1).map((b) => b.label)], [true, ["coop"], ["Третья грядка — 200 ₽", "Амбар — 900 ₽", "Лодка — 1500 ₽"]], "2б.6 после курятника в копилке появилась «Третья грядка — 200 ₽»");
+  await api("coin", 10000); await api("coin", 10000); await api("choose", "buy"); s = await S();
+  t.eq([s.flags.plot3, s.beds.map((b) => [b.id, b.rows]), s.ui.dialog.reply, s.piggy.goal], [true, [[1, 0], [2, 0], [3, 0]], "Появился участок для третьей грядки!", 2], "2б.6 куплена третья грядка: участок 3, грядка 3 ещё не размечена; следующая цель — амбар");
+  t.ok((await page.locator("#dlg button", { hasText: "Четвёртая грядка" }).count()) === 0, "2б.6 четвёртая грядка в копилке — только после коровника");
   await api("close"); await api("goTo", "bed3"); s = await S();
   t.eq([s.ui.menu.title, s.ui.menu.buttons.map((b) => b.id)], ["Грядка 3. Земля не размечена.", ["dig", "sow", "water", "close"]], "2б.6 у грядки 3 то же меню: разметить, посеять, полить");
   await api("act", "dig", { rows: 3, cols: 6 }); await giveAll({ "seed:carrot": 18 }); await api("goTo", "bed3"); await api("act", "sow", { crop: "carrot" }); await api("close"); await api("act", "water"); s = await S();
@@ -1653,7 +1673,7 @@ run("ferma", async (t, page) => {
   await api("setTime", 1000); await api("goTo", "pierFarm"); await api("choose", "shop"); await api("choose", "go"); s = await S(); const dur1 = s.skills.duration;
   t.eq([s.time, dur1.hist], [1015, [1, 1]], "2б.6 в 16:40 на лодке в магазин успеваешь: приплыл в 16:55, навык «длительность» верный");
   await api("setTime", 1000); await api("goTo", "exitVillage"); await api("choose", "go"); await api("setTime", 1000); await api("goTo", "exitFarm"); await api("choose", "shop"); await api("choose", "go"); s = await S();
-  t.eq([s.time, s.skills.duration.hist, s.skills.duration.errors.slice(-1)[0].t], [1030, [1, 1, 0], "пошёл в магазин в 16:40 — магазин уже закрылся"], "2б.6 пешком в 16:40 уже не успеваешь: пришёл в 17:10");
+  t.eq([s.time, s.skills.duration.hist, s.skills.duration.errors.slice(-1)[0].t], [1030, [1, 1, 0], "пришёл в магазин в 17:10 — магазин уже закрылся"], "2б.6 пешком в 16:40 уже не успеваешь: пришёл в 17:10");
   await api("goTo", "exitVillage"); await api("choose", "go");
   const boatPx = await page.evaluate(() => { const cnt = () => { FERMA.render(); const d = document.getElementById("cv").getContext("2d").getImageData(11 * 32, 19 * 32, 90, 60).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 240 && d[i + 1] > 235 && d[i + 2] > 200) n++; return n; }; return cnt(); });
   t.ok(boatPx > 100, "2б.6 лодка у причала нарисована (белый парус, пикселей " + boatPx + ")");
@@ -1691,7 +1711,7 @@ run("ferma", async (t, page) => {
   await api("openTasks"); dl = await dialog(); const tx7pre = await text("#dlg"); t.ok(tx7pre.includes("Цель: вырастить первую морковь"), "2б.7 пока первый урожай не записан в книгу, на табличке цель про морковь"); await api("close");
   await api("setStat", "harvested", 24);
   await api("openTasks"); dl = await dialog(); const tx7 = await text("#dlg");
-  t.ok(dl.kind === "tasks" && tx7.includes("Проверить доску у почты") && tx7.includes("Полить грядки") && tx7.includes("Продать урожай") && tx7.includes("Цель: амбар") && tx7.includes("Накоплено 0 ₽ из 900 ₽."), "2б.7 табличка дел: дела дня и цель копилки «Цель: амбар», «Накоплено 0 ₽ из 900 ₽.»: " + tx7.replace(/\n+/g, " | "));
+  t.ok(dl.kind === "tasks" && tx7.includes("Проверить доску у почты") && tx7.includes("Полить грядки") && tx7.includes("Продать урожай") && tx7.includes("Цель: курятник") && tx7.includes("Накоплено 0 ₽ из 300 ₽."), "2б.7 табличка дел: дела дня и цель копилки «Цель: курятник», «Накоплено 0 ₽ из 300 ₽.»: " + tx7.replace(/\n+/g, " | "));
   await api("close"); await api("goTo", "notes"); s = await S(); t.eq([s.daily.board, await text("#tasksBtn")], [true, "Дела 1/3"], "2б.7 открыл доску у почты — дело отмечено, «Дела 1/3»");
   await api("close"); await api("goTo", "exitVillage"); await api("choose", "go"); await api("goTo", "bed1"); await api("act", "water"); s = await S();
   t.eq(await text("#tasksBtn"), "Дела 2/3", "2б.7 полил грядку — «Дела 2/3»");
@@ -1714,7 +1734,7 @@ run("ferma", async (t, page) => {
   const SK12 = ["Часы: чтение времени", "Длительность", "Деньги: оплата", "Сдача", "Посев и урожай (умножение)", "Деление с остатком", "Масса", "Чтение: количество", "Чтение: детали", "Чтение: срок", "Задачи в 2 действия", "Длина (м и см)"];
   t.ok(SK12.every((x) => adt.includes(x)) && (await page.locator("#screen .skill").count()) === 12, "2б.8 взрослому видны все 12 навыков, в том числе «Деление с остатком» и «Длина (м и см)»");
   t.ok(["дал сдачу 47 ₽ вместо 37 ₽", "записал 3 коробки и 5 яиц вместо 2 коробок и 3 яиц", "отпилил 1 м 30 см вместо 1 м 40 см", "принёс зелёные яблоки вместо красных", "пришёл в магазин в 17:30"].every((x) => adt.includes(x)), "2б.8 примеры ошибок: «дал сдачу 47 ₽ вместо 37 ₽», «принёс зелёные яблоки вместо красных», «пришёл в магазин в 17:30», коробки, доска");
-  t.ok(adt.includes("19 из 20 · уровень 2: сдача со 100 ₽, суммы до 99 ₽") && adt.includes("2 из 3 · уровень 1: пакетик и коробка по 10") && adt.includes("последний раз: день 7"), "2б.8 у каждого навыка точность за последние 20 попыток, уровень с пояснением («уровень 2: сдача со 100 ₽…») и когда был последний раз");
+  t.ok(adt.includes("19 из 20 · уровень 2: суммы до 99 ₽, любая сдача; потом до 490 ₽ целыми рублями с купюрой 500 ₽") && adt.includes("2 из 3 · уровень 1: пакетик и коробка по 10") && adt.includes("последний раз: день 7"), "2б.8 у каждого навыка точность за последние 20 попыток, уровень с пояснением («уровень 2: сдача со 100 ₽…») и когда был последний раз");
   t.ok(adt.includes("Игровых дней в сутки") && adt.includes("Цифровое время без ограничения") && adt.includes("Записки по предложениям") && adt.includes("Звук") && adt.includes("Крупный шрифт"), "2б.8 настройки: игровых дней в сутки, цифровое время, записки по предложениям, звук, крупный шрифт");
   t.ok(adt.includes("Дни") && (await page.locator("#screen table.pt tr").count()) >= 2 && adt.includes("Дата") && adt.includes("Игровых дней") && adt.includes("Заработано"), "2б.8 таблица дней: дата, игровых дней, заработано");
   t.eq(await page.locator("#screen .skill .errs li").count() >= 5, true, "2б.8 примеры ошибок видны под навыками");
@@ -1736,10 +1756,10 @@ run("ferma", async (t, page) => {
   t.eq([fs1, fs2], ["22px", "26px"], "2б.8 «Крупный шрифт» увеличивает текст с 22 до 26 px"); await api("setSetting", "bigFont", false);
 
   /* ---------- 2б.9. Сохранение v4: миграция, проверка типов, версия 1.0.0 ---------- */
-  t.eq(await page.evaluate(() => [FERMA.version, FERMA.data.SCHEMA]), ["1.0.0", 4], "2б.9 версия игры 1.0.0, схема сохранения v4");
+  t.eq(await page.evaluate(() => [FERMA.version, FERMA.data.SCHEMA]), ["1.0.1", 5], "2б.9 версия игры 1.0.1, схема сохранения v5");
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem("ferma-save", JSON.stringify({ v: 3, day: 9, wallet: { 1000: 2 }, inv: { "carrot:big": 3, "egg:white": 1 }, boxes: { white: 2, brown: 1 }, jars: 2, loose: { eggWhite: 5, eggBrown: 4, milkL: 7 }, animals: { hensWhite: 1, hensBrown: 1, cow: false, fedDay: 8, milkedDay: 0 }, flags: { coop: true } })); });
   await t.reload(); s = await S();
-  t.eq([s.v, s.day, s.inv["carrot:big"], s.inv["egg:white"], s.inv["egg:brown"], s.inv["box:white"], s.inv["box:brown"], s.inv.jar, s.inv.milk, "boxes" in s, "jars" in s, "loose" in s, s.animals.hensWhite], [4, 9, 3, 6, 4, 2, 1, 2, 7, false, false, false, 1], "2б.9 миграция v3 → v4: коробки, банки, яйца и молоко «на столе» перенесены в рюкзак, старые поля удалены, куры на месте");
+  t.eq([s.v, s.day, s.inv["carrot:big"], s.inv["egg:white"], s.inv["egg:brown"], s.inv["box:white"], s.inv["box:brown"], s.inv.jar, s.inv.milk, "boxes" in s, "jars" in s, "loose" in s, s.animals.hensWhite], [5, 9, 3, 6, 4, 2, 1, 2, 7, false, false, false, 1], "2б.9 миграция v3 → v5: коробки, банки, яйца и молоко «на столе» перенесены в рюкзак, старые поля удалены, куры на месте");
   const mig = (raw) => page.evaluate((raw) => FERMA.logic.migrate(raw), raw);
   const BAD4 = [
     [{ animals: null }, (m) => m.animals.hensWhite === 0 && m.animals.cow === false], [{ animals: { hensWhite: "много", cow: "да", fedDay: -2 } }, (m) => m.animals.hensWhite === 0 && m.animals.cow === false && m.animals.fedDay === 0],
@@ -1750,14 +1770,16 @@ run("ferma", async (t, page) => {
     [{ flags: { coop: true } }, (m) => m.animals.hensWhite === 2 && m.animals.hensBrown === 2], [{ flags: { cowshed: true } }, (m) => m.animals.cow === true],
     [{ piggy: { saved: 5000, goal: 4, bought: ["barn", "boat", "дом"] } }, (m) => m.piggy.goal === 4 && m.piggy.bought.join() === "barn,boat"], [{ piggy: { goal: 99 } }, (m) => m.piggy.goal === 0],
     [{ boxes: "x", jars: null, loose: 5 }, (m) => !("boxes" in m) && Object.keys(m.inv).length === 0], [{ v: 3, jars: -4, loose: { eggWhite: "семь", milkL: 3 } }, (m) => !("jar" in m.inv) && m.inv.milk === 3 && !("egg:white" in m.inv)],
-    [{ skills: { change: { hist: [1, 1, 7, "a"], level: 9 } } }, (m) => m.skills.change.hist.join() === "1,1" && m.skills.change.level === 3],
+    [{ skills: { change: { hist: [1, 1, 7, "a"], level: 9 } } }, (m) => m.skills.change.hist.join() === "1,1" && m.skills.change.level === 4],
   ];
-  for (const [raw, check] of BAD4) { const m = await mig(raw); t.ok(m.v === 4 && check(m), "2б.9 миграция " + JSON.stringify(raw) + ": типы проверены, прогресс не потерян"); }
-  t.eq(await page.evaluate(() => { const m = FERMA.logic.migrate({ v: 4, day: 12, piggy: { saved: 70000, goal: 3, bought: ["barn"] }, flags: { barn: true, kgCarrot: true, tape: true }, daily: { day: 12, board: true, sold: 2 }, goals: { intro: true }, inv: { jar: 2 } }); return [m.day, m.piggy, m.flags.barn, m.daily, m.goals.intro, m.inv.jar]; }), [12, { saved: 70000, goal: 3, bought: ["barn"] }, true, { day: 12, board: true, sold: 2 }, true, 2], "2б.9 сохранение v4 проходит миграцию без потерь");
+  for (const [raw, check] of BAD4) { const m = await mig(raw); t.ok(m.v === 5 && check(m), "2б.9 миграция " + JSON.stringify(raw) + ": типы проверены, прогресс не потерян"); }
+  t.eq(await page.evaluate(() => { const m = FERMA.logic.migrate({ v: 4, day: 12, piggy: { saved: 70000, goal: 1, bought: ["barn"] }, flags: { barn: true, kgCarrot: true, tape: true }, daily: { day: 12, board: true, sold: 2 }, goals: { intro: true }, inv: { jar: 2 } }); return [m.day, m.piggy, m.flags.barn, m.daily, m.goals.intro, m.inv.jar]; }), [12, { saved: 70000, goal: 0, bought: ["barn"] }, true, { day: 12, board: true, sold: 2 }, true, 2], "2б.9 сохранение v4 проходит миграцию без потерь: цель №1 по старому порядку (курятник) стала целью №0 по новому");
+  t.eq(await page.evaluate(() => { const g = (o) => FERMA.logic.migrate(o).piggy.goal; return [g({ v: 4, piggy: { goal: 0 } }), g({ v: 4, piggy: { goal: 2 } }), g({ v: 4, piggy: { goal: 4, bought: ["boat"] } }), g({ v: 4, piggy: { goal: 3, bought: ["barn"] } }), g({ v: 4, piggy: { goal: 5, bought: ["barn", "boat", "plot3"] } }), g({ v: 5, piggy: { goal: 2 } }), g({ v: 4, piggy: { goal: 6, bought: ["barn", "coop", "boat", "plot3", "cowshed", "plot4"] } })]; }),
+    [2, 3, 4, 0, 0, 2, 6], "2б.9 миграция v4 → v5: номер цели переводится по названию (амбар 0 → 2, лодка 2 → 3, коровник 4 → 4); недоступная цель заменяется первой доступной; v5 не трогается; «все цели куплены» остаётся");
   for (const raw of ['{"animals":null}', '{"daily":5}', '{"flags":"x"}', '{"inv":[]}', '{"goals":null,"animals":{"cow":"да"},"piggy":null}']) {
     await page.evaluate((r) => { localStorage.removeItem("ferma-save-bad"); localStorage.setItem("ferma-save", r); }, raw); const e0 = pageErrors.length; await t.reload(); await sleep(100);
     const res = await page.evaluate(() => { FERMA.render(); const st = FERMA.state(); return { ready: FERMA.ready, v: st.v, hens: st.animals.hensWhite, daily: st.daily.day }; });
-    t.ok(res.ready && res.v === 4 && pageErrors.length === e0, `2б.9 сохранение ${raw}: игра загрузилась, схема v4, ошибок на странице нет`);
+    t.ok(res.ready && res.v === 5 && pageErrors.length === e0, `2б.9 сохранение ${raw}: игра загрузилась, схема v5, ошибок на странице нет`);
   }
   // перезагрузка с животными, календарём и лентой
   await page.evaluate(() => { localStorage.clear(); FERMA.api.newGame({ seed: 5, day: 5 }); FERMA.api.closeScreen(); FERMA.api.setFlag("coop", true); FERMA.api.setFlag("cowshed", true); FERMA.api.setFlag("tape", true); FERMA.api.setFlag("plot3", true); });
@@ -1815,7 +1837,477 @@ run("ferma", async (t, page) => {
 
   } // конец блока этапа 2б
 
+  /* ====================== П. Замечания ревьювера ко второй проверке (версия 1.0.1) ====================== */
+  {
+  const clickTextP = async (txt) => { await page.locator("button:visible", { hasText: txt }).first().click(); await sleep(120); };
+
+  /* ---------- П1. T19 при копейках: касса принимает ту сдачу, которую видит ребёнок по доске ---------- */
+  await ready({ "zucchini:big": 3, "cabbage:big": 3 }, { day: 2 }); await api("setFlag", "kopecks", true);
+  await api("addOrder", "T19", { k1: 1, k2: 2, B: 50000 }, "active");
+  const pk19 = await page.evaluate(() => FERMA.logic.priceOf("zucchini", 2, { kopecks: true }) + 2 * FERMA.logic.priceOf("cabbage", 2, { kopecks: true }));
+  t.ok(pk19 % 100 !== 0, "П1 во вторник с копейками товары по доске стоят " + pk19 / 100 + " ₽ — в сумме есть копейки");
+  await api("goTo", "prices"); { const ptx = await text("#dlg"); t.ok(ptx.includes("30 ₽ 10 к") && ptx.includes("45 ₽ 10 к"), "П1 на доске те же цены с копейками: кабачок 30 ₽ 10 к, капуста 45 ₽ 10 к"); } await api("close");
+  await api("goTo", "door_misha"); await api("act", "deliver");
+  await api("offer", { items: { "zucchini:big": 1, "cabbage:big": 2 }, change: 50000 - pk19 + 30 }); r = await api("submit"); dl = await dialog();
+  t.eq([r.ok, dl.reply], [false, "Тут больше, чем нужно, на 30 копеек."], "П1 T19: сдача на 30 копеек больше — «Тут больше, чем нужно, на 30 копеек.»");
+  { const m0 = (await S()).money; await api("offer", { change: 50000 - pk19 }); r = await api("submit"); s = await S();
+    t.ok(r.ok && s.money - m0 === pk19 && s.orders.active.length === 0, "П1 T19: верная сдача с копейками (" + (50000 - pk19) / 100 + " ₽) принята, выручка " + pk19 / 100 + " ₽ зачислена без округления"); }
+  t.eq(await page.evaluate(() => { const L = FERMA.logic, c = (l, fl) => ({ day: 2, wd: 1, lvl: () => l, inv: {}, beds: [{ crop: "zucchini", growth: 3, sown: new Array(24).fill(1) }, { crop: "cabbage", growth: 4, sown: new Array(24).fill(1) }], flags: fl, neighbors: [], features: {} });
+    const g4 = L.TPL.T19.gen(L.rng(5), c(4, { kopecks: true })), g1 = L.TPL.T19.gen(L.rng(5), c(1, {})), g3k = L.TPL.T19.gen(L.rng(5), c(3, { kopecks: true })), g2 = L.TPL.T19.gen(L.rng(5), c(2, {}));
+    return [g4 && g4.B >= 10000, g1, g3k, !!g2]; }), [true, null, null, true], "П1 T19 не выдаётся на 1-м уровне «сдачи» и (когда на доске копейки) раньше 4-го; купюра B считается по ценам с копейками");
+
+  /* ---------- П2. Языковые случаи из замечаний: доска, батарея, адрес для взрослого ---------- */
+  await day1(); await giveAll({ "apple:red": 30 }); await api("addOrder", "T18", { c: 3, n: 12 }, "active"); await api("goTo", "shed"); await api("act", "share"); await api("setCount", 12, "apples"); await api("setCount", 3, "baskets"); await api("choose", "start");
+  for (const i of [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2]) await api("basketTap", i);
+  s = await S(); t.eq([s.skills.divrem.hist, s.skills.divrem.errors[0].t, (s.skills.arrays || { hist: [] }).hist], [[0], "разложил 12 яблок в 3 корзинки не поровну: 5, 4 и 3", []], "П2 раскладывание не поровну пишет навык «деление с остатком»: «разложил 12 яблок в 3 корзинки не поровну: 5, 4 и 3»");
+  await api("basketMove", 0, -1); await api("basketTap", 2); await api("numpad", "5"); r = await api("submit"); s = await S();
+  t.eq([r.ok, s.skills.arrays.hist, s.skills.arrays.errors[0].t, s.skills.divrem.hist], [false, [0], "в корзинках по 4 яблока, а написал 5", [0]], "П2 подпись корзинок пишет навык «массивы»: «в корзинках по 4 яблока, а написал 5»");
+  await api("numpad", "4"); await api("submit");
+  await ready({ "apple:red": 30 }, { day: 1 }); await api("goTo", "shed"); await api("act", "share"); dl = await dialog();
+  if (dl.data.phase === "fill") { const k1 = dl.data.k, c1 = dl.data.c; for (let i = 0; i < dl.data.n; i++) await api("basketTap", i % c1); await api("numpad", String(k1 === 5 ? 6 : 5)); await api("submit"); s = await S();
+    const per = await page.evaluate((k) => FERMA.logic.poSafe(k) ? "в корзинках по " + FERMA.logic.nounPhrase(k, "яблоко", "по") : "в каждой корзинке " + FERMA.logic.nounPhrase(k, "яблоко"), k1);
+    t.ok(s.skills.arrays.errors[0].t.startsWith(per + ", а написал "), "П2 в строке для взрослого после «по» стоит правильная форма: «" + s.skills.arrays.errors[0].t + "»"); }
+  await ready({ "carrot:big": 1 }, { day: 5 }); await api("addOrder", "T28", { L: 140 }, "active"); await api("goTo", "door_egor"); await api("act", "deliver"); await api("offer", { items: { "carrot:big": 1 } }); r = await api("submit"); dl = await dialog(); s = await S();
+  t.eq([r.ok, dl.reply, s.skills.length.errors[0].t], [false, "Доски нет. Отпили её мерной лентой в сарае и принеси.", "пришёл без доски длиной 1 м 40 см (заказ Егора)"], "П2 T28 без доски: не «принёс 0 досок вместо undefined», а «пришёл без доски длиной 1 м 40 см (заказ Егора)»");
+  await ready({ "carrot:big": 30 }, { day: 8 }); await api("addOrder", "T22", { m: 2300 }, "active"); await api("startWeigh", { item: "carrot", target: 2200 });
+  for (const g of await L("weightsFor", 2200)) await api("weight", g); await api("submit"); await api("produce", 22); await api("submit"); await api("close");
+  await api("goTo", "door_galya"); await api("act", "deliver"); await api("toggleBag", 0); r = await api("submit"); dl = await dialog(); s = await S();
+  t.eq([r.ok, dl.reply, s.skills.mass.errors.slice(-1)[0].t], [false, "Тут 2 кг 200 г. А нужно 2 кг 300 г.", "взвесил 2 кг 200 г вместо 2 кг 300 г (заказ Гали)"], "П2 масса для взрослого: «взвесил 2 кг 200 г вместо 2 кг 300 г (заказ Гали)»");
+  await ready({ "zucchini:big": 4 }, { day: 8 }); await api("setSkill", "duration", { hist: [], n: 0, ok: 0 });
+  await api("setDay", 6); await api("setTime", 720); await api("travel", "market"); await api("choose", "go"); s = await S();
+  t.eq([s.skills.duration.hist, s.skills.duration.errors[0].t], [[0], "пришёл на рынок в 12:30 — рынок уже закрылся"], "П2 ошибка по часам для взрослого: «пришёл на рынок в 12:30 — рынок уже закрылся»");
+  await ready({}, { day: 8 }); await api("setTime", 1020); await api("travel", "shop"); await api("choose", "go"); s = await S();
+  t.eq(s.skills.duration.errors[0].t, "пришёл в магазин в 17:30 — магазин уже закрылся", "П2 ошибка по часам: «пришёл в магазин в 17:30 — магазин уже закрылся»");
+  // T19: число и название в реплике соседа
+  { const o19 = await mk("T19", { k1: 2, k2: 1, B: 10000 }, 3);
+    t.eq([(await chk(o19, { items: { "zucchini:big": 1, "cabbage:big": 1 }, change: 0 })).text, (await chk(o19, { items: { "zucchini:big": 2, "cabbage:big": 3 }, change: 0 })).text],
+      ["В записке — 2 кабачка. А тут — 1 кабачок.", "В записке — 1 кочан. А тут — 3 кочана."], "П2 T19: «В записке — 2 кабачка. А тут — 1 кабачок.» и «В записке — 1 кочан. А тут — 3 кочана.» (не «штуки»)"); }
+  // доска цен слова: «Во вторник» в прогнозе
+  t.eq(await page.evaluate(() => [6, 3, 2].map((d) => FERMA.logic.forecastText(d)[3])), ["Во вторник солнце.", "В субботу облачно.", "В пятницу солнце."], "П2 прогноз: «Во вторник солнце.», «В субботу облачно.», «В пятницу солнце.» — без «В вторник»");
+
+  /* ---------- П3. T10: сначала предметы, потом срок; «накануне» только в тот день ---------- */
+  { const o10b = await mk("T10", { wd: 4, dt: 12, far: true }, 1), c10 = (it, day, time) => chk(o10b, { items: it }, { day, time: time || 600, flags: {} });
+    t.eq([o10b.text, o10b.exactDay, o10b.deadlineDay, o10b.expireDay], ["У меня день рождения в пятницу, 12 июня! Нужна большая тыква. Принеси её накануне. — Катя", 11, 11, 12], "П3 T10: до пятницы больше недели — в записке дата («в пятницу, 12 июня»); приходить надо в четверг, 11-го");
+    const early3 = await c10({ "pumpkin:big": 1 }, 3), early9 = await c10({ "pumpkin:big": 1 }, 9);
+    t.eq([early3.ok, early3.text, early9.ok, early9.text], [false, "Рано, приходи в четверг, 11 июня.", false, "Рано, приходи в четверг."], "П3 T10: раньше четверга — «Рано, приходи в четверг.» (с датой, если до него больше недели)");
+    t.eq([(await c10({ "pumpkin:big": 1 }, 11)).ok, (await c10({ "pumpkin:big": 1 }, 11)).late], [true, undefined], "П3 T10: в четверг (накануне) тыква принята");
+    const wrong12 = await c10({ "carrot:big": 1 }, 12), wrong12b = await c10({ "pumpkin:small": 1 }, 12), right12 = await c10({ "pumpkin:big": 1 }, 12);
+    t.eq([wrong12.ok, wrong12.text, wrong12b.ok, wrong12b.text, right12.ok, right12.late, right12.text], [false, "В записке — 1 тыква. А тут — 0 тыкв.", false, "Я просила большую тыкву.", true, true, "Я просила накануне, а праздник уже сегодня. Но всё равно спасибо!"],
+      "П3 T10 в день рождения: морковь или маленькая тыква не принимаются (сначала предметы, потом срок); большая тыква принимается с напоминанием про «накануне»"); }
+  { const o25 = await mk("T25", { n: 3, wd: 4 }, 1), c25 = (day) => chk(o25, { items: { jar: 1 } }, { day, time: 600, flags: {} });
+    const e = await c25(3), ok = await c25(4), late = await c25(5);
+    t.eq([o25.exactDay, e.ok, e.text, ok.ok, late.ok, late.closed], [4, false, "Рано, приходи в четверг.", true, false, true], "П3 T25: «за день до этого» — только в четверг, 4-го: раньше «Рано, приходи в четверг.», позже заказ закрыт"); }
+
+  /* ---------- П4. Рынок и почта не торгуют и не принимают после закрытия ---------- */
+  await ready({ "apple:red": 40 }, { day: 6 }); await api("setSkill", "change", { level: 2 }); await api("setTime", 705); await api("goTo", "market"); s = await S();
+  t.eq([s.ui.menu.title, s.ui.menu.buttons.find((b) => b.id === "trade").enabled], ["Рынок. Покупателей в очереди: 4.", true], "П4 в 11:45 рынок работает: «Торговать» доступна");
+  const payBack = async () => { const d0 = (await dialog()).data; for (const [den, n] of Object.entries(await L("makeChange", d0.paid - d0.price))) for (let i = 0; i < n; i++) await api("coin", +den); };
+  await api("act", "trade"); await payBack(); await api("submit"); dl = await dialog(); t.ok(dl.reply === "Спасибо!" && (await S()).time === 715, "П4 в 11:55 первый покупатель обслужен, рынок ещё открыт: «" + dl.reply + "»");
+  await api("close"); await api("act", "trade"); await payBack(); await api("submit"); dl = await dialog(); s = await S();
+  t.eq([s.time, dl.reply], [725, "Спасибо! Рынок закрывается, приходи в следующую субботу."], "П4 в 12:05 рынок закрылся во время торговли: «Спасибо! Рынок закрывается, приходи в следующую субботу.»");
+  await api("close"); s = await S(); { const tr = s.ui.menu.buttons.find((b) => b.id === "trade");
+    t.eq([s.ui.menu.title, tr.enabled, tr.reason, (await api("act", "trade")).ok, (await S()).buyers.market.filter((b) => b.done).length], ["Рынок закрыт. Работает по субботам с 8:00 до 12:00.", false, "Рынок закрыт", false, 2], "П4 после закрытия меню рынка серое: «Рынок закрыт», торговать нельзя, очередь не тронута"); }
+  await api("setTime", 800); await api("goTo", "market"); dl = await dialog(); t.ok(dl.kind === "closed" && dl.lines.includes("Уже закрыто. Ближайший день — суббота, 13 июня."), "П4 пришёл на рынок в субботу после 12:00: табличка «Уже закрыто. Ближайший день — суббота, 13 июня.» (а не «Приходи завтра»)");
+  await ready({}, { day: 3 }); await api("addOrder", "T04", { time: 720 }, "active"); await api("setTime", 1075); await api("goTo", "post"); s = await S();
+  t.eq([s.ui.menu.buttons.find((b) => b.id === "postSend").enabled, s.inv.parcel], [true, 1], "П4 в 17:55 почта ещё открыта");
+  await api("setTime", 1085); r = await api("act", "postSend"); s = await S(); t.eq([r.ok, r.reason, s.inv.parcel, s.orders.active.length], [false, "Почта закрыта", 1, 1], "П4 окно меню почты осталось открытым, а в 18:05 почта закрылась — «Отправить» отказывает: «Почта закрыта»");
+  await api("close"); await api("goTo", "post"); dl = await dialog(); t.eq([dl.kind, dl.lines.includes("Уже закрыто. Ближайший день — четверг, 4 июня.") || dl.lines.includes("Уже закрыто. Приходи завтра.")], ["closed", true], "П4 после 18:00 на почте табличка с часами работы");
+  await ready({}, { day: 6 }); await api("addOrder", "T13", { time: 600 }, "active"); await api("setTime", 1090); await api("goTo", "post"); dl = await dialog();
+  t.ok(dl.kind === "closed" && dl.lines.includes("Уже закрыто. Ближайший день — понедельник, 8 июня."), "П4 в субботу после 18:00 почта не откроется завтра: «Ближайший день — понедельник, 8 июня.»");
+
+  /* ---------- П5. Первый настоящий запуск: записка и покупатель уже в первый день ---------- */
+  await page.evaluate(() => { localStorage.clear(); }); await t.reload(); s = await S();
+  t.ok(s.day === 1 && s.ui.screen === "start" && s.orders.genDay === 1 && s.orders.board.length + s.orders.mailbox.length === 1 && s.buyers.gate.length === 1 && s.buyers.day === 1, "П5 чистый localStorage без api.newGame: день 1, на доске записка, у калитки покупатель (" + s.orders.board.length + " + " + s.orders.mailbox.length + " записка, " + s.buyers.gate.length + " покупатель)");
+  const seq5 = s.orders.seq;
+  await clickTextP("Играть"); await clickTextP("Понятно"); await api("goTo", "stall"); s = await S(); t.ok(s.ui.menu.title.includes("ждёт: 1 покупатель"), "П5 у прилавка в первый день: «" + s.ui.menu.title + "»");
+  await api("goTo", "notes"); dl = await dialog(); t.ok(dl.kind === "notes" && dl.buttons.filter((b) => b.id.startsWith("note:")).length === 1, "П5 на доске у почты в первый день одна записка");
+  await t.reload(); s = await S(); t.eq([s.orders.seq, s.orders.board.length + s.orders.mailbox.length, s.buyers.gate.length], [seq5, 1, 1], "П5 после перезагрузки записки и покупатели не дублируются");
+
+  /* ---------- П6. Дождь поливает грядку, пересеянную после сбора ---------- */
+  await day1({ day: 4 }); await giveAll({ "seed:carrot": 24 }); await ripeBed(1, "carrot", SOWN20, { watered: true }); s = await S();
+  t.eq(await L("weatherOf", 4), "rain", "П6 четвёртый день — дождь");
+  await api("goTo", "bed1"); await api("act", "harvest"); await api("close"); s = await S(); t.eq([s.beds[0].crop, s.beds[0].watered], [null, true], "П6 после сбора под дождём земля остаётся мокрой");
+  await api("goTo", "bed1"); await api("act", "sow", { crop: "carrot" }); await api("close"); s = await S(); t.eq([s.beds[0].crop, s.beds[0].watered], ["carrot", true], "П6 пересеянная под дождём грядка полита");
+  { await api("goTo", "bed1"); s = await S(); const wb2 = s.ui.menu.buttons.find((b) => b.id === "water"); t.eq([wb2.enabled, wb2.reason], [false, "Сегодня дождь — грядка полита"], "П6 «Полить» серая: «Сегодня дождь — грядка полита»"); }
+  await api("sleep"); s = await S(); t.eq(s.beds[0].growth, 1, "П6 ночью пересеянная грядка выросла на день (дождь полил)");
+  await day1({ day: 1 }); await ripeBed(1, "carrot", SOWN20, { watered: false }); await api("goTo", "bed1"); await api("act", "harvest"); s = await S(); t.eq(s.beds[0].watered, false, "П6 в солнечный день после сбора грядка не полита");
+
+  /* ---------- П7. Купюра и копейки по уровням: 1000 покупателей ---------- */
+  const lev = await page.evaluate(() => {
+    const L = FERMA.logic, R = L.rng(77), keys = ["apple:red", "apple:green", "carrot:big", "carrot:small", "zucchini:big", "cabbage:big", "potato", "pumpkin:big", "box:white", "jar"], out = { n: 0, none: 0, bad1: [], bad3: [], bad2: [], maxCoins: 0, kop3: 0, one: 0 };
+    const unit = (k, d, fl) => L.salePrice(k, k === "potato" ? 4 : 1, d, fl);
+    for (let i = 0; i < 4000; i++) {
+      const inv = {}; keys.forEach((k) => { if (R() < 0.45) inv[k] = k === "potato" ? 4 + Math.floor(R() * 12) : 1 + Math.floor(R() * 20); });
+      const day = 1 + Math.floor(R() * 90), idx = Math.floor(R() * 4), w1 = L.buyerWish(inv, day, {}, 1, idx);
+      if (w1) { out.n++; if (w1.none) { out.none++; if (!w1.few && keys.some((k) => inv[k] && unit(k, day, {}) <= 4900 && !(k === "potato" && inv[k] < 4))) out.bad1.push(["none при дешёвом товаре", inv, day]); } else { const note = L.payNote(w1.total, 1), c = L.coinCount(note - w1.total); out.maxCoins = Math.max(out.maxCoins, c); if (c > 3 || w1.total > 4900 || w1.total < 1000 || w1.items.some((it) => unit(it.key, day, {}) > 4900) || ![5000, 10000].includes(note)) out.bad1.push([inv, day, idx, w1.total, note, c]); } }
+      const w3 = L.buyerWish(inv, day, { kopecks: true }, 3, idx, { items: true });
+      if (w3 && !w3.none) { out.one++; if (w3.total > 9999 || w3.items.length !== 1 || L.payNote(w3.total, 3) !== 10000) out.bad3.push([inv, day, idx, w3.total]); if (w3.total % 100) out.kop3++; }
+      const w2 = L.buyerWish(inv, day, { kopecks: true }, 2, idx);
+      if (w2 && !w2.none && (w2.total % 100 || w2.total > 9900)) out.bad2.push([day, w2.total]);
+    }
+    return out;
+  });
+  t.ok(lev.n >= 1000 && lev.bad1.length === 0 && lev.maxCoins <= 3, `П7 уровень 1: ${lev.n} покупателей (из них ${lev.none} ушли без покупки) — только товар до 49 ₽, сумма 10–49 ₽, купюры 50 и 100 ₽, сдача не больше ${lev.maxCoins} монет` + JSON.stringify(lev.bad1.slice(0, 2)));
+  t.ok(lev.one >= 1000 && lev.bad3.length === 0 && lev.kop3 > 100, `П7 уровень 3: ${lev.one} покупателей — суммы только до 100 ₽ (купюра 100 ₽), один товар; с копейками из них ${lev.kop3}`);
+  t.ok(lev.bad2.length === 0, "П7 уровень 2: суммы целыми рублями до 99 ₽, даже когда на доске уже копейки");
+  await day1(); await giveAll({ "pumpkin:big": 3 }); await api("goTo", "stall"); s = await S(); const tb1 = s.buyers.gate[0].name;
+  t.eq([s.ui.menu.buttons[0].enabled], [true], "П7 у ребёнка одни тыквы: «Обслужить покупателя» доступна");
+  await api("act", "serve"); s = await S(); dl = s.ui.dialog;
+  t.eq([dl.kind, dl.reply, s.buyers.gate[0].done, s.skills.change, s.time, s.inv["pumpkin:big"]], ["info", tb1 + ": «Морковки нет. Тогда зайду завтра.»", true, undefined, 420, 3], "П7 покупатель не берёт тыкву за 120 ₽ на 1-м уровне: просит морковь, уходит; это не попытка «сдачи», время и тыквы целы");
+
+  /* ---------- П8. Мелочи ---------- */
+  await day1(); await api("setFlag", "coop", true); await giveAll({ "egg:white": 6, "egg:misha": 0 }); await api("goTo", "coop"); await api("act", "packEggs"); await api("numpad", "0"); await api("submit"); await api("numpad", "6"); r = await api("submit"); s = await S();
+  t.eq([r.ok, s.ui.dialog.reply, s.log.today.includes("Пересчитал яйца: полных коробок нет"), s.log.today.some((x) => /0 коробок/.test(x)), s.inv["egg:white"]], [true, "Получилось: Полных коробок нет. Осталось 6 яиц.", true, false, 6], "П8 меньше десяти яиц: «Полных коробок нет. Осталось 6 яиц.», в событиях нет «0 коробок»");
+  await giveAll({ "apple:red": 6, "apple:green": 6 }); await api("goTo", "treeRed"); await api("act", "pickApples"); s = await S(); t.ok(s.log.today.includes("Собрал 16 красных яблок") && !s.log.today.some((x) => /\(красные\)/.test(x)), "П8 событие «Собрал 16 красных яблок» вместо «(красные)»");
+  await api("close"); await api("goTo", "shed"); await api("act", "basket"); await api("setCount", 2, "baskets"); await api("basketTap", 0); await api("basketTap", 1); await api("basketTap", 1); await api("choose", "done"); await api("close"); await api("openBag");
+  t.ok((await text("#dlg")).includes("Корзинка: 1 красное яблоко") && (await text("#dlg")).includes("Корзинка: 2 красных яблока"), "П8 рюкзак: «Корзинка: 1 красное яблоко», «Корзинка: 2 красных яблока»"); await api("close");
+  await api("addOrder", "T01", { n: 6, wd: 4 }, "board"); await api("addOrder", "T10", { wd: 4, dt: 12, far: true }, "board"); await api("goTo", "notes");
+  { const cards = await page.locator("#dlg .notecard").allInnerTexts();
+    t.ok(cards.some((x) => x.startsWith("Принеси мне 6 морковок к пятнице.") && x.includes("Катя")) && cards.some((x) => x.startsWith("У меня день рождения в пятницу, 12 июня!")) && !cards.some((x) => x.startsWith("Привет!")), "П8 карточки на доске показывают суть: «Принеси мне 6 морковок к пятнице.», а не «Привет!»: " + JSON.stringify(cards.map((x) => x.split("\n")[0]))); }
+  await api("close");
+  await day1({ day: 5 }); await api("setFlag", "tape", true); await api("setBed", 1, { rows: 4, cols: 6 }); await api("goTo", "shed"); await api("act", "tape"); dl = await dialog();
+  t.eq(dl.lines[0], "Лента лежит вдоль грядки 1. Посмотри, до какой отметки она доходит.", "П8 лента: подпись по факту — «Лента лежит вдоль грядки 1…», а не «растяни ленту»");
+  await day1({ day: 4 }); await api("setFlag", "tape", true); await api("goTo", "shed"); await api("act", "tape"); dl = await dialog(); t.eq(dl.lines[0], "Лента лежит вдоль забора. Посмотри, до какой отметки он доходит.", "П8 лента у забора: «Лента лежит вдоль забора…»");
+  { const src = require("fs").readFileSync(t.file, "utf8"), a = src.indexOf("function tapeScale"), b = src.indexOf("// Календарь: сетка"), sizes = [...src.slice(a, b).matchAll(/(\d+)px (?:Nunito|"Russo)/g)].map((m) => +m[1]);
+    t.ok(sizes.length >= 3 && sizes.every((v) => v >= 14), "П8 подписи на ленте не меньше 14 px (шрифты в рисунке ленты: " + sizes.join(", ") + ")"); }
+  await day1({ day: 3 }); await api("setSkill", "divrem", { hist: [1, 1], n: 2, ok: 2, level: 2 }); await api("addOrder", "T13", { time: 600 }, "active"); await api("setTime", 600); await api("goTo", "post"); await api("act", "postTake"); s = await S();
+  t.eq([s.inv["seed:carrot"], s.ui.dialog.reply], [24, "Посылка получена. В ней — 2 пакетика семян моркови."], "П8 посылка «2 пакетика моркови» на уровне 2 «деления» — 24 семени (пакетик 12), а не 20");
+  await day1({ day: 5 }); await api("setSkill", "divrem", { hist: [1, 1], n: 2, ok: 2, level: 2 }); await giveAll({ "carrot:big": 6 }); await api("addOrder", "T17", { c: 3, k: 2 }, "active"); await api("goTo", "door_egor"); await api("act", "deliver"); await api("offer", { items: { "carrot:big": 6 } }); r = await api("submit"); s = await S();
+  t.ok(r.ok && s.inv["seed:carrot"] === 12 && s.ui.dialog.reply.endsWith("И ещё пакетик семян в подарок."), "П8 подарок T17 — один пакетик по текущему размеру: 12 семян моркови на уровне 2");
+  t.eq(await page.evaluate(() => [FERMA.logic.nounPhrase(1, "письмо"), FERMA.logic.nounPhrase(2, "письмо"), FERMA.logic.nounPhrase(5, "письмо"), FERMA.logic.nounPhrase(21, "письмо", "в")]), ["1 письмо", "2 письма", "5 писем", "21 письмо"], "П8 слово «письмо» есть в словаре: 1, 2, 5, 21");
+  await ready({}, { day: 5 }); await api("addOrder", "T20", { time: 720 }, "active"); s = await S(); const letter0 = s.inv.letter;
+  await api("setTime", 800); await api("goTo", "door_egor"); await api("act", "deliver"); await api("offer", { items: { letter: 1 } }); r = await api("submit"); s = await S();
+  t.eq([letter0, r.ok, s.inv.letter || 0, s.orders.active.length, s.ui.dialog.reply], [1, false, 0, 0, "Ты опоздал. Срок уже вышел."], "П8 письмо T20 при позднем закрытии заказа возвращается Вере и не остаётся в рюкзаке");
+
+  /* ---------- П9. Ключ «egg:misha»: окончание заказа забирает только его яйца ---------- */
+  await day1({ day: 3 }); await api("setFlag", "coop", true); await giveAll({ "egg:white": 30 }); await api("addOrder", "T05", { n: 36 }, "active"); await api("goTo", "coop"); await api("act", "packEggs"); await api("numpad", "3"); await api("submit"); await api("numpad", "6"); await api("submit"); await api("close");
+  s = await S(); t.eq([s.inv["egg:misha"], s.inv["box:misha"], s.inv["egg:white"]], [6, 3, 30], "П9 до конца срока: у ребёнка яйца и коробки дяди Миши и свои 30 яиц");
+  for (let i = 0; i < 4; i++) { await api("sleep"); await api("wake"); } s = await S();
+  t.eq([s.orders.active.length, s.inv["egg:misha"] || 0, s.inv["box:misha"] || 0, s.inv["egg:white"]], [0, 0, 0, 30], "П9 срок T05 прошёл: яйца и коробки дяди Миши вернулись к нему, свои 30 белых яиц остались");
+  await api("openBag"); t.ok(!(await text("#dlg")).includes("дяди Миши"), "П9 в рюкзаке больше нет вещей дяди Миши"); await api("close");
+
+  /* ---------- П10. Цели копилки: порядок, таблички на местах стройки, поздние цели ---------- */
+  await day1(); t.eq(await page.evaluate(() => FERMA.data.GOALS.map((g) => [g.id, g.price / 100])), [["coop", 300], ["plot3", 200], ["barn", 900], ["boat", 1500], ["cowshed", 1200], ["plot4", 300]], "П10 порядок целей: курятник 300 → грядка 3 200 → амбар 900 → лодка 1500 → коровник 1200 → грядка 4 300");
+  const signPx = (x, y) => page.evaluate(([x, y]) => { FERMA.render(); const d = document.getElementById("cv").getContext("2d").getImageData(x - 52, y - 25, 104, 50).data; let wood = 0, gold = 0, cream = 0; for (let i = 0; i < d.length; i += 4) { if (Math.abs(d[i] - 160) < 10 && Math.abs(d[i + 1] - 103) < 10 && Math.abs(d[i + 2] - 58) < 10) wood++; if (d[i] > 240 && d[i + 1] > 190 && d[i + 2] < 90) gold++; if (d[i] > 240 && d[i + 1] > 240 && d[i + 2] > 220) cream++; } return { wood, gold, cream }; }, [x, y]);
+  const sg0 = await signPx(928, 160); t.ok(sg0.wood > 2500 && sg0.gold > 20 && sg0.cream > 20, "П10 на месте курятника стоит табличка с названием и ценой (дерево " + sg0.wood + ", золото " + sg0.gold + ", текст " + sg0.cream + " пикселей)");
+  const goldTop = (x, y) => page.evaluate(([x, y]) => { FERMA.render(); const d = document.getElementById("cv").getContext("2d").getImageData(x - 50, y - 25, 100, 2).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 240 && d[i + 1] > 190 && d[i + 2] < 90) n++; return n; }, [x, y]);
+  t.ok((await goldTop(928, 160)) >= 150, "П10 у цели, на которую копим, рамка таблички золотая");
+  await api("setFlag", "coop", true); t.ok((await goldTop(928, 160)) < 10, "П10 курятник построен — таблички на его месте нет");
+  for (const [id, x, y] of [["barn", 240, 474], ["boat", 528, 628], ["cowshed", 928, 416], ["plot3", 416, 448], ["plot4", 704, 448]]) { const g = await signPx(x, y); t.ok(g.wood > 2500 && g.cream > 20, `П10 табличка на месте цели «${id}» нарисована`); }
+
+  /* ---------- П11. «Что нового» утром ---------- */
+  await day1({ day: 3 }); await api("setBed", 1, { rows: 4, cols: 6, crop: "carrot", sown: SOWN20, growth: 2, watered: true, sownDay: 1 }); await api("sleep"); await api("wake"); s = await S(); dl = s.ui.dialog;
+  t.ok(dl && dl.kind === "morning" && dl.title === "Что нового" && dl.lines.length >= 2 && dl.lines.length <= 3 && dl.lines[0] === "Созрело: морковь на грядке 1." && dl.lines[dl.lines.length - 1] === "Сегодня дождь: поливать не нужно." && dl.buttons.length === 1 && dl.buttons[0].label === "Понятно", "П11 утром плашка «Что нового»: " + JSON.stringify(dl && dl.lines));
+  t.ok(dl.lines.some((x) => /^На доске у почты: \d+ записк[а-я]*\.( В почтовом ящике — записка от Веры\.)?$/.test(x)) || s.orders.board.length + s.orders.mailbox.length === 0, "П11 в плашке есть строка про записки: «" + dl.lines[1] + "»");
+  t.eq([s.time, (await text("#dlg")).includes("Что нового")], [420, true], "П11 плашка не тратит игровое время");
+  await api("close"); t.eq((await S()).ui.dialog, null, "П11 «Понятно» закрывает плашку");
+  await t.reload(); t.eq((await S()).ui.dialog, null, "П11 после перезагрузки плашка сама не появляется");
+  await day1({ day: 1 }); t.eq((await S()).ui.dialog, null, "П11 в самом начале игры плашки нет: там табличка дел");
+
+  /* ---------- П12. Время имеет значение: встречи и почта после обеда ---------- */
+  { const o08 = await mk("T08", { time: 840, after: true }, 5), o08b = await mk("T08", { time: 900, after: false }, 5);
+    t.eq([o08.text, o08.window, o08b.text, o08b.window], ["Приходи к колодцу после 14:00. Поможешь донести вёдра. Я буду ждать два часа. — дед Егор", [840, 960], "Приходи к колодцу в 15:00. Поможешь донести вёдра. Не опаздывай! — дед Егор", [900, 930]], "П12 T08: «после 14:00» — окно два часа, «в 15:00» — тридцать минут");
+    t.eq(await page.evaluate(() => { const L = FERMA.logic, a = L.makeOrder("T08", { time: 840, after: true }, { day: 5, seq: 1 }), b = L.makeOrder("T08", { time: 900 }, { day: 5, seq: 2 }); return [L.dlText(a), L.dlText(b), L.winText(a), L.winText(b)]; }), ["после 14:00", "в 15:00", "с 14:00 до 16:00", "в 15:00"], "П12 срок встречи словами: «после 14:00», «в 15:00»");
+    t.eq(await page.evaluate(() => { const L = FERMA.logic, ok = (tpl, p, lvl, day) => L.TPL[tpl].gen(L.rng(day), { day, wd: L.dateOfDay(day).wd, lvl: () => lvl, inv: {}, beds: [], flags: {}, neighbors: [], features: {} }); let afters = 0, exact = 0, night = 0; for (let d = 1; d <= 60; d++) { const p = ok("T08", {}, 2, d); if (p.after) { afters++; if (p.time < 780 || p.time > 900) night++; } else exact++; const p1 = ok("T08", {}, 1, d); if (p1.after) night++; } return [afters >= 1, exact > 5, night]; }), [true, true, 0], "П12 T08: «после» встречается со 2-го уровня «часов», и только с 13:00 до 15:00"); }
+  await ready({}, { day: 5 }); await api("setSkill", "clock", { level: 2 }); await api("addOrder", "T08", { time: 840, after: true }, "active"); await api("setTime", 780); await api("goTo", "well"); await api("act", "help"); dl = await dialog();
+  t.eq([dl.kind, dl.lines[0], dl.buttons[0].label], ["meetWait", "Деда Егора ещё нет. Он будет после 14:00.", "Подождать до 14:00 — 60 мин"], "П12 пришёл к колодцу в 13:00: «Деда Егора ещё нет. Он будет после 14:00.»");
+  await api("choose", "wait"); s = await S(); t.ok(s.ui.dialog.kind === "info" && s.orders.active.length === 0 && s.time === 870, "П12 подождал до 14:00 и помог: готово к 14:30");
+  await ready({}, { day: 5 }); await api("addOrder", "T08", { time: 840, after: true }, "active"); await api("setTime", 990); await api("goTo", "well"); await api("act", "help"); s = await S();
+  t.eq([s.ui.dialog.reply, s.skills.clock.errors[0].t], ["Деда Егора уже нет. Он ждал с 14:00 до 16:00.", "пришёл к колодцу в 16:30, а дед Егор ждал с 14:00 до 16:00"], "П12 пришёл в 16:30: «Деда Егора уже нет. Он ждал с 14:00 до 16:00.»");
+  await ready({}, { day: 3 }); await api("addOrder", "T13", { time: 900 }, "active"); await api("setTime", 720); await api("goTo", "post"); await api("act", "postTake"); dl = await dialog(); s = await S();
+  t.eq([dl.kind, dl.lines[0], dl.buttons[0].label, s.orders.active.length, s.time], ["meetWait", "Вера отдаст посылку после 15:00.", "Подождать до 15:00 — 180 мин", 1, 720], "П12 T13: в 12:00 посылку ещё не отдают — «Вера отдаст посылку после 15:00.»; время не потрачено");
+  await api("choose", "wait"); s = await S(); t.ok(s.ui.dialog.kind === "info" && s.ui.dialog.reply === "Посылка получена. В ней — 2 пакетика семян моркови." && s.orders.active.length === 0 && s.time === 905 && s.inv["seed:carrot"] === 20, "П12 T13: подождал до 15:00 — посылка получена к 15:05");
+  t.eq(await page.evaluate(() => { const L = FERMA.logic, st = (o) => Object.assign({ scene: "farm", day: 8, time: 600, goals: { intro: true }, beds: [], buyers: { gate: [], market: [] }, daily: { day: 8, board: true, sold: 0 }, flags: {}, animals: {}, orders: { active: [] } }, o), act = [{ id: "o1", deadlineDay: 8, need: { kind: "meet", at: "well" }, window: [900, 930] }, { id: "o2", deadlineDay: 8, after: true, need: { kind: "meet", at: "well" }, window: [840, 960] }, { id: "o3", deadlineDay: 8, need: { kind: "post", sub: "take", from: 960 } }];
+    const a = L.todayTasks(st({ orders: { active: act } })), b = L.todayTasks(st({ orders: { active: act }, scene: "village" })), c = L.todayTasks(st({ orders: { active: act }, time: 965 }));
+    const meets = (x) => x.items.filter((i) => i.id.startsWith("meet:")).map((i) => i.label);
+    return [meets(a), a.obj, b.obj, meets(c)]; }),
+    [["Встреча у колодца в 15:00", "Встреча у колодца после 14:00", "Забрать посылку на почте после 16:00"], "exitFarm", "well", ["Забрать посылку на почте после 16:00"]], "П12 план дня подсказывает часы: «Встреча у колодца в 15:00», «после 14:00», «Забрать посылку на почте после 16:00»; когда окно закрылось, дело пропадает; стрелка ведёт к колодцу");
+  }
+
+  /* ---------- П13. «День» на пятый день: куры, заказ, два покупателя, одна ошибка в амбарной книге; настоящие нажатия ---------- */
+  {
+  await page.evaluate(() => {
+    localStorage.clear(); const A = FERMA.api; A.newGame({ seed: 2, day: 4 }); A.closeScreen(); A.close(); A.setSetting("daysPerReal", 3); A.setFlag("coop", true);
+    const SOWN = new Array(24).fill(1); for (let i = 20; i < 24; i++) SOWN[i] = 0;
+    A.setBed(1, { rows: 4, cols: 6, crop: "carrot", sown: SOWN, growth: 2, missed: 0, watered: true, sownDay: 1, highlight: [20, 21, 22, 23] });
+    A.setBed(2, { rows: 3, cols: 5, crop: "cabbage", sown: new Array(15).fill(1), growth: 1, missed: 0, watered: true, sownDay: 2 });
+    A.give("apple:red", 10); A.give("apple:green", 6); A.give("seed:carrot", 4); A.give("egg:white", 13);
+    A.setWallet({ 100: 3, 200: 2, 500: 1, 1000: 4, 5000: 1, 10000: 1 }); A.setTime(1200); A.sleep(); A.addOrder("T01", { n: 6, wd: 6 }, "board");
+  });
+  let ck = 0; const ckLog = [];
+  const dTile = async (x, y) => { const r = await page.locator("#cv").boundingBox(), k = r.width / 1024; return [r.x + (x * 32 + 16) * k, r.y + (y * 32 + 16) * k]; };
+  const dTap = async (x, y, why) => { const [px, py] = await dTile(x, y); ck++; ckLog.push(why); await page.mouse.click(px, py); await waitIdle(); await sleep(120); };
+  const dBtn = async (txt, why) => { ck++; ckLog.push(why || String(txt)); await page.locator("button:visible", { hasText: txt }).first().click(); await sleep(110); };
+  const dKey = async (k) => { ck++; ckLog.push("клавиша " + k); await page.locator("#dlg .key:visible", { hasText: new RegExp("^" + k + "$") }).first().click(); await sleep(60); };
+  const dNum = async (n) => { for (const ch of String(n)) await dKey(ch); };
+  const dCoin = async (den) => { ck++; ckLog.push("монета " + den); await page.locator("#dlg h3:has-text('Касса') + .money button", { hasText: new RegExp("^" + (+den >= 100 ? den / 100 + " ₽" : den + " к") + "$") }).first().click(); await sleep(50); };
+  await dBtn("Доброе утро!", "доброе утро");
+  s = await S(); dl = s.ui.dialog;
+  t.ok(dl && dl.kind === "morning" && dl.lines[0] === "Созрело: морковь на грядке 1.", "П13 утром пятого дня плашка «Что нового»: " + JSON.stringify(dl && dl.lines));
+  await dBtn("Понятно", "понятно (что нового)");
+  await dTap(28, 6, "курятник"); await dBtn("Покормить кур", "кормить кур"); await dBtn("Закрыть", "закрыть итог кур"); await dBtn("Разложить яйца", "разложить яйца");
+  dl = await dialog(); { const p = await L("divParts", dl.data.total, 10); await dNum(p.full); await dKey("Готово"); await dNum(p.rest); await dKey("Готово"); }
+  s = await S(); t.ok(s.inv["box:white"] === 1 && s.skills.divrem && s.skills.divrem.hist.slice(-1)[0] === 1, "П13 яйца разложены по коробкам: " + s.inv["box:white"] + " коробка");
+  await dBtn("Закрыть", "закрыть коробки"); if ((await S()).ui.menu) await dBtn("Закрыть", "закрыть меню курятника");
+  await dTap(12, 5, "грядка 1"); await dBtn("Собрать всё", "собрать урожай"); await dBtn("Закрыть", "закрыть итог сбора"); await dBtn("Посеять", "посеять"); await dBtn("Морковь", "морковь"); await dBtn("Закрыть", "закрыть итог посева"); await dBtn("Полить грядку", "полить грядку 1");
+  await dTap(21, 5, "грядка 2"); await dBtn("Полить грядку", "полить грядку 2"); await dBtn("Закрыть", "закрыть меню грядки 2");
+  await dTap(4, 14, "сарай"); await dBtn("Амбарная книга", "амбарная книга"); await dNum(24); await dKey("Готово");
+  for (let i = 0; i < 4; i++) await dBtn("Дальше", "дальше (ряд " + (i + 1) + ")");
+  await dNum(20); await dKey("Готово"); s = await S();
+  t.ok(s.inv["carrot:big"] === 20 && s.skills.arrays.hist[0] === 0 && s.skills.arrays.errors[0].t.startsWith("записал 24 вместо 20"), "П13 урожай записан после одной ошибки («записал 24 вместо 20»): 20 морковок");
+  await dBtn("Закрыть", "закрыть книгу"); if ((await S()).ui.menu) await dBtn("Закрыть", "закрыть меню сарая");
+  for (let k = 0; k < 2; k++) {
+    if (k === 0 || !(await S()).ui.menu) await dTap(2, 18, "прилавок");
+    await dBtn("Обслужить", "обслужить покупателя"); const d0 = (await dialog()).data;
+    for (const [den, n] of Object.entries(await L("makeChange", d0.paid - d0.price)).sort((a, b) => b[0] - a[0])) for (let i = 0; i < n; i++) await dCoin(den);
+    await dBtn("Отдать сдачу", "отдать сдачу"); await dBtn(/^Закрыть$/, "закрыть продажу");
+  }
+  if ((await S()).ui.menu) await dBtn("Закрыть", "закрыть меню прилавка");
+  await dTap(0, 19, "выход со двора"); await dBtn("На почту", "выбрать почту"); await dBtn("Идти", "идти");
+  await dTap(17, 8, "доска у почты"); await page.locator("#dlg .notecard", { hasText: "морковок" }).first().click(); ck++; ckLog.push("записка"); await sleep(100); await dBtn("Взять заказ", "взять заказ"); await dBtn("Закрыть", "закрыть доску");
+  await dTap(13, 12, "дом Кати"); await dBtn("Отдать заказ", "отдать заказ");
+  for (let i = 0; i < 6; i++) { ck++; ckLog.push("морковка +1"); await page.locator("#dlg .orow:has-text('Морковь крупная') button[aria-label='Больше']").click(); await sleep(40); }
+  await dBtn(/^Отдать$/, "отдать"); s = await S(); t.ok(s.ui.dialog.reply.startsWith("Вот спасибо! Держи") && s.stats.ordersDone === 1, "П13 заказ Кати выполнен: «" + s.ui.dialog.reply + "»");
+  await dBtn("Закрыть", "закрыть итог заказа"); if ((await S()).ui.menu) await dBtn("Закрыть", "закрыть меню дома");
+  await dTap(31, 9, "выход из деревни"); await dBtn("Идти", "идти домой");
+  s = await S(); const endMin = s.time; await dBtn("Спать", "спать");
+  if ((await S()).ui.dialog && (await S()).ui.dialog.kind === "confirm") { ck++; ckLog.push("подтвердить сон"); await page.locator("#dlg button", { hasText: "Спать" }).click(); await sleep(150); }
+  s = await S(); t.ok(s.ui.screen === "dayEnd" && s.day === 6 && s.stats.sold === 2 && s.stats.harvested === 20, "П13 ночь прошла: пятый день закончен, продано двум покупателям, записано 20 морковок");
+  await dBtn("Доброе утро!", "доброе утро (6-й день)");
+  t.ok(ck >= 60 && ck <= 85, "П13 тест «День» на 5-й день с курами, заказом, двумя покупателями и одной ошибкой: " + ck + " нажатий (ориентир 60–75), игровое время к вечеру " + Math.floor(endMin / 60) + ":" + String(endMin % 60).padStart(2, "0"));
+  console.log("  (День, 5-й игровой: " + ck + " нажатий; около " + (ck * 6 / 60).toFixed(1) + " минуты при 6 секундах на нажатие)");
+  console.log("  (Нажатия: " + ckLog.join(" → ") + ")");
+  }
+
+  /* ====================== Я. Языковой тест на генерации ====================== */
+  // Прогон всех шаблонов записок, реплик соседей, событий и окон с числами 0, 1, 2, 5, 11, 21, 22, 25 и всеми днями недели; затем бот на 40 игровых дней.
+  // Проверяется согласование «числительное + существительное + глагол прошедшего времени», «по N <сущ.>», «в/во», «с/со», «к/ко», прилагательные при яблоках и яйцах,
+  // «undefined»/«NaN»/двойные пробелы/«до до», слова без ё; если рядом есть nspell и словарь hunspell-ru, ещё и орфография по словарю.
+  {
+  // языковой тест идёт на отдельной свежей странице: на ней нет остатков прежних проверок и большие массивы строк не давят на основную
+  await t.reload();   // основная страница к этому месту накопила много памяти — обновляем её
+  // (отдельный контекст браузера: у него своё localStorage, и сотни сохранений бота не рассылаются в другие страницы)
+  const lctx = await t.context.browser().newContext({ viewport: { width: 1024, height: 768 }, locale: "ru-RU" }), lp = await lctx.newPage();
+  await lp.goto("file://" + t.file); await lp.waitForFunction(() => window.FERMA && FERMA.ready);
+  const N8 = [0, 1, 2, 5, 11, 21, 22, 25];
+  const audit = (arg) => {
+    const L = FERMA.logic, N = FERMA.data.NOUNS, out = [], texts = arg.texts, lemmaOf = {};
+    Object.keys(N).forEach((n) => N[n].forEach((f) => { if (f) (lemmaOf[f] = lemmaOf[f] || new Set()).add(n); }));
+    const isOne = (n) => n % 10 === 1 && n % 100 !== 11;
+    const FAM = { fit: { m: "не поместился", f: "не поместилась", n: "не поместилось", pl: "не поместились" }, left: { m: "остался", f: "осталась", n: "осталось", pl: "остались" },
+      ripe: { m: "созрел", f: "созрела", n: "созрело", pl: "созрели" }, grew: { m: "подрос", f: "подросла", n: "подросло", pl: "подросли" } };
+    const famOf = (v) => (/^не поместил/.test(v) ? FAM.fit : /^остал/.test(v) ? FAM.left : /^созрел/.test(v) ? FAM.ripe : FAM.grew);
+    const GEN_AFTER = new Set(["хватает", "вместо", "нет", "без", "из", "от", "до", "для", "около", "после", "кроме", "меньше", "больше", "более", "менее", "ради", "среди", "осталось", "оставь"]);
+    const sawBad = new Set(), bad = (kind, t, what) => { const key = kind + what; if (!sawBad.has(key) && out.length < 25) { sawBad.add(key); out.push(kind + " «" + what + "» в «" + t.slice(0, 140) + "»"); } };
+    const seen = { pairs: 0, verbs: 0, pos: 0 };
+    for (const raw of texts) {
+      const t = arg.strict ? raw : raw.replace(/[ \t]+/g, " ");
+      if (/undefined|NaN|\bnull\b|\[object|[{}]/.test(t)) bad("мусор", t, "undefined/NaN/{}");
+      if (arg.strict && (/ {2,}/.test(t) || /\s[,.!?;]/.test(t) || /[,.]{2,}/.test(t.replace(/\.\.\./g, "")))) bad("пробелы и знаки", t, "лишний пробел или знак");
+      if (/(^|[^а-яёА-ЯЁ])([а-яё]{1,4}) \2(?![а-яё])/i.test(t.replace(/\n/g, " "))) bad("повтор слова", t, (t.match(/(^|[^а-яёА-ЯЁ])([а-яё]{1,4}) \2(?![а-яё])/i) || [])[2]);
+      for (const [re, name] of [[/(^|[^а-яё])в [вф][^аеёиоуыэюяьъ\s\d]/i, "в/во"], [/(^|[^а-яё])с [сзшжщ][^аеёиоуыэюяьъ\s\d]/i, "с/со"], [/(^|[.,!?:;—«] ?|[а-яё] )к [вф][^аеёиоуыэюяьъ\s\d]/i, "к/ко"]]) { const m = t.match(re); if (m) bad("предлог " + name, t, m[0].trim()); }
+      // число + существительное: именительный или винительный падеж; родительный («не хватает 4 рублей», «вместо 3 морковок») — только после слов, которые его требуют
+      for (const m of t.matchAll(/(?:([А-Яа-яЁё]+) )?(\d+) ([а-яё]+)/g)) {
+        const prev = (m[1] || "").toLowerCase(), n = +m[2], w = m[3]; if (!lemmaOf[w]) continue; seen.pairs++;
+        const okForm = [...lemmaOf[w]].some((noun) => ["и", "в"].some((c) => { try { return L.nounForm(noun, n, c) === w; } catch (e) { return false; } }) ||
+          ((GEN_AFTER.has(prev) || /(вместо|хватает) [^.;«»]*$/.test(t.slice(Math.max(0, m.index - 40), m.index + m[0].length - w.length - String(n).length - 1))) && (() => { try { return L.nounForm(noun, n, "р") === w; } catch (e) { return false; } })()));
+        if (!okForm) bad("число+слово", t, (m[1] ? m[1] + " " : "") + m[2] + " " + m[3]);
+      }
+      for (const m of t.matchAll(/(^|[^а-яёА-ЯЁ])по (\d+) ([а-яё]+)/g)) {
+        const n = +m[2], w = m[3]; if (!lemmaOf[w]) continue; seen.pos++;
+        if (!L.poSafe(n) || ![...lemmaOf[w]].some((noun) => L.nounForm(noun, n, "и") === w)) bad("«по N»", t, m[0].trim());
+      }
+      for (const m of t.matchAll(/(\d+) (?:(?:красн|зелён|бел|коричнев)[а-яё]+ )?([а-яё]+)(?: дяди Миши)? (не поместил[а-яё]+|остал[а-яё]+|созрел[а-яё]*|подрос[а-яё]*)/g)) {
+        const n = +m[1], lemmas = lemmaOf[m[2]]; if (!lemmas) continue; seen.verbs++;
+        const g = L.nounGender([...lemmas][0]), exp = L.verbAgree(n, famOf(m[3]), g);
+        if (m[3] !== exp) bad("глагол", t, m[0] + " → «" + exp + "»");
+      }
+      for (const m of t.matchAll(/(Остал[а-яё]+) (\d+) ([а-яё]+)/g)) {
+        const n = +m[2], lemmas = lemmaOf[m[3]]; if (!lemmas) continue; seen.verbs++;
+        if (m[1] !== "Осталось" && m[1] !== L.verbAgree(n, FAM.left, L.nounGender([...lemmas][0])).replace(/^о/, "О")) bad("глагол перед числом", t, m[0]);
+      }
+      for (const m of t.matchAll(/(\d+) (красное|красных|зелёное|зелёных|белое|белых|коричневое|коричневых) ([а-яё]+)/g)) {
+        const n = +m[1], singular = /(ое)$/.test(m[2]);
+        if (m[3] === "и" && !singular) continue;   // «7 красных и 7 зелёных» — существительное опущено
+        if (singular !== isOne(n) || !["яблоко", "яйцо"].some((noun) => L.nounForm(noun, n, "и") === m[3])) bad("прилагательное", t, m[0]);
+      }
+      if (/\((красные|зелёные|белые|коричневые)\)/.test(t)) bad("прилагательное в скобках", t, "(красные)");
+      // культуры: «созрела морковь», «созрел кабачок», «капуста подросла», «Посеял капусту»
+      const CG = { "морковь": "f", "кабачок": "m", "капуста": "f", "картофель": "m", "тыква": "f" }, CR = "(морковь|кабачок|капуста|картофель|тыква)";
+      for (const m of t.matchAll(new RegExp("[Сс]озрел(а?)(?![а-яё]) " + CR, "g"))) if ((m[1] ? "f" : "m") !== CG[m[2]]) bad("род культуры", t, m[0]);
+      for (const m of t.matchAll(new RegExp(CR + " (?:на грядке \\d+ )?уже созрел(а?)(?![а-яё])", "g"))) if ((m[2] ? "f" : "m") !== CG[m[1]]) bad("род культуры", t, m[0]);
+      for (const m of t.matchAll(new RegExp(CR + " подрос(ла)?(?![а-яё])", "g"))) if ((m[2] ? "f" : "m") !== CG[m[1]]) bad("род культуры", t, m[0]);
+      if (/(Посеял|Досеял) (капуста|тыква|морковка)(?![а-яё])/.test(t)) bad("падеж", t, "Посеял капуста");
+      if (/(^|\n|: )(Цель: [А-ЯЁ][а-яё]+ — )/.test(t) && /Цель: [А-ЯЁ]/.test(t)) bad("заглавная в середине фразы", t, "Цель: Амбар");
+      for (const w of arg.forb) if (new RegExp("(^|[^а-яёА-ЯЁ])" + w + "($|[^а-яёА-ЯЁ])", "i").test(t)) bad("слово без ё", t, w);
+    }
+    return { out, seen };
+  };
+  const spellP = (async () => {   // орфография по словарю hunspell-ru, если в системе есть nspell и dictionary-ru; иначе пропускаем с пометкой
+    const path = require("path"), { pathToFileURL } = require("url");
+    for (const d of [process.env.FERMA_SPELL_DIR, path.join(__dirname, "spell"), path.join(__dirname, "..", ".."), "/opt/node-tools"].filter(Boolean)) {
+      try {
+        const nspell = require(require.resolve("nspell", { paths: [d] })), dict = (await import(pathToFileURL(require.resolve("dictionary-ru", { paths: [d] })).href)).default;
+        const sp = nspell(dict);
+        return (words) => words.filter((w) => { const v = w.replace(/ё/g, "е").replace(/Ё/g, "Е"); return !sp.correct(v) && !sp.correct(v.toLowerCase()); });
+      } catch (e) { /* пробуем следующую папку */ }
+    }
+    return null;
+  })();
+  const SPELL_OK = new Set(["пн", "вт", "ср", "чт", "пт", "сб", "вс", "г", "м", "см", "кг", "вкл", "выкл", "й", "размети", "досеять", "что-нибудь", "к", "досеяно"]);
+
+  // 1. Шаблоны записок: числа 0, 1, 2, 5, 11, 21, 22, 25 в каждом числовом поле, все дни недели, разные часы
+  const lang1 = await lp.evaluate((N8) => {
+    const L = FERMA.logic, texts = [], thrown = [];
+    const base = { n: 3, k: 3, c: 2, d: 5, wd: 4, time: 900, m: 1500, m1: 1000, m2: 500, L: 140, B: 10000, p: 15, seed: "укропа", k1: 2, k2: 2, e: "dill", after: false, dt: 14, far: true };
+    Object.keys(L.TPL).forEach((id) => {
+      const tx = L.TPL[id].text, keys = [...tx.matchAll(/\{(\w+)[.:}]/g)].map((m) => m[1]), po = new Set([...tx.matchAll(/\{(\w+):[^:}]+:по\}/g)].map((m) => m[1]));
+      const render = (p, tag, key, v) => {
+        try { texts.push(L.renderNote(id, p).text); } catch (e) { if (!(po.has(key) && /по/.test(e.message) && !L.poSafe(v))) thrown.push(id + " " + tag + ": " + e.message); }
+      };
+      keys.forEach((key) => {
+        if (["n", "k", "c", "d", "k1", "k2"].includes(key)) N8.forEach((v) => render(Object.assign({}, base, { [key]: v }), key + "=" + v, key, v));
+        if (key === "wd") [0, 1, 2, 3, 4, 5, 6].forEach((v) => render(Object.assign({}, base, { wd: v }), "wd=" + v, "wd", v));
+        if (key === "dt") for (let v = 11; v <= 20; v++) render(Object.assign({}, base, { dt: v, wd: L.dateOfDay(v).wd }), "dt=" + v, "dt", v);
+        if (key === "time") for (let v = 420; v <= 1260; v += 35) [false, true].forEach((a) => render(Object.assign({}, base, { time: v, after: a }), "time=" + v, "time", v));
+        if (key === "m" || key === "m1" || key === "m2") for (let v = 50; v <= 3000; v += 50) render(Object.assign({}, base, { [key]: v }), key + "=" + v, key, v);
+        if (key === "L") for (let v = 110; v <= 290; v += 5) render(Object.assign({}, base, { L: v }), "L=" + v, "L", v);
+        if (key === "B") [10000, 20000, 30000, 50000].forEach((v) => render(Object.assign({}, base, { B: v }), "B=" + v, "B", v));
+      });
+    });
+    // реплики соседей и строки для взрослого по каждой причине, с числами 0, 1, 2, 5, 11, 21, 22, 25
+    const nb = ["nyura", "misha", "katya", "vera", "egor", "petya", "galya", "olya"], big = { "carrot:big": 99, "apple:red": 99, "cabbage:big": 99, "zucchini:big": 99, potato: 99, "pumpkin:big": 99 };
+    // какие причины отказа бывают у каждого вида заказа (ровно то, что может сказать checkOrder)
+    const reasonsOf = (o) => { const k = o.need.kind; return k === "give" ? (o.need.half ? ["half", "qty", "late"] : ["variety", "size", "qty", "late"].concat(o.exactDay ? ["early"] : [])) : k === "baskets" ? ["variety", "basketN", "perBasket", "late"] : k === "share" ? ["basketN", "perBasket"] : k === "weigh" ? ["mass", "late"] : k === "pack" ? ["boxes", "qty", "late"].concat(o.exactDay ? ["early"] : []) : k === "tape" ? ["qty"] : k === "errand" ? ["qty", "change"] : k === "sale" ? ["qty", "change"] : ["late"]; }, seenOrders = {};
+    for (let day = 1; day <= 30; day += 3) for (let lvl = 1; lvl <= 3; lvl++) Object.keys(L.TPL).forEach((id, i) => {
+      const c = { day, wd: L.dateOfDay(day).wd, lvl: () => lvl, inv: big, beds: [], flags: {}, neighbors: nb, features: { coop: true, cowshed: true, tape: true }, hensBrown: 4 };
+      const p = L.TPL[id].gen(L.rng(day * 31 + i * 7 + lvl), c); if (!p || seenOrders[id + lvl]) return; seenOrders[id + lvl] = 1;
+      const o = L.makeOrder(id, p, { day, seq: 1, flags: {} });
+      reasonsOf(o).forEach((r) => N8.forEach((want) => N8.forEach((got) => {
+        const info = { want, got, diff: (got - want) * 100, noun: undefined, day, own: want % 2 === 0 };
+        const only = r === "perBasket" && !L.poSafe(want);
+        try { texts.push(L.orderReason(o, r, only ? { want: 3, got: 1, day } : info)); texts.push(L.orderErrText(o, r, { items: {}, baskets: [{ item: "apple:green", n: got }], bags: [] }, only ? { want: 3, got: 1, day } : info)); } catch (e) { thrown.push(id + " причина " + r + " " + want + "/" + got + ": " + e.message); }
+      })));
+    });
+    // функции текстов
+    for (let total = 0; total <= 70; total++) for (const [size, kind] of [[10, "box"], [3, "jar"]]) { const p = L.divParts(total, size); for (let tk = 0; tk <= p.full + 2; tk++) texts.push(L.packText(L.pack(total, size, tk), kind)); }
+    for (let r = 2; r <= 6; r++) for (let cc = 2; cc <= 8; cc++) for (let s = 0; s <= 60; s++) texts.push(L.sowText(L.sow(r, cc, s)), L.sowText(L.sow(r, cc, s), true));
+    N8.concat([3, 4, 10, 12, 13, 14, 20, 24, 101, 111]).forEach((n) => { ["white", "brown", "misha"].forEach((c) => texts.push(L.eggPhrase(n, c))); ["red", "green"].forEach((c) => texts.push(L.applePhrase(n, c))); });
+    for (let d = 1; d <= 70; d++) { L.forecastText(d).forEach((x) => texts.push(x)); ["shop", "post", "market"].forEach((pl) => { for (let m = 420; m <= 1260; m += 15) L.closedInfo(pl, d, m).lines.forEach((x) => texts.push(x)); }); for (let m = 420; m <= 1260; m += 45) L.planLines(m, "farm", d, d % 2).forEach((x) => texts.push(x)); }
+    for (let c = 10; c <= 60000; c += 10) { texts.push(L.moneyWords(c), "Не хватает " + L.moneyWords(c, "р") + ".", L.moneyDiffText(c), L.moneyDiffText(-c), L.changeText(c)); }
+    for (let m = 0; m <= 900; m += 5) texts.push(L.durText(m));
+    return { texts, thrown };
+  }, N8);
+  t.eq(lang1.thrown, [], "Я генерация: ни один шаблон, реплика и строка для взрослого не бросили исключение (кроме «по» с несклоняемым числом)");
+  const a1 = await lp.evaluate(audit, { texts: lang1.texts, forb: FORB, strict: true });
+  t.eq(a1.out, [], `Я генерация: ${lang1.texts.length} строк (шаблоны с числами 0, 1, 2, 5, 11, 21, 22, 25 и всеми днями недели, реплики соседей, коробки, посев, яйца, прогноз, деньги) — согласование «число + слово» (${a1.seen.pairs} пар), глаголы (${a1.seen.verbs}), «по N» (${a1.seen.pos}), предлоги, прилагательные, мусор и слова без ё: ни одной ошибки`);
+  // контрольные примеры из замечаний ревьювера
+  t.eq(await lp.evaluate(() => [1, 2, 5, 11, 21, 22].map((n) => FERMA.logic.packText(FERMA.logic.pack(n, 3, 0), "jar")).concat([1, 2, 5].map((n) => FERMA.logic.packText(FERMA.logic.pack(30 + n, 10, 3)))).concat([21].map((n) => FERMA.logic.packText(FERMA.logic.pack(30 + n, 10, 3))))),
+    ["Полных банок нет. Осталось 1 литр.", "Полных банок нет. Осталось 2 литра.", "Полных банок нет. Осталось 5 литров.", "Полных банок нет. Осталось 11 литров.", "Полных банок нет. Осталось 21 литр.", "Полных банок нет. Осталось 22 литра.",
+      "3 полные коробки. 1 яйцо не поместилось.", "3 полные коробки. 2 яйца не поместились.", "3 полные коробки. 5 яиц не поместилось.", "3 полные коробки. 21 яйцо не поместилось."], "Я packText: без «0 коробок» — «Полных банок нет. Осталось 1 литр.», «1 яйцо не поместилось»");
+  t.eq(await lp.evaluate(() => [1, 2, 5, 11, 21, 22, 25].map((n) => FERMA.logic.packText({ full: 2, partial: 0, emptyBoxes: 0, outside: n }, "jar"))),
+    ["2 полные банки. 1 литр не поместился.", "2 полные банки. 2 литра не поместились.", "2 полные банки. 5 литров не поместилось.", "2 полные банки. 11 литров не поместилось.", "2 полные банки. 21 литр не поместился.", "2 полные банки. 22 литра не поместились.", "2 полные банки. 25 литров не поместилось."],
+    "Я «1 литр не поместился», «21 литр не поместился», «2 литра не поместились», «5 литров не поместилось»");
+  t.eq(await lp.evaluate(() => [1, 2, 4, 5, 11, 12, 21, 22, 25].map((n) => ["m", "f", "n"].map((g) => FERMA.logic.verbAgree(n, { m: "остался", f: "осталась", n: "осталось", pl: "остались" }, g)).join("/"))),
+    ["остался/осталась/осталось", "остались/остались/остались", "остались/остались/остались", "осталось/осталось/осталось", "осталось/осталось/осталось", "осталось/осталось/осталось", "остался/осталась/осталось", "остались/остались/остались", "осталось/осталось/осталось"], "Я verbAgree: по роду для 1 и 21, множественное для 2–4, среднее для 5–20");
+  // 2. Бот: сорок игровых дней через api (уровни, флаги, ошибки, пересчёты, продажи, записки, поручения, почта, рынок) и сбор всего, что показано на экране
+  const botRes = await lp.evaluate(() => {
+    const L = FERMA.logic, A = FERMA.api, T = new Set(), thrown = [];
+    // без innerText (он заставляет браузер пересчитывать вёрстку): собственный текст каждого видимого элемента окна, меню и экрана
+    const grab = () => {
+      ["dlg", "ctx", "screen"].forEach((id) => { const r = document.getElementById(id); if (!r || r.hidden) return; r.querySelectorAll("*").forEach((e) => { let s = ""; e.childNodes.forEach((n) => { if (n.nodeType === 3) s += n.textContent; }); s = s.replace(/\s+/g, " ").trim(); if (s) T.add(s); }); });
+      ["dateChip", "moneyChip", "tasksBtn", "ordersBtn", "peekBubble"].forEach((id) => { const e = document.getElementById(id); if (e && !e.hidden && e.textContent.trim()) T.add(e.textContent.trim()); });
+    };
+    const call = (n, ...a) => { let r; try { r = A[n](...a); } catch (e) { thrown.push(n + " " + JSON.stringify(a) + " " + e.message); } grab(); return r; };
+    const st = () => FERMA.state();
+    localStorage.clear(); call("newGame", { seed: 7, money: 500000 }); call("closeScreen"); call("close"); call("setSetting", "daysPerReal", 3);
+    const giveLots = () => { ["carrot:big", "carrot:small", "zucchini:big", "zucchini:small", "cabbage:big", "cabbage:small", "potato", "pumpkin:big", "pumpkin:small", "apple:red", "apple:green", "seed:carrot", "seed:zucchini", "seed:cabbage", "seed:potato", "seed:pumpkin"].forEach((k) => { if ((st().inv[k] || 0) < 40) call("give", k, 40); }); };
+    const pay = (amount) => { Object.entries(L.makeChange(amount)).forEach(([k, n]) => { for (let i = 0; i < n; i++) call("coin", +k); }); };
+    for (let day = 1; day <= 40; day++) {
+      const lvl = 1 + (day % 3);
+      ["clock", "duration", "pay", "change", "arrays", "divrem", "mass", "readQty", "readDetail", "readTime", "twostep", "length"].forEach((k) => call("setSkill", k, { level: k === "change" ? 1 + (day % 4) : lvl }));
+      if (day === 4) call("setFlag", "coop", true);
+      if (day === 7) ["barn", "tape", "kgCarrot", "plot3"].forEach((f) => call("setFlag", f, true));
+      if (day === 10) ["boat", "cowshed", "plot4"].forEach((f) => call("setFlag", f, true));
+      if (day === 20) call("setFlag", "kopecks", true);
+      call("setSetting", "split", day % 2 === 0); call("setSetting", "peekUnlimited", day % 5 === 0);
+      giveLots(); call("peek"); call("peek"); call("peek"); call("peek");
+      call("openTasks"); call("close"); call("openBag"); call("close"); call("openOrders"); call("close");
+      call("goTo", "house"); call("act", "calendar"); call("close"); call("act", "piggy"); pay(1000 + day * 100); call("uncoin", 1000); call("choose", "buy"); call("close");
+      call("goTo", "forecast"); call("close"); call("goTo", "prices"); call("close"); call("goTo", "mailbox");
+      (st().orders.mailbox || []).forEach((o) => { call("choose", "note:" + o.id); call("choose", "take"); }); call("close");
+      st().beds.forEach((b) => {
+        call("goTo", "bed" + b.id); if (!st().ui.menu) return;
+        if (!b.rows) { call("act", "dig"); call("digSize", 2 + (day + b.id) % 5, 2 + (day * b.id) % 7); call("submit"); call("close"); }
+        const b2 = st().beds.find((x) => x.id === b.id); call("goTo", "bed" + b.id);
+        if (b2.crop && b2.growth >= FERMA.data.CROPS[b2.crop].days) { call("act", "harvest"); call("close"); }
+        else if (!b2.crop) { call("act", "sow"); const crops = ["carrot", "zucchini", "cabbage", "potato", "pumpkin"]; call("setTime", st().time); call("choose", "crop:" + crops[(day + b.id) % 5]); call("close"); }
+        call("goTo", "bed" + b.id); call("act", "water"); call("act", "resow"); call("close");
+      });
+      while (st().harvest.length) { call("goTo", "shed"); call("act", "book"); const d = st().ui.dialog; if (!d) break; call("numpad", "7"); call("submit"); for (let i = 0; i < 8; i++) call("choose", "next"); call("numpad", "1"); call("submit"); call("numpad", String(d.data.h.grid.reduce((a, v) => a + v, 0))); call("submit"); call("close"); }
+      call("goTo", "treeRed"); call("act", "pickApples"); call("close"); call("goTo", "treeGreen"); call("act", "pickApples"); call("close");
+      call("goTo", "shed"); call("act", "weigh"); call("weight", 1000); call("weight", 200); call("produce", 1); call("choose", "item:carrot"); call("choose", "item:apple"); call("close");
+      call("goTo", "shed"); call("act", "share"); { const d = st().ui.dialog; if (d && d.data.phase === "fill") { for (let i = 0; i < d.data.n - 1; i++) call("basketTap", i % d.data.c); call("basketTap", 0); call("basketMove", 0, -1); call("basketTap", (d.data.n - 1) % d.data.c); call("numpad", "1"); call("submit"); call("numpad", String(d.data.k)); call("submit"); } else if (d) { call("setCount", 13, "apples"); call("choose", "start"); } call("close"); }
+      call("goTo", "shed"); call("act", "basket"); call("setCount", 3, "baskets"); call("basketTap", 0); call("basketTap", 0); call("basketTap", 1); call("choose", "sort:apple:green"); call("choose", "done"); call("close");
+      if (st().flags.tape) { call("goTo", "shed"); call("act", "tape"); const d = st().ui.dialog; if (d) { if (d.data.mode === "cut") { call("tapeMark", d.data.target - 10); call("choose", "cut"); call("tapeMark", d.data.target); call("choose", "cut"); } else { call("numpad", "1"); call("submit"); call("numpad", "5"); call("submit"); const len = st().ui.dialog.data.len; call("numpad", String(Math.floor(len / 100))); call("submit"); call("numpad", String(len % 100)); call("submit"); call("numpad", "3"); call("submit"); call("numpad", "3"); call("submit"); call("numpad", String(Math.floor(len / 20))); call("submit"); call("numpad", String(len % 20)); call("submit"); } } call("close"); }
+      if (st().flags.coop) { call("goTo", "coop"); call("act", "hens"); call("close"); call("act", "packEggs"); const d = st().ui.dialog; if (d) { call("numpad", "9"); call("submit"); call("numpad", "9"); call("submit"); for (let i = 0; i < 8; i++) call("choose", "next"); const p = L.divParts(d.data.total, 10); call("numpad", String(p.full)); call("submit"); call("numpad", String(p.rest)); call("submit"); call("close"); } }
+      if (st().flags.cowshed) { call("goTo", "cowshed"); call("act", "milk"); call("close"); call("act", "packMilk"); const d = st().ui.dialog; if (d) { call("numpad", "1"); call("submit"); call("numpad", "1"); call("submit"); for (let i = 0; i < 8; i++) call("choose", "next"); const p = L.divParts(d.data.total, 3); call("numpad", String(p.full)); call("submit"); call("numpad", String(p.rest)); call("submit"); call("close"); } }
+      for (let k = 0; k < 3; k++) { call("goTo", "stall"); call("act", "serve"); const d = st().ui.dialog; if (!d || d.kind !== "sale") { call("close"); break; } pay(d.data.paid - d.data.price + 1000); call("submit"); call("uncoin", 1000); call("submit"); call("close"); }
+      call("goTo", "exitFarm"); call("choose", "post"); call("choose", "market"); call("choose", "shop"); call("choose", "go");
+      call("goTo", "notes"); (st().orders.board || []).forEach((o) => { call("choose", "note:" + o.id); call("choose", "take"); call("choose", "back"); }); call("close");
+      call("goTo", "shop"); if (st().ui.dialog && st().ui.dialog.kind === "closed") call("choose", "wait");
+      if (st().ui.dialog && st().ui.dialog.kind === "shop") { call("cart", "carrot", 2); call("cart", "pumpkin", 1); call("toCashier"); const d = st().ui.dialog; if (d && d.kind === "pay") { pay(d.data.price + 1000); call("submit"); call("uncoin", 1000); call("submit"); } call("close"); }
+      st().orders.active.filter((o) => o.need.kind === "errand").forEach((o) => { call("goTo", "shop"); if (st().ui.dialog && st().ui.dialog.kind === "shop") { call("choose", "errands"); call("cartErrand", o.need.item, o.need.n); call("toCashier"); const d = st().ui.dialog; if (d && d.kind === "pay") { call("coin", 5000); call("submit"); call("uncoin", 5000); pay(d.data.price); call("submit"); } call("close"); } });
+      st().orders.active.slice().forEach((o) => {
+        call("goTo", o.place);
+        if (o.need.kind === "meet") { call("act", "help"); call("choose", "wait"); call("close"); return; }
+        if (o.need.kind === "post") { call("act", o.need.sub === "send" ? "postSend" : "postTake"); call("choose", "wait"); call("close"); return; }
+        call("act", "deliver", { order: o.id }); if (!st().ui.dialog || st().ui.dialog.kind !== "deliver") { call("close"); return; }
+        const n = o.need, items = {};
+        if (n.kind === "give") { n.items.forEach((i) => { items[i.item] = Math.max(1, i.n - 1); }); if (n.fam === "apple") items["apple:green"] = 2; if (n.fam === "carrot") items["carrot:small"] = 1; if (n.fam === "egg") items["egg:white"] = 1; }
+        if (n.kind === "sale") n.items.forEach((i) => { items[i.item] = i.n; });
+        if (n.kind === "errand") items[n.item] = n.n;
+        if (n.kind === "pack") items[n.jars ? "jar" : "box:white"] = 1;
+        if (n.kind === "tape") items.plank = 1;
+        call("offer", { items, baskets: [0, 1], bags: [0], change: 1000 }); call("submit");
+        if (n.kind === "give") { const it2 = {}; n.items.forEach((i) => { it2[i.item] = i.n; }); call("offer", { items: it2 }); call("submit"); }
+        call("close");
+      });
+      call("goTo", "post"); call("close"); call("goTo", "well"); call("close");
+      Object.keys(FERMA.data.OBJECTS).filter((k) => k.startsWith("door_")).forEach((k) => { call("goTo", k); call("close"); });
+      if (L.dateOfDay(st().day).wd === 5) { call("setTime", Math.min(st().time, 600)); call("goTo", "market"); for (let k = 0; k < 4; k++) { call("act", "trade"); const d = st().ui.dialog; if (!d) break; if (d.kind === "weigh") { const tg = d.data.target; L.weightsFor(tg).forEach((w) => call("weight", w)); call("submit"); for (let i = 0; i < tg / 250; i++) call("produce", 1); call("submit"); } const d2 = st().ui.dialog; if (d2 && d2.kind === "sale") { pay(d2.data.paid - d2.data.price); call("submit"); } call("close"); } }
+      call("goTo", st().flags.boat ? "pierVillage" : "exitVillage"); call("choose", "go"); call("goTo", "stall"); call("close");
+      call("askSleep"); call("choose", "sleep"); if (st().ui.dialog && st().ui.dialog.kind === "night") call("choose", "sleep");
+      call("wake"); if (st().ui.screen === "sleep") { call("openAdult"); call("allowMore"); }
+      if (st().day !== day + 1) { thrown.push("день не сменился: " + day + " → " + st().day); call("sleep"); call("wake"); }
+      grab(); call("close");
+    }
+    call("openAdult"); grab(); call("closeScreen");
+    const errs = []; Object.keys(st().skills).forEach((k) => (st().skills[k].errors || []).forEach((e) => errs.push(e.t)));
+    return { texts: [...T], thrown, errs };
+  });
+  t.eq(botRes.thrown, [], "Я бот: 40 игровых дней через api прошли без исключений и без застрявших дней");
+  const a2 = await lp.evaluate(audit, { texts: botRes.texts.concat(botRes.errs), forb: FORB, strict: false });
+  t.eq(a2.out, [], `Я бот: ${botRes.texts.length} разных строк с экрана и ${botRes.errs.length} примеров ошибок для взрослого — согласование (${a2.seen.pairs} пар), глаголы (${a2.seen.verbs}), «по N» (${a2.seen.pos}), предлоги, мусор, слова без ё: ни одной ошибки`);
+  t.ok(botRes.texts.some((x) => /Полных (коробок|банок) нет|не поместил/.test(x)) && botRes.texts.some((x) => /Собрал \d+ (красных|красное)/.test(x)) && botRes.texts.some((x) => /Что нового|Созрело/.test(x)), "Я бот: в собранных текстах встретились упаковка, яблоки с прилагательными и утренняя плашка (проверка не пустая)");
+  // проверка самого проверяющего: известные ошибки из замечаний он находит, правильные фразы пропускает
+  { const badSamples = ["В вторник солнце.", "21 литр не поместилось.", "2 литра не поместилось.", "5 яиц не поместились.", "Я просила по 3 яблок в каждой корзинке.", "Мне нужно по 21 яблок.", "Приходи до до пятницы.", "Собрал 16 яблок (красные).", "принёс 0 досок вместо undefined (заказ Егора)", "Цель: Амбар — 900 ₽.", "Привет! Принеси 3 морковок.", "Созрел морковь на грядке 1.", "Приходи с среды.", "Приходи к вторнику.", "На 5 минуты раньше.", "Осталась 6 яиц.", "Это еще не всё."], goodSamples = ["Во вторник солнце.", "21 литр не поместился.", "2 литра не поместились.", "5 литров не поместилось.", "1 банка не поместилась.", "Я просила по 3 яблока в каждой корзинке.", "Приходи ко вторнику.", "Собрал 16 красных яблок.", "Цель: амбар — 900 ₽.", "Созрела морковь на грядке 1.", "Осталось 6 яиц.", "Приходи со среды."];
+    const flagged = [], missed = [];
+    for (const x of badSamples) { const r = await lp.evaluate(audit, { texts: [x], forb: FORB, strict: true }); if (!r.out.length) missed.push(x); }
+    for (const x of goodSamples) { const r = await lp.evaluate(audit, { texts: [x], forb: FORB, strict: true }); if (r.out.length) flagged.push(x + " → " + r.out[0]); }
+    t.eq([missed, flagged], [[], []], "Я проверяющий ловит " + badSamples.length + " известных ошибок («В вторник», «21 литр не поместилось», «по 3 яблок», «до до», «(красные)», «вместо undefined», «Цель: Амбар»…) и не ругается на " + goodSamples.length + " правильных фраз"); }
+  // орфография по словарю
+  const spell = await spellP;
+  if (!spell) console.log("  (орфография по словарю пропущена: не найдены nspell и dictionary-ru; задайте FERMA_SPELL_DIR=папка с node_modules, где они лежат)");
+  else {
+    const words = new Set(); lang1.texts.concat(botRes.texts, botRes.errs).forEach((x) => (x.match(/[А-Яа-яЁё]+(?:-[А-Яа-яЁё]+)*/g) || []).forEach((w) => words.add(w)));
+    const unknown = spell([...words]).filter((w) => !SPELL_OK.has(w.toLowerCase()));
+    t.eq(unknown, [], `Я словарь hunspell-ru: ${words.size} разных слов из всех текстов игры — неизвестных словарю нет`);
+  }
+  await lctx.close();
+  }
+
   /* ---------- M13. Ошибки страницы ---------- */
   t.eq(pageErrors, [], "M13 за все проверки на странице нет ошибок (window.claude отсутствует)");
-  t.ok(await page.evaluate(() => typeof window.claude === "undefined" && FERMA.ready === true && FERMA.version === "1.0.0"), "M13 без window.claude игра работает из localStorage");
+  t.ok(await page.evaluate(() => typeof window.claude === "undefined" && FERMA.ready === true && FERMA.version === "1.0.1"), "M13 без window.claude игра работает из localStorage");
 });

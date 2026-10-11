@@ -264,8 +264,15 @@ const NOUNS = {
   "штука": ["штука", "штуки", "штук", "штуку", "штуки", "штук"],
   "картофелина": ["картофелина", "картофелины", "картофелин", "картофелину", "картофелины", "картофелин"],
   "доска": ["доска", "доски", "досок", "доску", "доски", "досок"],
-  "секция": ["секция", "секции", "секций", "секцию", "секции", "секций"]
+  "секция": ["секция", "секции", "секций", "секцию", "секции", "секций"],
+  "письмо": ["письмо", "письма", "писем", "письмо", "письма", "писем"],
+  "записка": ["записка", "записки", "записок", "записку", "записки", "записок"]
 };
+// Род существительных нужен глаголам прошедшего времени: «1 литр не поместился», «1 банка не поместилась», «1 яйцо не поместилось».
+const NOUN_G = { "морковка": "f", "кабачок": "m", "кочан": "m", "тыква": "f", "яблоко": "n", "яйцо": "n", "коробка": "f", "корзинка": "f", "банка": "f", "литр": "m", "пакетик": "m", "мешок": "m", "рубль": "m", "копейка": "f", "минута": "f",
+  "час": "m", "день": "m", "семя": "n", "клетка": "f", "ряд": "m", "грядка": "f", "кролик": "m", "курица": "f", "покупатель": "m", "заказ": "m", "раз": "m", "штука": "f", "картофелина": "f", "доска": "f", "секция": "f", "письмо": "n", "записка": "f" };
+// Формы глаголов прошедшего времени: m, f, n — по роду при числе 1, 21…; pl — при 2–4; n — при 5–20 и 0.
+const V_FIT = { m: "не поместился", f: "не поместилась", n: "не поместилось", pl: "не поместились" }, V_LEFT = { m: "остался", f: "осталась", n: "осталось", pl: "остались" };
 const WEEKDAYS = {
   и: ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"],
   в: ["в понедельник", "во вторник", "в среду", "в четверг", "в пятницу", "в субботу", "в воскресенье"],
@@ -333,7 +340,7 @@ const SKILLS = [
 // Что значит каждый уровень навыка (для экрана взрослого): «уровень 2: пакетики по 8 и 12».
 const LEVEL_TEXT = {
   clock: ["целые часы", "часы и половины", "любые минуты, кратные 5"], duration: ["дорога 30 минут, закрытие в целый час", "дорога и одно действие", "две дороги и действия"],
-  pay: ["одна покупка до 50 ₽, кассир называет сумму", "кассир называет только состав, до 100 ₽", "суммы до 500 ₽"], change: ["сдача до 50 ₽, не больше 3 монет", "сдача со 100 ₽, суммы до 99 ₽", "суммы до 490 ₽, купюра 500 ₽, два товара; затем копейки"],
+  pay: ["одна покупка до 50 ₽, кассир называет сумму", "кассир называет только состав, до 100 ₽", "суммы до 500 ₽"], change: ["товар до 49 ₽, сдача не больше 3 монет", "суммы до 99 ₽, любая сдача; потом до 490 ₽ целыми рублями с купюрой 500 ₽", "копейки: суммы до 100 ₽, купюра 100 ₽, один товар", "копейки и суммы до 490 ₽, купюра 500 ₽, два товара"],
   arrays: ["до 3 × 5, корзинки до 20", "до 5 × 6, до 40", "до 6 × 8, до 72"], divrem: ["пакетик и коробка по 10", "пакетики по 8 и 12, банка 3 литра", "яиц до 60, банок до 15"],
   mass: ["1 кг, 1 кг 500 г, 2 кг", "кратно 100 г до 3 кг", "кратно 50 г"], readQty: ["одно число", "число и корзинки", "«половину красных»"],
   readDetail: ["одна деталь", "деталь с «не надо»", "две детали"], readTime: ["«до пятницы»", "«к пятнице» и час", "«накануне», «через N дней»"],
@@ -464,8 +471,8 @@ const doorOf = (who) => (who === "petya" ? "door_egor" : "door_" + who);
 const ITEMS = { "apple:red": { label: "Яблоки красные", noun: "яблоко", mass: 200 }, "apple:green": { label: "Яблоки зелёные", noun: "яблоко", mass: 200 } };
 // Яйца, молоко, коробки и банки лежат в рюкзаке по тем же правилам, что и урожай; размера у них нет, у яиц есть цвет.
 Object.assign(ITEMS, {
-  "egg:white": { label: "Яйца белые", noun: "яйцо" }, "egg:brown": { label: "Яйца коричневые", noun: "яйцо" },
-  "box:white": { label: "Коробки белых яиц", noun: "коробка" }, "box:brown": { label: "Коробки коричневых яиц", noun: "коробка" },
+  "egg:white": { label: "Яйца белые", noun: "яйцо" }, "egg:brown": { label: "Яйца коричневые", noun: "яйцо" }, "egg:misha": { label: "Яйца дяди Миши", noun: "яйцо" },
+  "box:white": { label: "Коробки белых яиц", noun: "коробка" }, "box:brown": { label: "Коробки коричневых яиц", noun: "коробка" }, "box:misha": { label: "Коробки яиц дяди Миши", noun: "коробка" },
   milk: { label: "Молоко в бидоне, литры", noun: "литр" }, jar: { label: "Банки молока", noun: "банка" }, plank: { label: "Доска для забора", noun: "доска" }
 });
 const SIZEW = { carrot: ["крупная", "мелкая"], zucchini: ["крупные", "мелкие"], cabbage: ["крупная", "мелкая"], pumpkin: ["большая", "маленькая"] };
@@ -486,16 +493,19 @@ const PRICE_LABEL = { apple: "Яблоко, штука", carrot: "Морковк
 const SELL_ORDER = ["apple:red", "apple:green", "carrot:big", "carrot:small", "zucchini:big", "zucchini:small", "cabbage:big", "cabbage:small", "box:white", "box:brown", "jar", "pumpkin:big", "pumpkin:small", "potato"];
 const BUYER_NAMES = ["Соня", "Артём", "Ирина", "Павел", "Ольга", "Сергей", "Дарья", "Тимур", "Лена", "Игорь"];
 const WEIGHTS = [1000, 1000, 500, 200, 200, 100, 50];
-// Цели копилки (ТЗ: амбар, курятник, лодка). after — что должно быть куплено раньше: участки — после амбара, коровник — после лодки.
+// Цели копилки идут по росту цены, первая — недорогой курятник (300 ₽): курятник → третья грядка → амбар → лодка → коровник → четвёртая грядка.
+// after — что должно быть куплено раньше: третья грядка — после курятника, коровник — после лодки, четвёртая грядка — после коровника.
 // Что получает ферма — в flags; hens — куры при покупке; cow — корова; bed — номер новой грядки.
+// sign — слово на табличке, site — место стройки: центр таблички в пикселях двора [x, y].
 const GOALS = [
-  { id: "barn", name: "Амбар", price: 90000, done: "Построен амбар!", flags: ["barn", "kgCarrot", "tape"] },
-  { id: "coop", name: "Курятник", price: 30000, done: "Построен курятник!", flags: ["coop"], hens: [2, 2] },
-  { id: "boat", name: "Лодка", price: 150000, done: "Куплена лодка!", flags: ["boat"] },
-  { id: "plot3", name: "Третья грядка", price: 20000, done: "Появился участок для третьей грядки!", flags: ["plot3"], after: ["barn"], bed: 3 },
-  { id: "cowshed", name: "Коровник и корова", price: 120000, done: "Построен коровник! В нём живёт корова Зорька.", flags: ["cowshed"], after: ["boat"], cow: true },
-  { id: "plot4", name: "Четвёртая грядка", price: 30000, done: "Появился участок для четвёртой грядки!", flags: ["plot4"], after: ["plot3"], bed: 4 }
+  { id: "coop", name: "Курятник", sign: "Курятник", price: 30000, done: "Построен курятник!", flags: ["coop"], hens: [2, 2], site: [928, 160] },
+  { id: "plot3", name: "Третья грядка", sign: "Грядка 3", price: 20000, done: "Появился участок для третьей грядки!", flags: ["plot3"], after: ["coop"], bed: 3, site: [416, 448] },
+  { id: "barn", name: "Амбар", sign: "Амбар", price: 90000, done: "Построен амбар!", flags: ["barn", "kgCarrot", "tape"], site: [240, 474] },
+  { id: "boat", name: "Лодка", sign: "Лодка", price: 150000, done: "Куплена лодка!", flags: ["boat"], site: [528, 628] },
+  { id: "cowshed", name: "Коровник и корова", sign: "Коровник", price: 120000, done: "Построен коровник! В нём живёт корова Зорька.", flags: ["cowshed"], after: ["boat"], cow: true, site: [928, 416] },
+  { id: "plot4", name: "Четвёртая грядка", sign: "Грядка 4", price: 30000, done: "Появился участок для четвёртой грядки!", flags: ["plot4"], after: ["cowshed"], bed: 4, site: [704, 448] }
 ];
+const OLD_GOAL_IDS = ["barn", "coop", "boat", "plot3", "cowshed", "plot4"];   // порядок целей до схемы v5: в сохранении лежал номер цели
 const HOME = { x: 4, y: 8, dir: "down" };
 
 /* ---------- 2. LOGIC: чистые функции (без DOM, без Math.random, без Date) ---------- */
@@ -513,6 +523,17 @@ const LOGIC = (function () {
     return plural(n, f[0], f[1], f[2]);
   }
   function nounPhrase(n, noun, cs) { return n + " " + nounForm(noun, n, cs); }
+  function nounGender(noun) { return NOUN_G[noun] || "m"; }
+  // Глагол прошедшего времени при числе: 1, 21, 101 — по роду существительного (m, f, n), 2–4 — множественное (pl), 0 и 5–20 — среднее (n).
+  function verbAgree(n, forms, g) {
+    n = Math.abs(n); const one = n % 10 === 1 && n % 100 !== 11, few = n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
+    return one ? forms[g || "n"] : few ? forms.pl : forms.n;
+  }
+  // «16 красных яблок», «1 красное яблоко», «21 зелёное яблоко»: прилагательное согласуется с числом.
+  function applePhrase(n, color) {
+    const one = n % 10 === 1 && n % 100 !== 11, adj = color === "green" ? ["зелёное", "зелёных"] : ["красное", "красных"];
+    return n + " " + (one ? adj[0] : adj[1]) + " " + nounForm("яблоко", n, "и");
+  }
   function weekdayForm(wd, form) { return WEEKDAYS[form][wd]; }
   function fmtTime(min) { const h = Math.floor(min / 60) % 24, m = min % 60; return h + ":" + (m < 10 ? "0" : "") + m; }
   function parseTime(s) { const p = String(s).split(":"); return (+p[0]) * 60 + (+p[1] || 0); }
@@ -539,7 +560,8 @@ const LOGIC = (function () {
     if (isOpen(place, day, min)) return { open: true, opensToday: false, lines };
     if (h.days.includes(dateOfDay(day).wd)) {
       if (min < h.open) { lines.push("Ещё закрыто. Откроется в " + fmtTime(h.open) + "."); return { opensToday: true, opensAt: h.open, lines }; }
-      lines.push("Уже закрыто. Приходи завтра."); return { opensToday: false, lines };
+      const nx = nextOpenDay(place, day);
+      lines.push("Уже закрыто. " + (nx === day + 1 ? "Приходи завтра." : "Ближайший день — " + dateOfDay(nx).text + ".")); return { opensToday: false, lines };
     }
     lines.push("Сегодня закрыто. Ближайший день — " + dateOfDay(nextOpenDay(place, day)).text + ".");
     return { opensToday: false, lines };
@@ -656,19 +678,28 @@ const LOGIC = (function () {
   }
   // Навыки: точность за последние 20 попыток, уровень растёт после 9 из 10, падает при ≤ 3 из 6.
   function skillAcc(hist) { return hist && hist.length ? hist.reduce((s, v) => s + v, 0) / hist.length : null; }
-  function adjustLevel(sk, max) {
+  // У «сдачи» четыре уровня. С 1 на 2 — как у всех (9 из 10); со 2 на 3 (копейки) — только когда сдача до 100 ₽ устойчива: 20 попыток на уровне 2 с точностью не меньше 0,9.
+  const sumH = (h) => h.reduce((a, v) => a + v, 0);
+  function adjustLevel(sk, max, id) {
     max = max || 3; const s = Object.assign({}, sk), h = s.hist, last10 = h.slice(-10), last6 = h.slice(-6);
-    if (s.atLevel >= 10 && last10.reduce((a, v) => a + v, 0) >= 9 && s.level < max) { s.level++; s.atLevel = 0; }
-    else if (last6.length >= 6 && last6.reduce((a, v) => a + v, 0) <= 3 && s.level > 1) { s.level--; s.atLevel = 0; }
+    const up = id === "change" && s.level === 2 ? s.atLevel >= 20 && h.length >= 20 && sumH(h) / h.length >= 0.9 : s.atLevel >= 10 && sumH(last10) >= 9;
+    if (up && s.level < max) { s.level++; s.atLevel = 0; }
+    else if (last6.length >= 6 && sumH(last6) <= 3 && s.level > 1) { s.level--; s.atLevel = 0; }
     return s;
   }
-  // Копейки: сдача на уровне 3 и точность не меньше 0,9 за последние 20 попыток.
-  function kopecksReady(sk) { return !!sk && sk.level >= 3 && sk.hist.length >= 20 && skillAcc(sk.hist) >= 0.9; }
-  function recordAttempt(sk, ok, errText, day) {
+  // Копейки появляются, когда «сдача» дошла до уровня 3 (то есть сдача до 100 ₽ была устойчива) — и остаются.
+  function kopecksReady(sk) { return !!sk && sk.level >= 3; }
+  // Ступень покупателей по «сдаче»: 1 — до 49 ₽, не больше 3 монет; 2 — до 99 ₽; 2,5 — на втором уровне после 10 попыток с точностью 0,9: до 490 ₽ целыми рублями с купюрой 500 ₽;
+  // 3 — копейки на суммах до 100 ₽, один товар; 4 — копейки и большие суммы, два товара.
+  function changeStage(sk) {
+    const lvl = sk && sk.level ? sk.level : 1;
+    return lvl === 2 && sk.atLevel >= 10 && sk.hist.length >= 10 && sumH(sk.hist.slice(-10)) >= 9 ? 2.5 : lvl;
+  }
+  function recordAttempt(sk, ok, errText, day, id) {
     const s = Object.assign({ hist: [], n: 0, ok: 0, level: 1, atLevel: 0, last: 0, errors: [] }, sk || {});
     s.hist = s.hist.concat(ok ? 1 : 0).slice(-20); s.n++; s.ok += ok ? 1 : 0; s.atLevel++; s.last = day;
     if (!ok && errText) s.errors = s.errors.concat({ day, t: errText }).slice(-10);
-    return adjustLevel(s);
+    return adjustLevel(s, id === "change" ? 4 : 3, id);
   }
   // Слияние с проверкой типов: тип значения по умолчанию задаёт ожидаемый тип. null, строка вместо числа, число вместо массива
   // и т. п. заменяются значением по умолчанию. Остальные значения из obj побеждают, прогресс не обнуляется.
@@ -697,11 +728,19 @@ const LOGIC = (function () {
     if (buyers.length) items.push({ id: "sell", label: "Продать урожай", done: daily.sold > 0 || buyers.every((b) => b.done) });
     if (flags.coop) items.push({ id: "hens", label: "Покормить кур", done: an.fedDay === st.day });
     if (flags.cowshed) items.push({ id: "cow", label: "Подоить корову", done: an.milkedDay === st.day });
+    // Дела по часам: встреча у колодца или посылка, которую отдают после обеда. Пока окно не закрылось, они в плане дня.
+    ((st.orders && st.orders.active) || []).forEach((o) => {
+      const nd = o.need || {};
+      if (o.deadlineDay !== st.day) return;
+      if (nd.kind === "meet" && o.window && st.time < o.window[1]) items.push({ id: "meet:" + o.id, to: nd.at, label: "Встреча " + (nd.at === "well" ? "у колодца " : "на рынке ") + (o.after ? "после " : "в ") + fmtTime(o.window[0]), done: false });
+      else if (nd.kind === "post" && nd.sub === "take" && nd.from) items.push({ id: "meet:" + o.id, to: "post", label: "Забрать посылку на почте после " + fmtTime(nd.from), done: false });
+    });
     const first = items.find((i) => !i.done); let obj;
     if (!first) obj = village ? "exitVillage" : "house";
     else if (first.id === "board") obj = village ? "notes" : "exitFarm";
     else if (first.id === "water") obj = village ? "exitVillage" : "bed" + growing.find((b) => !b.watered).id;
     else if (first.id === "sell") obj = village ? (gate.length ? "exitVillage" : "market") : gate.length ? "stall" : "exitFarm";
+    else if (first.to) obj = village ? first.to : "exitFarm";
     else obj = village ? "exitVillage" : first.id === "hens" ? "coop" : "cowshed";
     return { items, next: first ? first.id : null, obj, allDone: !first, daily: true };
   }
@@ -737,14 +776,15 @@ const LOGIC = (function () {
   function milkLitres(day) { return 7 + (day % 3); }
   // «3 белых яйца», «1 белое яйцо», «5 коричневых яиц»: прилагательное согласуется с числом.
   function eggPhrase(n, color) {
+    if (color === "misha") return n + " " + nounForm("яйцо", n, "и") + " дяди Миши";
     const one = n % 10 === 1 && n % 100 !== 11, adj = color === "brown" ? ["коричневое", "коричневых"] : ["белое", "белых"];
     return n + " " + (one ? adj[0] : adj[1]) + " " + nounForm("яйцо", n, "и");
   }
   // Что получится, если разложить total штук по ёмкостям size: полные и остаток (деление с остатком).
   function divParts(total, size) { return { full: Math.floor(total / size), rest: total % size }; }
-  return { eggsLaid, milkLitres, eggPhrase, divParts, plural, poSafe, nounForm, nounPhrase, weekdayForm, fmtTime, parseTime, clockAngles, dayPart, durText, actionAllowed, dateOfDay, nextWeekday, weatherOf,
+  return { eggsLaid, milkLitres, eggPhrase, applePhrase, divParts, plural, poSafe, nounForm, nounPhrase, nounGender, verbAgree, weekdayForm, fmtTime, parseTime, clockAngles, dayPart, durText, actionAllowed, dateOfDay, nextWeekday, weatherOf,
     isOpen, hoursText, nextOpenDay, closedInfo, canMakeIt, planLines, moneyWords, fmtMoney, moneyDiffText, sumCoins, denoms, checkPay, walletSum, makeChange, walletAdd, canPayExact,
-    changeText, cashierRule, sow, sowText, packetsNeeded, divRem, parseMap, bfs, skillAcc, adjustLevel, kopecksReady, recordAttempt, deepMerge, todayTasks, carrotGoal };
+    changeText, cashierRule, sow, sowText, packetsNeeded, divRem, parseMap, bfs, skillAcc, adjustLevel, kopecksReady, changeStage, recordAttempt, deepMerge, todayTasks, carrotGoal };
 })();
 const { plural, nounPhrase, fmtTime, fmtMoney } = LOGIC;
 
@@ -776,23 +816,29 @@ const ORD = (function () {
     const notes = level >= 2 ? [10000, 50000] : [5000, 10000], fit = notes.filter((n) => n > total);
     return (level >= 2 ? fit[0] : fit.find((n) => coinCount(n - total) <= 3) || fit[0]) || 50000;
   }
-  const BAND = { 1: [1000, 4900], 2: [1100, 9900], 3: [11000, 49000] };
-  // Что захочет купить покупатель номер idx: первый по кругу товар из рюкзака, количество по номеру дня, сумма в границах уровня «сдачи».
-  // Уровень 1: от 10 до 49 ₽ и сдача не больше 3 монет; уровень 2: до 99 ₽; уровень 3: от 110 до 490 ₽ (купюра 500 ₽) и в записке два товара (opts.items).
+  // Границы сумм по ступеням «сдачи» (в копейках): 1 — до 49 ₽; 2 — до 99 ₽; 2,5 — 110–490 ₽ целыми рублями; 3 — копейки на суммах до 100 ₽; 4 — копейки и 110–499 ₽.
+  const BAND = { 1: [1000, 4900], 2: [1100, 9900], 2.5: [11000, 49000], 3: [1100, 9999], 4: [11000, 49999] };
+  // Что захочет купить покупатель номер idx: первый по кругу товар из рюкзака, количество по номеру дня, сумма в границах ступени.
+  // Ступень 1: товар не дороже 49 ₽ за штуку (за килограмм), сумма 10–49 ₽ и сдача не больше 3 монет; если такого товара нет, покупатель просит именно его и уходит (none).
+  // Ступени 2 и 3: до 99 ₽ (на 3-й с копейками, один товар); 2,5 и 4: большие суммы с купюрой 500 ₽, на 4-й два товара (opts.items).
   function buyerWish(inv, day, flags, level, idx, opts) {
+    level = BAND[level] ? level : 1;
     const have = SELL_ORDER.filter((k) => (inv[k] || 0) >= (k === "potato" ? 4 : 1)); if (!have.length) return null;
-    const lim = BAND[Math.min(3, level || 1)], cap = level >= 3 ? 30 : 9, unitOf = (k) => (k === "potato" ? 4 : 1), cost1 = (k, u) => salePrice(k, u * unitOf(k), day, flags);
-    // На уровне 3 первыми идут дорогие товары: сумма от 110 ₽ получается из нескольких штук, а не из десятка яблок.
-    const cheap = have.filter((k) => cost1(k, 1) <= lim[1]), base = cheap.length ? cheap : have, list = level >= 3 ? base.slice().sort((a, b) => cost1(b, 1) - cost1(a, 1)) : base;
+    const fl = level >= 3 ? flags : Object.assign({}, flags, { kopecks: false });   // копейки в ценах только с 3-й ступени
+    const lim = BAND[level], big = level === 2.5 || level === 4, cap = big ? 30 : 9, unitOf = (k) => (k === "potato" ? 4 : 1), cost1 = (k, u) => salePrice(k, u * unitOf(k), day, fl);
+    const cheap = have.filter((k) => cost1(k, 1) <= lim[1]);
+    if (!big && !cheap.length) return { none: true, ask: idx % 2 ? "apple" : "carrot", items: [], total: 0, want: "none" };
+    // На больших ступенях первыми идут дорогие товары: сумма от 110 ₽ получается из нескольких штук, а не из десятка яблок.
+    const base = cheap.length ? cheap : have, list = big ? base.slice().sort((a, b) => cost1(b, 1) - cost1(a, 1)) : base;
     const noteOk = (T) => level >= 2 || coinCount(payNote(T, level) - T) <= 3, inBand = (T) => T >= lim[0] && T <= lim[1];
-    if (opts && opts.items && level >= 3 && list.length >= 2) {
+    if (opts && opts.items && level === 4 && list.length >= 2) {
       const a = list[idx % list.length], b = list[(idx + 1) % list.length], sa = Math.floor(inv[a] / unitOf(a)), sb = Math.floor(inv[b] / unitOf(b));
       let qa = Math.min(1 + ((day + idx) % 3), sa), qb = Math.min(1 + ((day + idx + 1) % 2), sb);
       while (qa < sa && qa < cap && cost1(a, qa) + cost1(b, qb) < lim[0]) qa++;
       while (qb < sb && qb < cap && cost1(a, qa) + cost1(b, qb) < lim[0]) qb++;
       return { items: [{ key: a, q: qa * unitOf(a) }, { key: b, q: qb * unitOf(b) }], total: cost1(a, qa) + cost1(b, qb), want: "items" };
     }
-    // Подбор количества для товара key: ближайшее к «заказанному» по дню, чтобы сумма была в границах уровня и купюра давала сдачу не больше 3 монет.
+    // Подбор количества для товара key: ближайшее к «заказанному» по дню, чтобы сумма была в границах ступени и купюра давала сдачу не больше 3 монет (на 1-й).
     const fit = (key) => {
       const unit = unitOf(key), stock = Math.floor(inv[key] / unit), cost = (u) => cost1(key, u);
       let u = Math.min(1 + ((day + idx) % 4), stock);
@@ -800,10 +846,14 @@ const ORD = (function () {
       while (u < stock && u < cap && cost(u) < lim[0]) u++;
       let ok = inBand(cost(u)) && noteOk(cost(u));
       for (let k = 1; !ok && k <= cap; k++) { const v = [u + k, u - k].find((x) => x >= 1 && x <= stock && x <= cap && inBand(cost(x)) && noteOk(cost(x))); if (v) { u = v; ok = true; } }
+      // Ступень с копейками: если можно, берём количество, при котором в сумме есть копейки.
+      if (ok && level === 3 && fl.kopecks && cost(u) % 100 === 0) for (let k = 1; k <= cap; k++) { const v = [u + k, u - k].find((x) => x >= 1 && x <= stock && x <= cap && inBand(cost(x)) && cost(x) % 100 !== 0); if (v) { u = v; break; } }
       return { key, u, unit, ok };
     };
     let f = null;
     for (let j = 0; j < list.length && !(f && f.ok); j++) { const g = fit(list[(idx + j) % list.length]); if (!f || g.ok) f = g; if (j === 0) f = g; }
+    // 1-я ступень: товара так мало, что сдача выйдет больше 3 монет, — покупатель говорит «маловато» и уходит (none, few)
+    if (level === 1 && !f.ok) return { none: true, few: true, items: [], total: 0, want: "none" };
     return { items: [{ key: f.key, q: f.u * f.unit }], total: cost1(f.key, f.u), want: "total" };
   }
   function checkChange(price, paid, given) { const need = paid - price, diff = given - need; return diff === 0 ? { ok: true, need, diff: 0 } : { ok: false, need, diff, text: moneyDiffText(diff) }; }
@@ -828,9 +878,9 @@ const ORD = (function () {
   }
   function packText(res, kind) {
     const jar = kind === "jar", forms = jar ? ["полная банка", "полные банки", "полных банок"] : ["полная коробка", "полные коробки", "полных коробок"], unit = jar ? "литр" : "яйцо";
-    let t = res.full ? res.full + " " + plural(res.full, forms[0], forms[1], forms[2]) + "." : "";
+    let t = res.full ? res.full + " " + plural(res.full, forms[0], forms[1], forms[2]) + "." : jar ? "Полных банок нет." : "Полных коробок нет.";
     if (res.partial) t += " В " + (res.full + 1) + "-й " + (jar ? "банке" : "коробке") + " — " + nounPhrase(res.partial, unit) + ".";
-    else if (res.outside) t += " " + nounPhrase(res.outside, unit) + " " + plural(res.outside, "не поместилось", "не поместились", "не поместилось") + ".";
+    else if (res.outside) t += res.full ? " " + nounPhrase(res.outside, unit) + " " + L.verbAgree(res.outside, V_FIT, L.nounGender(unit)) + "." : " Осталось " + nounPhrase(res.outside, unit) + ".";
     return t.trim();
   }
   /* --- весы --- */
@@ -844,7 +894,7 @@ const ORD = (function () {
   function fmtMass(g) { const kg = Math.floor(g / 1000), r = g % 1000; return [kg ? kg + " кг" : "", r ? r + " г" : ""].filter(Boolean).join(" ") || "0 г"; }
   function fmtLen(cm) { const m = Math.floor(cm / 100), r = cm % 100; return [m ? m + " м" : "", r ? r + " см" : ""].filter(Boolean).join(" ") || "0 см"; }
   // Срок заказа словами: «до пятницы», «в пятницу», «до 12:00», «в 15:00».
-  const dlText = (o) => (o.exactDay ? weekdayForm(dateOfDay(o.exactDay).wd, "в") : o.deadlineTime ? "до " + fmtTime(o.deadlineTime) : o.window ? "в " + fmtTime(o.window[0]) : weekdayForm(dateOfDay(o.deadlineDay).wd, "до"));
+  const dlText = (o) => (o.exactDay ? weekdayForm(dateOfDay(o.exactDay).wd, "в") : o.deadlineTime ? "до " + fmtTime(o.deadlineTime) : o.window ? (o.after ? "после " : "в ") + fmtTime(o.window[0]) : weekdayForm(dateOfDay(o.deadlineDay).wd, "до"));
   const dateWords = (gd) => { const o = dateOfDay(gd); return o.d + " " + MONTHS.р[o.m - 1]; };
   // Календарь на стене: месяц сеткой (6 недель с понедельника), отметки в клетках и строки под ней. Всё считается из состояния, без случайности.
   // Созревание считаем при условии, что грядку поливают каждый день: «через 3 дня».
@@ -876,7 +926,7 @@ const ORD = (function () {
   /* --- погода-прогноз (экран прогноза — этап 2б) --- */
   function forecast(day, n) { const out = []; for (let i = 0; i <= (n === undefined ? 3 : n); i++) out.push({ day: day + i, w: L.weatherOf(day + i) }); return out; }
   function forecastText(day) {
-    const f = forecast(day), w = (x) => WEATHER_WORD[x.w], names = ["Сегодня", "Завтра", "Послезавтра", weekdayForm(dateOfDay(day + 3).wd, "в").replace(/^во? /, "В ")];
+    const f = forecast(day), w = (x) => WEATHER_WORD[x.w], wd3 = weekdayForm(dateOfDay(day + 3).wd, "в"), names = ["Сегодня", "Завтра", "Послезавтра", wd3.charAt(0).toUpperCase() + wd3.slice(1)];
     return f.map((x, i) => (i === 1 ? "Завтра " + w(x) + (x.w === "rain" ? " — поливать не нужно. Дождь сам польёт грядки." : x.w === "sun" ? " — грядки надо полить." : ".") : names[i] + " " + w(x) + "."));
   }
   /* --- записки --- */
@@ -887,7 +937,13 @@ const ORD = (function () {
   }
   function renderNote(id, p) {
     const text = TPL[id].text.replace(/\{([^}]+)\}/g, (m, t) => {
-      if (t.indexOf(".") > 0 && t.indexOf(":") < 0) { const q = t.split("."); return weekdayForm(p[q[0]], q[1]); }
+      if (t.indexOf(".") > 0 && t.indexOf(":") < 0) {
+        const q = t.split(".");
+        if (q[0] === "dt") return p.dt ? weekdayForm(wdOf(p.dt), q[1]) + (p.far ? ", " + dateWords(p.dt) : "") : weekdayForm(p.wd, q[1]);   // день рождения: если до него больше недели, добавляем число
+        return weekdayForm(p[q[0]], q[1]);
+      }
+      if (t === "when") return (p.after ? "после " : "в ") + fmtTime(p.time);
+      if (t === "tail") return p.after ? "Я буду ждать два часа." : "Не опаздывай!";
       const q = t.split(":"); if (q.length === 3) return nounPhrase(q[0] === "B" ? p.B / 100 : p[q[0]], q[1], q[2]);
       if (t === "time") return fmtTime(p.time);
       if (t === "m" || t === "m1" || t === "m2") return fmtMass(p[t]);
@@ -917,79 +973,84 @@ const ORD = (function () {
   const TPL = {
     T01: { who: "katya", skills: ["readQty", "readDetail", "readTime"], text: "Привет! Принеси мне {n:морковка:в} {wd.к}. Только крупные! — Катя",
       gen(r, c) { const n = lv(c, "readQty") >= 2 ? rngInt(r, 11, 25) : rngInt(r, 3, 10), off = rngInt(r, 2, 4); return supply(c, "carrot", c.day + off, true) >= n ? { n, wd: wdOf(c.day + off) } : null; },
-      build(p, c) { return { place: "door_katya", need: give("carrot:big", p.n, { noun: "морковка", size: "крупные" }), deadlineDay: nextWeekday(c.day, p.wd), reward: p.n * priceOf("carrot", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_katya", need: give("carrot:big", p.n, { noun: "морковка", size: "крупные" }), deadlineDay: nextWeekday(c.day, p.wd), reward: p.n * priceOf("carrot", c.day, c.flags) + 1000 }; } },
     T02: { who: "misha", skills: ["twostep", "pay"], text: "Купи, пожалуйста, {k:пакетик:в} семян {seed} по {p} рублей. Вот {B:рубль:в}. Сдачу оставь себе. — дядя Миша",
       gen(r, c) { const e = rngPick(r, ["dill", "parsley", "sorrel"]), pr = ERRANDS["errand:" + e].price / 100, k = rngInt(r, 2, pr === 25 ? 3 : 4); return { k, p: pr, B: 10000, e, seed: ERRANDS["errand:" + e].gen }; },
       build(p, c) { return { place: "door_misha", need: { kind: "errand", item: "errand:" + p.e, n: p.k, price: p.p * 100, B: p.B, back: false, noun: "пакетик" }, deadlineDay: c.day + 2, reward: 2000, env: p.B }; } },
     T03: { who: "nyura", skills: ["mass", "readTime"], text: "В субботу пеку пирог. Нужно {m1} яблок и {m2} моркови. — бабушка Нюра",
       gen(r, c) { const dl = nextWeekday(c.day, 5), m2 = rngPick(r, [500, 1000]); return dl > c.day && supply(c, "carrot", dl) >= m2 / 100 ? { m1: rngPick(r, [1000, 1400, 2000]), m2 } : null; },
-      build(p, c) { return { place: "door_nyura", need: { kind: "weigh", bags: [{ item: "apple", g: p.m1 }, { item: "carrot", g: p.m2 }] }, deadlineDay: nextWeekday(c.day, 5), reward: (p.m1 / 200) * priceOf("apple", c.day) + (p.m2 / 100) * priceOf("carrot", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_nyura", need: { kind: "weigh", bags: [{ item: "apple", g: p.m1 }, { item: "carrot", g: p.m2 }] }, deadlineDay: nextWeekday(c.day, 5), reward: (p.m1 / 200) * priceOf("apple", c.day, c.flags) + (p.m2 / 100) * priceOf("carrot", c.day, c.flags) + 1000 }; } },
     T04: { who: "vera", box: true, skills: ["duration", "clock"], text: "Отправь посылку до {time}. Почта открывается в 9:00, дорога туда — 30 минут. — почтальон Вера",
       gen(r, c) { if (c.wd === 6) return null; const l = lv(c, "clock"); return { time: l === 1 ? 720 : l === 2 ? rngPick(r, [690, 780]) : rngPick(r, [640, 680]) }; },
       build(p, c) { return { place: "post", need: { kind: "post", sub: "send", item: "parcel" }, deadlineDay: c.day, deadlineTime: p.time, reward: 3000, take: { parcel: 1 } }; } },
     T05: { who: "misha", req: "coop", skills: ["divrem"], text: "Разложи {n:яйцо:в} по коробкам по 10 штук. Сколько коробок будет полными? Полные коробки принеси мне. — дядя Миша",
       gen(r, c) { return { n: lv(c, "divrem") >= 3 ? rngPick(r, [38, 43, 57, 59]) : rngPick(r, [23, 36, 47, 52]) }; },
-      build(p, c) { return { place: "door_misha", need: { kind: "pack", boxes: Math.floor(p.n / 10), noun: "коробка" }, deadlineDay: c.day + 3, reward: 2000, take: { "egg:white": p.n } }; } },
+      build(p, c) { return { place: "door_misha", need: { kind: "pack", boxes: Math.floor(p.n / 10), noun: "коробка", boxKey: "box:misha" }, deadlineDay: c.day + 3, reward: 2000, take: { "egg:misha": p.n } }; } },
     T06: { who: "nyura", skills: ["readQty", "readDetail", "readTime"], text: "Мне нужно {c:корзинка:и} по {k:яблоко:по}. Только красных! Принеси {wd.до}. — бабушка Нюра",
       gen(r, c) { const cc = rngInt(r, 2, 4), k = rngInt(r, 3, cc === 4 ? 5 : 8), off = rngInt(r, 2, 5); return { c: cc, k, wd: wdOf(c.day + off) }; },
-      build(p, c) { return { place: "door_nyura", need: { kind: "baskets", item: "apple:red", c: p.c, k: p.k }, deadlineDay: nextWeekday(c.day, p.wd), reward: p.c * p.k * priceOf("apple", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_nyura", need: { kind: "baskets", item: "apple:red", c: p.c, k: p.k }, deadlineDay: nextWeekday(c.day, p.wd), reward: p.c * p.k * priceOf("apple", c.day, c.flags) + 1000 }; } },
     T07: { who: "petya", skills: ["readDetail", "readQty"], text: "Мама варит компот. Принеси {n:яблоко:в}, только зелёные. Красные не надо! — Петя",
       gen(r) { return { n: rngInt(r, 4, 12) }; },
-      build(p, c) { return { place: "door_egor", need: give("apple:green", p.n, { noun: "яблоко" }), deadlineDay: c.day + 2, reward: p.n * priceOf("apple", c.day) + 1000 }; } },
-    T08: { who: "egor", skills: ["clock"], text: "Приходи к колодцу в {time}. Поможешь донести вёдра. Не опаздывай! — дед Егор",
-      gen(r, c) { const l = lv(c, "clock"), t = l === 1 ? rngPick(r, wtimes.slice(0, 7)) : l === 2 ? rngPick(r, wtimes.map((x) => x + 30)) : rngInt(r, 132, 204) * 5; return { time: t }; },
-      build(p, c) { return { place: "well", need: { kind: "meet", at: "well" }, deadlineDay: c.day, window: [p.time, p.time + 30], reward: 3000 }; } },
+      build(p, c) { return { place: "door_egor", need: give("apple:green", p.n, { noun: "яблоко" }), deadlineDay: c.day + 2, reward: p.n * priceOf("apple", c.day, c.flags) + 1000 }; } },
+    T08: { who: "egor", skills: ["clock"], text: "Приходи к колодцу {when}. Поможешь донести вёдра. {tail} — дед Егор",
+      gen(r, c) { const l = lv(c, "clock"), t = l === 1 ? rngPick(r, wtimes.slice(0, 7)) : l === 2 ? rngPick(r, wtimes.map((x) => x + 30)) : rngInt(r, 132, 204) * 5; const after = l >= 2 && t >= 780 && t <= 900 && rngInt(r, 0, 2) === 0; return { time: t, after }; },
+      build(p, c) { return { place: "well", need: { kind: "meet", at: "well" }, deadlineDay: c.day, window: [p.time, p.time + (p.after ? 120 : 30)], after: !!p.after, reward: 3000 }; } },
     T09: { who: "galya", skills: ["twostep"], text: "Купи мне {k:мешок:в} муки по 45 рублей. Вот {B:рубль:в}. Сдачу принеси мне. — тётя Галя",
       gen(r, c) { const k = rngInt(r, 2, lv(c, "twostep") >= 2 ? 6 : 4); return { k, B: k === 2 ? 10000 : k <= 4 ? 20000 : 30000 }; },
       build(p, c) { return { place: "door_galya", need: { kind: "errand", item: "errand:flour", n: p.k, price: 4500, B: p.B, back: true, noun: "мешок" }, deadlineDay: c.day + 2, reward: 2000, env: p.B }; } },
-    T10: { who: "katya", skills: ["readTime", "readDetail"], text: "У меня день рождения {wd.в}! Нужна большая тыква. Принеси её накануне. — Катя",
-      gen(r, c) { const off = rngInt(r, 10, 13), t = c.day + off; return supply(c, "pumpkin", t - 1, true) >= 1 ? { wd: wdOf(t) } : null; },
-      build(p, c) { const t = nextWeekday(c.day + 10, p.wd); return { place: "door_katya", need: give("pumpkin:big", 1, { noun: "тыква", size: "большая", lateOk: true }), deadlineDay: t - 1, expireDay: t, reward: priceOf("pumpkin", c.day) + 1000 }; } },
+    T10: { who: "katya", skills: ["readTime", "readDetail"], text: "У меня день рождения {dt.в}! Нужна большая тыква. Принеси её накануне. — Катя",
+      gen(r, c) { const off = rngInt(r, 10, 13), t = c.day + off; return supply(c, "pumpkin", t - 1, true) >= 1 ? { wd: wdOf(t), dt: t, far: off > 7 } : null; },
+      build(p, c) { const t = p.dt || nextWeekday(c.day + 10, p.wd); return { place: "door_katya", need: give("pumpkin:big", 1, { noun: "тыква", size: "большая", lateOk: true }), deadlineDay: t - 1, exactDay: t - 1, expireDay: t, reward: priceOf("pumpkin", c.day, c.flags) + 1000 }; } },
     T11: { who: "misha", req: "cowshed", skills: ["divrem"], text: "Привези мне {n:литр:в} молока в банках по 3 литра. — дядя Миша",
       gen(r, c) { return { n: rngPick(r, lv(c, "divrem") >= 3 ? [12, 15, 18] : [6, 9, 12, 15]) }; },
       build(p, c) { return { place: "door_misha", need: { kind: "pack", jars: p.n / 3, noun: "банка" }, deadlineDay: c.day + 4, reward: 3000 }; } },
     T12: { who: "nyura", req: "coop", skills: ["readDetail", "readTime"], text: "Принеси {n:яйцо:в}. Только коричневые, белые не бери! Срок — {wd.до}. — бабушка Нюра",
       gen(r, c) { return { n: rngInt(r, 3, Math.max(3, Math.min(12, 3 * (c.hensBrown || 2)))), wd: wdOf(c.day + 3) }; },
       build(p, c) { return { place: "door_nyura", need: give("egg:brown", p.n, { noun: "яйцо" }), deadlineDay: nextWeekday(c.day, p.wd), reward: 2000 }; } },
-    T13: { who: "vera", box: true, skills: ["clock", "duration"], text: "На почте лежит посылка для тебя. Почта работает до 18:00. Забери её сегодня! — почтальон Вера",
-      gen(r, c) { return c.wd === 6 ? null : {}; },
-      build(p, c) { return { place: "post", need: { kind: "post", sub: "take" }, deadlineDay: c.day, deadlineTime: 1080, reward: 0, gift: { "seed:carrot": 20 } }; } },
+    T13: { who: "vera", box: true, skills: ["clock", "duration"], text: "На почте лежит посылка для тебя. Вера отдаст её после {time}. Почта работает до 18:00. Забери посылку сегодня! — почтальон Вера",
+      gen(r, c) { return c.wd === 6 ? null : { time: rngPick(r, [840, 900, 960]) }; },
+      build(p, c) { return { place: "post", need: { kind: "post", sub: "take", from: p.time }, deadlineDay: c.day, deadlineTime: 1080, reward: 0, giftPk: { "seed:carrot": 2 } }; } },
     T14: { who: "olya", skills: ["readTime", "readQty"], text: "Принеси мне {n:кабачок:в} {wd.к}. Оладьи буду печь утром, так что не позже {time}! — Оля",
       gen(r, c) { const n = rngInt(r, 2, 4), off = rngInt(r, 2, 4); return supply(c, "zucchini", c.day + off) >= n ? { n, wd: wdOf(c.day + off), time: rngPick(r, [660, 720]) } : null; },
-      build(p, c) { return { place: "door_olya", need: give("zucchini:big", p.n, { noun: "кабачок", any: true, lateMsg: "Оладьи я уже испекла. Приходи с кабачками в другой раз." }), deadlineDay: nextWeekday(c.day, p.wd), deadlineTime: p.time, reward: p.n * priceOf("zucchini", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_olya", need: give("zucchini:big", p.n, { noun: "кабачок", any: true, lateMsg: "Оладьи я уже испекла. Приходи с кабачками в другой раз." }), deadlineDay: nextWeekday(c.day, p.wd), deadlineTime: p.time, reward: p.n * priceOf("zucchini", c.day, c.flags) + 1000 }; } },
     T15: { who: "egor", skills: ["mass"], text: "Мне нужно {m} картошки. Взвесь точно, лишнего не надо. — дед Егор",
       gen(r, c) { const l = lv(c, "mass"), m = l >= 3 ? rngPick(r, [1250, 1750, 2250]) : rngPick(r, [1000, 1500, 2000, 2500]); return supply(c, "potato", c.day + 3) >= m / 250 ? { m } : null; },
-      build(p, c) { return { place: "door_egor", need: { kind: "weigh", bags: [{ item: "potato", g: p.m }] }, deadlineDay: c.day + 3, reward: (p.m / 1000) * priceOf("potato", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_egor", need: { kind: "weigh", bags: [{ item: "potato", g: p.m }] }, deadlineDay: c.day + 3, reward: (p.m / 1000) * priceOf("potato", c.day, c.flags) + 1000 }; } },
     T16: { who: "galya", skills: ["readDetail", "readQty", "readTime"], text: "Хочу засолить капусту. Принеси {n:кочан:в} {wd.до}. Маленькие не подойдут! — тётя Галя",
       gen(r, c) { const n = rngInt(r, 2, 5), off = rngInt(r, 3, 6); return supply(c, "cabbage", c.day + off, true) >= n ? { n, wd: wdOf(c.day + off) } : null; },
-      build(p, c) { return { place: "door_galya", need: give("cabbage:big", p.n, { noun: "кочан", size: "крупные", sizeMsg: "Маленькие не подойдут, я же писала." }), deadlineDay: nextWeekday(c.day, p.wd), reward: p.n * priceOf("cabbage", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_galya", need: give("cabbage:big", p.n, { noun: "кочан", size: "крупные", sizeMsg: "Маленькие не подойдут, я же писала." }), deadlineDay: nextWeekday(c.day, p.wd), reward: p.n * priceOf("cabbage", c.day, c.flags) + 1000 }; } },
     T17: { who: "petya", skills: ["arrays", "readQty"], text: "У меня {c:кролик:и}. Принеси морковки, чтобы каждому досталось по {k:морковка:по}. — Петя",
       gen(r, c) { const cc = rngInt(r, 2, 5), k = rngInt(r, 2, 4); return supply(c, "carrot", c.day + 3) >= cc * k ? { c: cc, k } : null; },
-      build(p, c) { return { place: "door_egor", need: give("carrot:big", p.c * p.k, { noun: "морковка", any: true }), deadlineDay: c.day + 3, reward: p.c * p.k * priceOf("carrot", c.day) + 1000, gift: { "seed:carrot": 10 }, qtySkill: "arrays" }; } },
+      build(p, c) { return { place: "door_egor", need: give("carrot:big", p.c * p.k, { noun: "морковка", any: true }), deadlineDay: c.day + 3, reward: p.c * p.k * priceOf("carrot", c.day, c.flags) + 1000, giftPk: { "seed:carrot": 1 }, qtySkill: "arrays" }; } },
     T18: { who: "katya", skills: ["arrays"], text: "Разложи {n:яблоко:в} в {c:корзинка:в} поровну и принеси мне одну корзинку. — Катя",
       gen(r) { const cc = rngInt(r, 2, 5), k = rngInt(r, 2, 9); return { c: cc, n: cc * k, k }; },
-      build(p, c) { return { place: "door_katya", need: { kind: "share", k: p.n / p.c, c: p.c }, deadlineDay: c.day + 3, reward: p.n * priceOf("apple", c.day) + 1000, qtySkill: "arrays" }; } },
+      build(p, c) { return { place: "door_katya", need: { kind: "share", k: p.n / p.c, c: p.c }, deadlineDay: c.day + 3, reward: p.n * priceOf("apple", c.day, c.flags) + 1000, qtySkill: "arrays" }; } },
     T19: { who: "misha", skills: ["twostep", "change"], text: "Хочу купить у тебя {k1:кабачок:в} и {k2:кочан:в} капусты по ценам с доски. Заплачу одной купюрой — {B:рубль:и}. Приготовь сдачу! — дядя Миша",
-      gen(r, c) { const k1 = rngInt(r, 1, 2), k2 = rngInt(r, 1, 2); if (supply(c, "zucchini", c.day + 3) < k1 || supply(c, "cabbage", c.day + 3) < k2) return null; const mx = Math.max.apply(null, [0, 1, 2, 3].map((o) => k1 * priceOf("zucchini", c.day + o) + k2 * priceOf("cabbage", c.day + o))); return { k1, k2, B: payNote(mx, 2) }; },
+      gen(r, c) {
+        // Два товара по ценам с доски: не раньше уровня 2 «сдачи», а когда на доске копейки — только на уровне 4 (копейки сначала с одним товаром).
+        const k1 = rngInt(r, 1, 2), k2 = rngInt(r, 1, 2), l = lv(c, "change"); if (l < 2 || (c.flags && c.flags.kopecks && l < 4)) return null;
+        if (supply(c, "zucchini", c.day + 3) < k1 || supply(c, "cabbage", c.day + 3) < k2) return null;
+        const mx = Math.max.apply(null, [0, 1, 2, 3].map((o) => k1 * priceOf("zucchini", c.day + o, c.flags) + k2 * priceOf("cabbage", c.day + o, c.flags))); return { k1, k2, B: payNote(mx, 2) };
+      },
       build(p, c) { return { place: "door_misha", need: { kind: "sale", items: [{ fam: "zucchini", item: "zucchini:big", n: p.k1, noun: "кабачок" }, { fam: "cabbage", item: "cabbage:big", n: p.k2, noun: "кочан" }], B: p.B }, deadlineDay: c.day + 3, reward: 0 }; } },
     T20: { who: "vera", box: true, skills: ["clock", "duration"], text: "Отнеси письмо деду Егору. Он дома только до {time}, потом уходит на рыбалку. — почтальон Вера",
       gen(r, c) { if (c.wd === 6 || !c.neighbors.includes("egor")) return null; const l = lv(c, "clock"); return { time: l === 1 ? rngPick(r, [720, 780, 840, 900, 960]) : l === 2 ? rngPick(r, [750, 810, 870, 930]) : rngInt(r, 150, 192) * 5 }; },
       build(p, c) { return { place: "door_egor", need: give("letter", 1, { noun: "письмо" }), deadlineDay: c.day, deadlineTime: p.time, reward: 3000, take: { letter: 1 } }; } },
     T21: { who: "nyura", skills: ["readTime"], text: "Через {d:день:в} ко мне приедет внучка. Принеси в тот день {n:кабачок:в}. Кабачок растёт 4 дня! — бабушка Нюра",
       gen(r, c) { const d = rngInt(r, 5, 7), n = rngInt(r, 2, 3); return supply(c, "zucchini", c.day + d) >= n ? { d, n } : null; },
-      build(p, c) { return { place: "door_nyura", need: give("zucchini:big", p.n, { noun: "кабачок", any: true, exact: true }), deadlineDay: c.day + p.d, exactDay: c.day + p.d, reward: p.n * priceOf("zucchini", c.day) + 1000, gift: { "seed:zucchini": 10 } }; } },
+      build(p, c) { return { place: "door_nyura", need: give("zucchini:big", p.n, { noun: "кабачок", any: true, exact: true }), deadlineDay: c.day + p.d, exactDay: c.day + p.d, reward: p.n * priceOf("zucchini", c.day, c.flags) + 1000, giftPk: { "seed:zucchini": 1 } }; } },
     T22: { who: "galya", skills: ["mass"], text: "Мне нужно {m} моркови для супа. Взвесь на весах точно. — тётя Галя",
       gen(r, c) { const m = rngInt(r, 5, 25) * 100; return supply(c, "carrot", c.day + 3) >= m / 100 ? { m } : null; },
-      build(p, c) { return { place: "door_galya", need: { kind: "weigh", bags: [{ item: "carrot", g: p.m }] }, deadlineDay: c.day + 3, reward: (p.m / 100) * priceOf("carrot", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_galya", need: { kind: "weigh", bags: [{ item: "carrot", g: p.m }] }, deadlineDay: c.day + 3, reward: (p.m / 100) * priceOf("carrot", c.day, c.flags) + 1000 }; } },
     T23: { who: "egor", skills: ["clock", "readTime"], text: "Приходи {wd.в} на рынок к открытию. Поможешь мне донести мешки. — дед Егор",
       gen(r, c) { return nextWeekday(c.day, 5) > c.day ? { wd: 5 } : null; },
       build(p, c) { const t = nextWeekday(c.day, 5); return { place: "market", need: { kind: "meet", at: "market" }, deadlineDay: t, window: [480, 510], reward: 3000 }; } },
     T24: { who: "katya", skills: ["readQty", "readDetail"], text: "Принеси {n:яблоко:в}: половину красных, половину зелёных. — Катя",
       gen(r) { return { n: rngInt(r, 3, 8) * 2 }; },
-      build(p, c) { return { place: "door_katya", need: { kind: "give", fam: "apple", n: p.n, half: true, noun: "яблоко", items: [{ item: "apple:red", n: p.n / 2 }, { item: "apple:green", n: p.n / 2 }] }, deadlineDay: c.day + 3, reward: p.n * priceOf("apple", c.day) + 1000 }; } },
+      build(p, c) { return { place: "door_katya", need: { kind: "give", fam: "apple", n: p.n, half: true, noun: "яблоко", items: [{ item: "apple:red", n: p.n / 2 }, { item: "apple:green", n: p.n / 2 }] }, deadlineDay: c.day + 3, reward: p.n * priceOf("apple", c.day, c.flags) + 1000 }; } },
     T25: { who: "olya", req: "cowshed", skills: ["readTime", "divrem"], text: "Мама уезжает {wd.в}. Привези {n:литр:в} молока за день до этого, в банках по 3 литра. — Оля",
       gen(r, c) { return { n: rngPick(r, [3, 6, 9]), wd: wdOf(c.day + 4) }; },
-      build(p, c) { const t = nextWeekday(c.day + 2, p.wd); return { place: "door_olya", need: { kind: "pack", jars: p.n / 3, noun: "банка" }, deadlineDay: t - 1, expireDay: t - 1, reward: 3000 }; } },
+      build(p, c) { const t = nextWeekday(c.day + 2, p.wd); return { place: "door_olya", need: { kind: "pack", jars: p.n / 3, noun: "банка" }, deadlineDay: t - 1, exactDay: t - 1, expireDay: t - 1, reward: 3000 }; } },
     T26: { who: "petya", skills: ["twostep", "pay"], text: "Купи мне в магазине {k:пакетик:в} семян тыквы. Вот {B:рубль:в}. Сдачу верни мне. — Петя",
       gen(r) { return { k: rngInt(r, 1, 2), B: 10000 }; },
       build(p, c) { return { place: "door_egor", need: { kind: "errand", item: "errand:pumpkin", n: p.k, price: 4000, B: p.B, back: true, noun: "пакетик" }, deadlineDay: c.day + 2, reward: 2000, env: p.B }; } },
@@ -1009,27 +1070,36 @@ const ORD = (function () {
     return o;
   }
   const verb = (who, f, m) => (NEIGHBORS[who].g === "f" ? f : m);
-  const nomWord = (need, n) => nounPhrase(n, need.noun || "штука");
+  const nomWord = (need, n, info) => nounPhrase(n, (info && info.noun) || need.noun || "штука");
+  // Когда прийти: «в четверг», а если до этого дня больше недели — ещё и дата: «в пятницу, 12 июня».
+  const comeText = (o, today) => weekdayForm(wdOf(o.exactDay), "в") + (today && o.exactDay - today > 7 ? ", " + dateWords(o.exactDay) : "");
+  // Окно встречи словами: «в 15:00» или «с 14:00 до 16:00».
+  const winText = (o) => (o.after ? "с " + fmtTime(o.window[0]) + " до " + fmtTime(o.window[1]) : "в " + fmtTime(o.window[0]));
   // Реплика соседа: что именно не так. Род соседа — в глаголе: «просила» / «просил».
   function orderReason(o, reason, info) {
     info = info || {}; const who = o.from, need = o.need || {}, ask = verb(who, "просила", "просил");
     if (reason === "variety") { const key = need.item || (need.items && need.items[0].item), a = sortAdj[key]; if (o.tpl === "T07") return "Я просил зелёные. Красные не надо!"; return "Я " + ask + " " + (a ? a[0] : "другие") + "."; }
     if (reason === "size") return need.sizeMsg || (o.tpl === "T10" ? "Я просила большую тыкву." : "Я " + ask + " крупные.");
-    if (reason === "qty") return "В записке — " + nomWord(need, info.want) + ". А тут — " + nomWord(need, info.got) + ".";
+    if (reason === "qty") {
+      if (need.kind === "tape") return info.got ? "Мне нужна одна доска, а тут — " + nounPhrase(info.got, "доска") + "." : "Доски нет. Отпили её мерной лентой в сарае и принеси.";
+      return "В записке — " + nomWord(need, info.want, info) + ". А тут — " + nomWord(need, info.got, info) + ".";
+    }
     if (reason === "basketN") return "Я " + ask + " " + nounPhrase(info.want, "корзинка", "в") + ".";
     if (reason === "perBasket") return "Я " + ask + " по " + nounPhrase(info.want, "яблоко", "по") + " в каждой корзинке.";
     if (reason === "half") return "Я " + ask + " поровну: " + (need.n / 2) + " красных и " + (need.n / 2) + " зелёных.";
     if (reason === "mass") return info.got ? "Тут " + fmtMass(info.got) + ". А нужно " + fmtMass(info.want) + "." : "Нужно " + fmtMass(info.want) + ".";
-    if (reason === "boxes") return info.all ? "Тут не все полные коробки." : "Мне нужны только полные коробки.";
+    if (reason === "boxes") return need.jars ? "Мне нужно молоко в банках." : info.own ? "Это не из моих яиц. Мне нужны коробки с моими яйцами." : "Мне нужны только полные коробки.";
     if (reason === "change") return moneyDiffText(info.diff);
     if (reason === "late") return o.tpl === "T10" ? "Я просила накануне, а праздник уже сегодня. Но всё равно спасибо!" : need.lateMsg || "Ты опоздал. Срок уже вышел.";
-    if (reason === "early") return "Внучка ещё не приехала. Приходи " + weekdayForm(wdOf(o.exactDay), "в") + ".";
+    if (reason === "early") return (o.tpl === "T21" ? "Внучка ещё не приехала. Приходи " : "Рано, приходи ") + comeText(o, info.day) + ".";
     return "";
   }
   const SKILL_OF = { variety: "readDetail", size: "readDetail", half: "readDetail", qty: "readQty", basketN: "readQty", perBasket: "readQty", late: "readTime", early: "readTime", mass: "mass", change: "twostep", boxes: "divrem" };
   // Проверка сдачи заказа. Порядок: early → late → variety/size → half → basketN → perBasket → boxes → mass → qty → change. Первая не прошедшая — причина.
+  // Заказ с lateOk (день рождения) принимают и в сам праздник, но только если принесли то, что просили: сначала предметы, потом срок.
+  // ctx.flags — те же флаги, что у доски цен: цены с копейками считаются так же, как их видит ребёнок.
   function checkOrder(o, offer, ctx) {
-    const need = o.need, items = (offer && offer.items) || {}, skills = {};
+    const need = o.need, items = (offer && offer.items) || {}, skills = {}, fl = ctx.flags || {};
     o.skills.forEach((s) => { skills[s] = 1; });
     const fail = (reason, info, extra) => {
       let sk = SKILL_OF[reason]; if (reason === "qty" || reason === "basketN" || reason === "perBasket") sk = o.qtySkill || sk; if (reason === "boxes") sk = "divrem";
@@ -1039,15 +1109,18 @@ const ORD = (function () {
       else { if (reason === "change" && o.tpl === "T19") skills.change = 0; skills[sk] = 0; }
       return Object.assign({ ok: false, reason, text: orderReason(o, reason, info), skills, info: info || {} }, extra);
     };
-    if (o.exactDay && ctx.day < o.exactDay) return fail("early");
+    if (o.exactDay && ctx.day < o.exactDay) return fail("early", { day: ctx.day });
+    let late = false;
     if ((o.deadlineDay && ctx.day > o.deadlineDay) || (o.exactDay && ctx.day > o.exactDay) || (o.deadlineTime && ctx.day === o.deadlineDay && ctx.time > o.deadlineTime && o.tpl !== "T04" && o.tpl !== "T13")) {
-      if (need.lateOk) { skills.readTime = 0; return { ok: true, late: true, reason: "late", text: orderReason(o, "late"), skills, info: {} }; }
-      return fail("late", null, { closed: true });
+      if (need.lateOk) late = true; else return fail("late", null, { closed: true });
     }
-    const okRes = () => ({ ok: true, reason: null, text: "", skills, info: {} });
+    const okRes = () => {
+      if (late) { skills.readTime = 0; return { ok: true, late: true, reason: "late", text: orderReason(o, "late"), skills, info: {} }; }
+      return { ok: true, reason: null, text: "", skills, info: {} };
+    };
     const k = need.kind;
     if (k === "give" || k === "sale") {
-      const list = k === "sale" ? need.items.map((i) => ({ fam: i.fam, item: i.item, n: i.n })) : null;
+      const list = k === "sale" ? need.items.map((i) => ({ fam: i.fam, item: i.item, n: i.n, noun: i.noun })) : null;
       if (k === "give" && !need.half) {
         const fam = need.fam, keys = need.items.map((i) => i.item), others = Object.keys(items).filter((x) => items[x] > 0 && keyFam(x) === fam && keys.indexOf(x) < 0 && !need.any && fam !== "letter" && fam !== "parcel");
         if (others.length) return fail(fam === "apple" || fam === "egg" ? "variety" : "size");
@@ -1061,9 +1134,9 @@ const ORD = (function () {
         if (red + green !== need.n) return fail("qty", { want: need.n, got: red + green });
         return okRes();
       }
-      for (const l of list) { const got = sum(Object.keys(items).filter((x) => keyFam(x) === l.fam).map((x) => items[x])); if (got !== l.n) return fail("qty", { want: l.n, got }, { qtyNoun: l.noun }); }
-      const price = sum(list.map((l) => priceOf(l.fam, ctx.day) * l.n)), diff = (offer.change || 0) - (need.B - price);
-      return diff ? fail("change", { diff }) : Object.assign(okRes(), { price });
+      for (const l of list) { const got = sum(Object.keys(items).filter((x) => keyFam(x) === l.fam).map((x) => items[x])); if (got !== l.n) return fail("qty", { want: l.n, got, noun: l.noun }); }
+      const price = sum(list.map((l) => priceOf(l.fam, ctx.day, fl) * l.n)), want = need.B - price, given = offer.change || 0, diff = given - want;
+      return diff ? fail("change", { diff, want, got: given }) : Object.assign(okRes(), { price });
     }
     if (k === "baskets") {
       const b = offer.baskets || [];
@@ -1089,41 +1162,48 @@ const ORD = (function () {
       return okRes();
     }
     if (k === "pack") {
-      const keys = need.jars ? ["jar"] : ["box:white", "box:brown"], want = need.jars || need.boxes, got = sum(keys.map((x) => items[x] || 0));
-      if (Object.keys(items).some((x) => items[x] > 0 && keys.indexOf(x) < 0)) return fail("boxes", { all: false });
-      if (got !== want) return need.jars ? fail("qty", { want, got }) : fail("boxes", { all: got < want });
+      // Яйца дяди Миши лежат в рюкзаке отдельно, и коробки из них тоже: ему нужны именно они (старые записки без boxKey берут любые коробки).
+      const keys = need.jars ? ["jar"] : need.boxKey ? [need.boxKey] : ["box:white", "box:brown"], want = need.jars || need.boxes, got = sum(keys.map((x) => items[x] || 0));
+      const others = Object.keys(items).filter((x) => items[x] > 0 && keys.indexOf(x) < 0);
+      if (others.length) return fail("boxes", { own: others.every((x) => keyFam(x) === "box") });
+      if (got !== want) return fail("qty", { want, got, noun: need.noun });
       return okRes();
     }
     if (k === "tape") return (items.plank || 0) === 1 ? okRes() : fail("qty", { want: 1, got: items.plank || 0 });
     if (k === "errand") {
       const got = items[need.item] || 0;
       if (got !== need.n) return fail("qty", { want: need.n, got });
-      if (need.back) { const diff = (offer.change || 0) - (need.B - need.n * need.price); if (diff) return fail("change", { diff }); }
+      if (need.back) { const want = need.B - need.n * need.price, given = offer.change || 0, diff = given - want; if (diff) return fail("change", { diff, want, got: given }); }
       return okRes();
     }
     return okRes();
   }
   const ITEM_WORD = { "apple:red": "красные яблоки", "apple:green": "зелёные яблоки", "egg:brown": "коричневые яйца", "egg:white": "белые яйца" };
-  // Строка для экрана взрослого: что именно пошло не так.
-  function orderErrText(o, reason, offer) {
-    const nb = NEIGHBORS[o.from], need = o.need, items = (offer && offer.items) || {}, key = need.item || (need.items && need.items[0].item);
+  // Строка для экрана взрослого: что именно пошло не так, с числами («дал сдачу 47 ₽ вместо 37 ₽», «взвесил 2 кг 200 г вместо 2 кг 300 г»).
+  function orderErrText(o, reason, offer, info) {
+    info = info || {}; const nb = NEIGHBORS[o.from], need = o.need, items = (offer && offer.items) || {}, key = need.item || (need.items && need.items[0].item), tail = " (заказ " + nb.short + ")";
     if (reason === "late") return "не успел " + (o.deadlineTime ? "к " + fmtTime(o.deadlineTime) : weekdayForm(wdOf(o.deadlineDay), "к")) + " с заказом " + nb.short;
-    if (reason === "early") return "пришёл к " + nb.short + " раньше срока";
-    if (need.kind === "pack" && (reason === "boxes" || reason === "qty")) {
-      const g = sum(Object.keys(items).filter((x) => keyFam(x) === "box" || keyFam(x) === "jar").map((x) => items[x]));
-      return "принёс " + nounPhrase(g, need.jars ? "банка" : "коробка", "в") + " вместо " + (need.jars || need.boxes) + " (заказ " + nb.short + ")";
+    if (reason === "early") return "пришёл с заказом " + nb.short + " раньше срока";
+    if (need.kind === "pack" && reason === "boxes") return need.jars ? "принёс не банки с молоком" + tail : info.own ? "принёс коробки не из яиц дяди Миши" + tail : "принёс яйца россыпью вместо полных коробок" + tail;
+    if (need.kind === "pack" && reason === "qty") {
+      const g = info.got !== undefined ? info.got : sum(Object.keys(items).filter((x) => keyFam(x) === "box" || keyFam(x) === "jar").map((x) => items[x]));
+      return "принёс " + nounPhrase(g, need.jars ? "банка" : "коробка", "в") + " вместо " + (need.jars || need.boxes) + tail;
     }
     if (reason === "variety") {
       const fam = keyFam(key || "apple"), bad = (offer.baskets && offer.baskets.length ? offer.baskets.map((b) => b.item) : Object.keys(items).filter((x) => items[x] > 0 && keyFam(x) === fam))[0];
       return "принёс " + (ITEM_WORD[bad] || "другие яблоки") + " вместо " + ((sortAdj[key] || [])[1] || "нужных");
     }
-    if (reason === "size") return "принёс мелкие вместо крупных (заказ " + nb.short + ")";
-    if (reason === "qty") { const g = sum(Object.keys(items).filter((x) => keyFam(x) === (need.fam || keyFam(key || ""))).map((x) => items[x])); return "принёс " + nounPhrase(g, need.noun || "штука") + " вместо " + (need.n || (need.items && need.items[0].n)); }
-    if (reason === "mass") return "взвесил не ту массу (заказ " + nb.short + ")";
-    if (reason === "change") return "дал сдачу не ту (заказ " + nb.short + ")";
-    if (reason === "half") return "принёс яблоки не поровну (заказ " + nb.short + ")";
-    if (reason === "basketN") return "принёс " + nounPhrase((offer.baskets || []).length, "корзинка", "в") + " вместо " + (need.c || 1) + " (заказ " + nb.short + ")";
-    if (reason === "perBasket") return "положил в корзинку " + nounPhrase(((offer.baskets || [])[0] || { n: 0 }).n, "яблоко", "в") + " вместо " + need.k + " (заказ " + nb.short + ")";
+    if (reason === "size") return "принёс мелкие вместо крупных" + tail;
+    if (reason === "qty") {
+      if (need.kind === "tape") return info.got ? "принёс " + nounPhrase(info.got, "доска", "в") + " вместо одной" + tail : "пришёл без доски длиной " + fmtLen(need.len) + tail;
+      const fam = need.fam || keyFam(key || ""), g = info.got !== undefined ? info.got : sum(Object.keys(items).filter((x) => keyFam(x) === fam).map((x) => items[x]));
+      return "принёс " + nounPhrase(g, info.noun || need.noun || "штука", "в") + " вместо " + (info.want !== undefined ? info.want : need.n || (need.items && need.items[0].n));
+    }
+    if (reason === "mass") return info.got ? "взвесил " + fmtMass(info.got) + " вместо " + fmtMass(info.want) + tail : "не принёс мешочек нужной массы" + tail;
+    if (reason === "change") return info.got !== undefined ? "дал сдачу " + fmtMoney(info.got) + " вместо " + fmtMoney(info.want) + tail : "дал сдачу не ту" + tail;
+    if (reason === "half") return "принёс яблоки не поровну" + tail;
+    if (reason === "basketN") return "принёс " + nounPhrase((offer.baskets || []).length, "корзинка", "в") + " вместо " + (need.c || 1) + tail;
+    if (reason === "perBasket") return "положил в корзинку " + nounPhrase(((offer.baskets || [])[0] || { n: 0 }).n, "яблоко", "в") + " вместо " + need.k + tail;
     return "заказ " + nb.short + ": не получилось";
   }
   /* --- подбор заданий дня --- */
@@ -1152,18 +1232,18 @@ const ORD = (function () {
     const pickN = (list, n, weakSk) => { const out = [], used = {}; order(list, weakSk).forEach((x) => { if (out.length < n && !used[x.tpl]) { used[x.tpl] = 1; out.push({ tpl: x.tpl, params: x.params }); } }); return out; };
     const mailbox = (!early && wd !== 6 && (day % 2 === 1 || weak === "duration" || weak === "clock")) ? pickN(cand.filter((x) => x.t.box), 1, weak === "change" ? null : weak) : [];
     const notes = pickN(cand.filter((x) => !x.t.box), Math.min(notesN - mailbox.length, room), weak && weak !== "change" && weakSlots > 0 ? weak : null);
-    const mk = (n, kind) => Array.from({ length: n }, (_, i) => ({ id: "b" + day + kind + i, name: BUYER_NAMES[(day * 3 + i + (kind === "m" ? 5 : 0)) % BUYER_NAMES.length], done: false, mass: kind === "m" && i === 1, want: c.lvl("change") >= 3 && i === 1 ? "items" : "total" }));
+    const mk = (n, kind) => Array.from({ length: n }, (_, i) => ({ id: "b" + day + kind + i, name: BUYER_NAMES[(day * 3 + i + (kind === "m" ? 5 : 0)) % BUYER_NAMES.length], done: false, mass: kind === "m" && i === 1, want: c.lvl("change") >= 4 && i === 1 ? "items" : "total" }));
     return { notes, mailbox, gate: mk(gateN, "g"), market: mk(marketN, "m") };
   }
   return { rng, rngInt, rngPick, priceOf, weekPrices, salePrice, payNote, coinCount, buyerWish, checkChange, rowCounts, runningTotals, shareCheck, shareTask, pack, packText, balance, tilt, weightsFor, fmtMass, fmtLen,
-    forecast, forecastText, dlText, dateWords, calendarInfo, splitSentences, renderNote, makeOrder, checkOrder, orderReason, orderErrText, planDay, TPL, supply };
+    forecast, forecastText, dlText, winText, comeText, dateWords, calendarInfo, splitSentences, renderNote, makeOrder, checkOrder, orderReason, orderErrText, planDay, TPL, supply };
 })();
 Object.assign(LOGIC, ORD);
 
 /* ---------- 3. STORE: localStorage и копия в db ---------- */
 const ORD_TPL = LOGIC.TPL;
 const STORE = (function () {
-  const KEY = "ferma-save", BADKEY = "ferma-save-bad", TESTKEY = "ferma-testDate", SCHEMA = 4, mode = { v: "local", ref: null, timer: null, writing: false, again: false, latest: null };
+  const KEY = "ferma-save", BADKEY = "ferma-save-bad", TESTKEY = "ferma-testDate", SCHEMA = 5, mode = { v: "local", ref: null, timer: null, writing: false, again: false, latest: null };
   function todayKey() {
     try { const t = localStorage.getItem(TESTKEY); if (t) return t; } catch (e) {}
     const d = new Date(), p = (n) => String(n).padStart(2, "0");
@@ -1231,7 +1311,7 @@ const STORE = (function () {
       const sk = o.skills[k];
       if (!isObj(sk)) { delete o.skills[k]; return; }
       const f = LOGIC.deepMerge({ hist: [], n: 0, ok: 0, level: 1, atLevel: 0, last: 0, errors: [] }, sk);
-      f.hist = f.hist.filter((v) => v === 0 || v === 1).slice(-20); f.level = clamp(Math.floor(f.level) || 1, 1, 3);
+      f.hist = f.hist.filter((v) => v === 0 || v === 1).slice(-20); f.level = clamp(Math.floor(f.level) || 1, 1, k === "change" ? 4 : 3);
       f.errors = f.errors.filter((e) => isObj(e) && typeof e.t === "string" && typeof e.day === "number");
       o.skills[k] = f;
     });
@@ -1251,6 +1331,9 @@ const STORE = (function () {
     ["gate", "market"].forEach((k) => { o.buyers[k] = o.buyers[k].filter((b) => isObj(b) && typeof b.id === "string" && typeof b.name === "string"); });
     o.piggy.saved = isInt(o.piggy.saved, 0, 1e8) ? o.piggy.saved : 0; o.piggy.goal = isInt(o.piggy.goal, 0, GOALS.length) ? o.piggy.goal : 0;
     o.piggy.bought = o.piggy.bought.filter((x) => GOALS.some((g) => g.id === x));
+    // выбранная цель должна быть не куплена и доступна; иначе — первая из доступных
+    const gAvail = (g) => o.piggy.bought.indexOf(g.id) < 0 && (g.after || []).every((x) => o.piggy.bought.indexOf(x) >= 0);
+    if (o.piggy.goal < GOALS.length && !gAvail(GOALS[o.piggy.goal])) { const first = GOALS.findIndex(gAvail); o.piggy.goal = first < 0 ? GOALS.length : first; }
     ["sold", "ordersDone", "harvested", "hseq"].forEach((k) => { if (!isInt(o.stats[k], 0, 1e7)) o.stats[k] = 0; });
     o.neighbors = o.neighbors.filter((x) => typeof x === "string" && NEIGHBORS[x]);
     return o;
@@ -1260,6 +1343,7 @@ const STORE = (function () {
   function migrate(obj) {
     if (!isObj(obj)) return defaultState();
     const src = Object.assign({}, obj), money = src.money, old = { boxes: src.boxes, jars: src.jars, loose: src.loose }, ver = isInt(src.v, 0, 1000) ? src.v : 0;
+    const oldGoal = isObj(src.piggy) && isInt(src.piggy.goal, 0, OLD_GOAL_IDS.length - 1) ? OLD_GOAL_IDS[src.piggy.goal] : null;
     let wallet = cleanWallet(src.wallet);
     delete src.money; delete src.wallet; delete src.boxes; delete src.jars; delete src.loose;
     if (!wallet && typeof money === "number" && isFinite(money) && money >= 0) wallet = LOGIC.walletAdd(LOGIC.makeChange(Math.round(money)), null);
@@ -1272,6 +1356,8 @@ const STORE = (function () {
       add("jar", old.jars);
       if (isObj(old.loose)) { add("egg:white", old.loose.eggWhite); add("egg:brown", old.loose.eggBrown); add("milk", old.loose.milkL); }
     }
+    // v4 → v5: цели копилки идут в другом порядке (курятник первым); номер выбранной цели переводим по названию
+    if (ver < 5 && oldGoal !== null) { const ni = GOALS.findIndex((g) => g.id === oldGoal); if (ni >= 0) out.piggy.goal = ni; }
     sanitize(out); out.v = SCHEMA; return out;
   }
   // Битую строку не затираем молча: копия в ferma-save-bad, чтобы взрослый мог её достать.
@@ -1377,8 +1463,8 @@ const logEvent = (t) => { S.log.today.push(t); };
 // Что сделано сегодня для списка дел: доска у почты прочитана, продано покупателям. Сам сбрасывается, когда день сменился.
 const dailyNow = () => { if (S.daily.day !== S.day) S.daily = { day: S.day, board: false, sold: 0 }; return S.daily; };
 const attempt = (id, ok, err) => {
-  S.skills[id] = LOGIC.recordAttempt(S.skills[id], ok, err, S.day);
-  // Копейки включаются один раз, когда сдача до 100 ₽ устойчива: уровень 3 и не меньше 0,9 за последние 20 попыток.
+  S.skills[id] = LOGIC.recordAttempt(S.skills[id], ok, err, S.day, id);
+  // Копейки включаются один раз, когда сдача до 100 ₽ устойчива: на втором уровне 20 попыток с точностью не меньше 0,9 — и «сдача» переходит на уровень 3.
   if (id === "change" && !S.flags.kopecks && LOGIC.kopecksReady(S.skills.change)) { S.flags.kopecks = true; logEvent("Теперь в кассе есть копейки: 1 рубль = 100 копеек"); }
 };
 const timeReason = (min) => (LOGIC.actionAllowed(S.time, min) ? "" : "До 21:00 не успеть");
@@ -1387,6 +1473,8 @@ const money = () => LOGIC.walletSum(S.wallet);
 const cropName = (c) => CROPS[c].name.toLowerCase();
 const byGender = (c, f, m) => (CROPS[c].g === "m" ? m : f);
 const shopOpen = () => LOGIC.isOpen("shop", S.day, S.time);
+// Рынок и почта закрываются, пока ребёнок в деревне: меню у них тогда серое с причиной «Рынок закрыт».
+const placeShut = (p) => (LOGIC.isOpen(p, S.day, S.time) ? "" : HOURS[p].nom + " " + HOURS[p].shut);
 const rowsBy = (rows, cols) => nounPhrase(rows, "ряд") + " по " + nounPhrase(cols, "клетка", "по");
 const inv = (k) => S.inv[k] || 0;
 const addInv = (k, n) => { S.inv[k] = Math.max(0, inv(k) + n); };
@@ -1515,7 +1603,7 @@ const BUILD = {
     Object.keys(ERRANDS).filter((k) => inv(k) > 0).forEach((k) => l.push(ERRANDS[k].label + ": " + nounPhrase(inv(k), ERRANDS[k].unit)));
     if (inv("parcel") > 0) l.push("Посылка для почты"); if (inv("letter") > 0) l.push("Письмо для деда Егора");
     S.bags.forEach((b) => l.push("Мешочек: " + LOGIC.fmtMass(b.g) + " " + BAGWORD[b.item]));
-    S.baskets.forEach((b) => l.push("Корзинка: " + nounPhrase(b.n, "яблоко") + " (" + ITEMS[b.item].label.toLowerCase().replace("яблоки ", "") + ")"));
+    S.baskets.forEach((b) => l.push("Корзинка: " + LOGIC.applePhrase(b.n, b.item === "apple:green" ? "green" : "red")));
     S.harvest.forEach((h) => l.push("Не записан урожай: " + cropName(h.crop) + ", грядка " + h.bed));
     d.lines = l.length ? l : ["В рюкзаке пока пусто."]; d.buttons = [B("close", "Закрыть", { cls: "gold" })];
   },
@@ -1539,13 +1627,13 @@ const BUILD = {
   notes(d) {
     const list = S.orders[d.data.where]; d.title = d.data.where === "mailbox" ? "Почтовый ящик" : "Записки"; d.buttons = [];
     d.lines = list.length ? [d.data.where === "mailbox" ? "В ящике лежит письмо от Веры. Прочитай записку." : "Выбери записку и прочитай её."] : [d.data.where === "mailbox" ? "В ящике пусто." : "Новых записок нет. Загляни завтра."];
-    list.forEach((o) => d.buttons.push(B("note:" + o.id, o.sentences[0], { row: 1, cls: "notecard", sub: NEIGHBORS[o.from].name })));
+    list.forEach((o) => d.buttons.push(B("note:" + o.id, noteGist(o), { row: 1, cls: "notecard", sub: NEIGHBORS[o.from].name })));
     d.buttons.push(B("close", "Закрыть", { row: 2, cls: list.length ? "" : "gold" }));
   },
   orders(d) {
     d.title = "Мои заказы"; d.buttons = [];
     d.lines = S.orders.active.length ? ["Взято заказов: " + S.orders.active.length + " из 3."] : ["Заказов пока нет. Прочитай записки на доске у почты."];
-    S.orders.active.forEach((o) => d.buttons.push(B("note:" + o.id, o.sentences[0], { row: 1, cls: "notecard", sub: "Где: " + placeText(o.place) + ". Срок: " + dlText(o) + "." })));
+    S.orders.active.forEach((o) => d.buttons.push(B("note:" + o.id, noteGist(o), { row: 1, cls: "notecard", sub: "Где: " + placeText(o.place) + ". Срок: " + dlText(o) + "." })));
     d.buttons.push(B("close", "Закрыть", { row: 2, cls: S.orders.active.length ? "" : "gold" }));
   },
   note(d) {
@@ -1557,7 +1645,7 @@ const BUILD = {
   },
   pick(d) {
     d.title = "Какой заказ?"; d.lines = ["Здесь ждут несколько заказов. Выбери один."]; d.buttons = [];
-    deliverable(d.data.obj).forEach((o) => d.buttons.push(B("order:" + o.id, o.sentences[0], { row: 1, cls: "notecard", sub: NEIGHBORS[o.from].name })));
+    deliverable(d.data.obj).forEach((o) => d.buttons.push(B("order:" + o.id, noteGist(o), { row: 1, cls: "notecard", sub: NEIGHBORS[o.from].name })));
     d.buttons.push(B("close", "Отмена", { row: 2 }));
   },
   deliver(d) {
@@ -1575,7 +1663,7 @@ const BUILD = {
       d.lines = ["Нужна доска длиной " + LOGIC.fmtLen(t.target) + ". Отметь на ленте, где пилить: нажми на доску."];
       if (!t.done) { const why = t.mark === null ? "Поставь метку на доске" : timeReason(ACTIONS.tape.min); d.buttons.push(B("cut", "Отпилить — " + ACTIONS.tape.min + " мин", { cls: "gold", enabled: !why, reason: why })); }
     } else if (t.phase === "read") {
-      d.lines = t.done ? [] : [t.what === "bed" ? "Измерь грядку " + t.bed + " в длину: растяни ленту вдоль неё." : "Измерь забор: растяни ленту вдоль него.", "Запиши длину: сколько метров и сколько сантиметров."];
+      d.lines = t.done ? [] : [t.what === "bed" ? "Лента лежит вдоль грядки " + t.bed + ". Посмотри, до какой отметки она доходит." : "Лента лежит вдоль забора. Посмотри, до какой отметки он доходит.", "Запиши длину: сколько метров и сколько сантиметров."];
     } else d.lines = t.done ? [] : ["Длина забора — " + LOGIC.fmtLen(t.len) + ". Секции по " + SECTION + " см.", "Запиши: сколько получится полных секций и сколько сантиметров останется."];
     d.buttons.push(B("close", t.done ? "Закрыть" : "Отмена", { cls: t.done ? "gold" : "" }));
   },
@@ -1584,7 +1672,7 @@ const BUILD = {
   prices(d) { d.title = "Цены этой недели"; d.lines = []; d.buttons = [B("close", "Закрыть", { cls: "gold" })]; },
   piggy(d) {
     const g = goalNow(); d.title = "Копилка"; d.buttons = [];
-    d.lines = g ? ["Цель: " + g.name + " — " + fmtMoney(g.price) + ".", "Накоплено " + fmtMoney(S.piggy.saved) + ". Осталось " + fmtMoney(Math.max(0, g.price - S.piggy.saved)) + "."] : ["Ферма построена! Можно копить на что угодно.", "Накоплено " + fmtMoney(S.piggy.saved) + "."];
+    d.lines = g ? ["Цель: " + g.name.toLowerCase() + " — " + fmtMoney(g.price) + ".", "Накоплено " + fmtMoney(S.piggy.saved) + ". Осталось " + fmtMoney(Math.max(0, g.price - S.piggy.saved)) + "."] : ["Ферма построена! Можно копить на что угодно.", "Накоплено " + fmtMoney(S.piggy.saved) + "."];
     GOALS.forEach((x, i) => { if (S.piggy.bought.indexOf(x.id) < 0 && goalAvail(x)) d.buttons.push(B("goal:" + i, x.name + " — " + fmtMoney(x.price), { row: 1, cls: i === S.piggy.goal ? "sel" : "" })); });
     if (g) { const left = g.price - S.piggy.saved; d.buttons.push(B("buy", "Купить: " + g.name.toLowerCase(), { row: 2, cls: "gold", enabled: left <= 0, reason: left <= 0 ? "" : "Не хватает " + LOGIC.moneyWords(left, "р") })); }
     d.buttons.push(B("close", "Закрыть", { row: 2 }));
@@ -1619,7 +1707,8 @@ const BUILD = {
       egg ? "Запиши: сколько получится полных коробок и сколько яиц останется." : "Запиши: сколько получится полных банок и сколько литров останется."];
     if (t.mode === "count" && !t.done && t.step > 0) d.lines.push((egg ? "Коробка " : "Банка ") + t.step + " заполнена. Полных " + (egg ? "коробок" : "банок") + ": " + t.step + ".");
     if (t.mode === "count" && !t.done && t.step >= parts.full) d.lines.push((egg ? "Яиц осталось: " : "Литров осталось: ") + parts.rest + ".");
-    if (!t.done && egg && inv("egg:white") > 0 && inv("egg:brown") > 0) [["white", "Белые: " + inv("egg:white")], ["brown", "Коричневые: " + inv("egg:brown")]].forEach((c) => d.buttons.push(B("color:" + c[0], c[1], { row: 1, cls: t.color === c[0] ? "sel" : "" })));
+    const tabs = [["white", "Белые: "], ["brown", "Коричневые: "], ["misha", "Яйца дяди Миши: "]].filter((c) => inv("egg:" + c[0]) > 0);
+    if (!t.done && egg && tabs.length > 1) tabs.forEach((c) => d.buttons.push(B("color:" + c[0], c[1] + inv("egg:" + c[0]), { row: 1, cls: t.color === c[0] ? "sel" : "" })));
     if (t.mode === "count" && !t.done && t.step < parts.full) d.buttons.push(B("next", "Дальше", { row: 2, cls: "gold" }));
     d.buttons.push(B("close", t.done ? "Закрыть" : "Отмена", { row: 2, cls: t.done ? "gold" : "" }));
   },
@@ -1670,10 +1759,10 @@ function buildMenu(id) {
     btns.push(B("water", "Полить грядку — " + wMin + " мин", { act: true, enabled: !(!b.crop || ripe || b.watered || timeReason(wMin)), reason: !b.crop ? "Сначала посей" : ripe ? "Урожай уже созрел" : b.watered ? (rain ? "Сегодня дождь — грядка полита" : "Уже полита") : timeReason(wMin) }));
   } else if (id === "house") { btns.push(B("piggy", "Копилка", { act: true })); btns.push(B("calendar", "Календарь", { act: true })); btns.push(B("sleep", "Спать", { act: true })); }
   else if (id === "coop") {
-    const eggs = [inv("egg:white") ? LOGIC.eggPhrase(inv("egg:white"), "white") : "", inv("egg:brown") ? LOGIC.eggPhrase(inv("egg:brown"), "brown") : ""].filter(Boolean);
+    const eggs = ["white", "brown", "misha"].filter((c) => inv("egg:" + c) > 0).map((c) => LOGIC.eggPhrase(inv("egg:" + c), c));
     title = "Курятник: " + nounPhrase(S.animals.hensWhite + S.animals.hensBrown, "курица") + "." + (eggs.length ? " В корзине: " + eggs.join(" и ") + "." : "");
     btns.push(mb("hens", S.animals.fedDay === S.day ? "Сегодня яйца уже собраны" : timeReason(ACTIONS.hens.min)));
-    btns.push(mb("packEggs", inv("egg:white") + inv("egg:brown") <= 0 ? "Нет яиц" : timeReason(ACTIONS.packEggs.min)));
+    btns.push(mb("packEggs", inv("egg:white") + inv("egg:brown") + inv("egg:misha") <= 0 ? "Нет яиц" : timeReason(ACTIONS.packEggs.min)));
   } else if (id === "cowshed") {
     title = "Коровник: корова Зорька." + (inv("milk") ? " В бидоне: " + nounPhrase(inv("milk"), "литр") + "." : "");
     btns.push(mb("milk", S.animals.milkedDay === S.day ? "Сегодня корова уже подоена" : timeReason(ACTIONS.milk.min)));
@@ -1682,7 +1771,7 @@ function buildMenu(id) {
   else if (id === "stall") {
     const left = S.buyers.gate.filter((b) => !b.done).length, sat = LOGIC.dateOfDay(S.day).wd === 5;
     title = sat ? "Прилавок у калитки. По субботам торгуют на рынке." : left ? "Прилавок у калитки. Сегодня у калитки " + plural(left, "ждёт", "ждут", "ждут") + ": " + nounPhrase(left, "покупатель") + "." : "Прилавок у калитки. Покупателей больше нет.";
-    btns.push(mb("serve", !left ? "Покупателей больше нет" : !LOGIC.buyerWish(S.inv, S.day, S.flags, 1, 0) ? "Нечего продавать: в рюкзаке нет урожая" : timeReason(ACTIONS.serve.min)));
+    btns.push(mb("serve", !left ? "Покупателей больше нет" : !LOGIC.buyerWish(S.inv, S.day, S.flags, changeLevel(), 0) ? "Нечего продавать: в рюкзаке нет урожая" : timeReason(ACTIONS.serve.min)));
   }
   else if (id === "shed") {
     title = S.harvest.length ? "Сарай. Урожай ждёт записи в книгу." : "Сарай";
@@ -1696,16 +1785,17 @@ function buildMenu(id) {
     if (!live.length) title = "В этом доме пока никто не живёт.";
     else { title = "Дом: " + live.map((n) => NEIGHBORS[n].name).join(" и "); btns.push(mb("deliver", deliverable(id).length ? timeReason(ACTIONS.deliver.min) : "Тут нет твоих заказов")); }
   } else if (id === "post") {
-    title = "Почта. Здесь работает почтальон Вера.";
-    btns.push(mb("postSend", S.orders.active.some((x) => x.need.kind === "post" && x.need.sub === "send") ? timeReason(ACTIONS.postSend.min) : "У тебя нет посылки"));
-    btns.push(mb("postTake", S.orders.active.some((x) => x.need.kind === "post" && x.need.sub === "take") ? timeReason(ACTIONS.postTake.min) : "Для тебя нет посылки"));
-    if (deliverable(id).length) btns.push(mb("deliver", timeReason(ACTIONS.deliver.min)));
+    const shut = placeShut("post");
+    title = shut ? "Почта закрыта. " + LOGIC.hoursText("post").replace(/^Почта\. /, "") : "Почта. Здесь работает почтальон Вера.";
+    btns.push(mb("postSend", shut || (S.orders.active.some((x) => x.need.kind === "post" && x.need.sub === "send") ? timeReason(ACTIONS.postSend.min) : "У тебя нет посылки")));
+    btns.push(mb("postTake", shut || (S.orders.active.some((x) => x.need.kind === "post" && x.need.sub === "take") ? timeReason(ACTIONS.postTake.min) : "Для тебя нет посылки")));
+    if (deliverable(id).length) btns.push(mb("deliver", shut || timeReason(ACTIONS.deliver.min)));
   } else if (id === "market") {
-    const left = S.buyers.market.filter((b) => !b.done).length;
-    title = "Рынок. " + (left ? "Покупателей в очереди: " + left + "." : "Очередь закончилась.");
-    btns.push(mb("trade", !left ? "Покупателей больше нет" : !LOGIC.buyerWish(S.inv, S.day, S.flags, 1, 0) ? "Нечего продавать: в рюкзаке нет урожая" : timeReason(ACTIONS.trade.min)));
-    btns.push(mb("weigh", Object.keys(MASS).some((f) => famCount(f) > 0) ? timeReason(ACTIONS.weigh.min) : "Нечего взвешивать"));
-    if (S.orders.active.some((x) => x.need.kind === "meet" && x.place === "market")) btns.push(mb("help", timeReason(ACTIONS.help.min)));
+    const left = S.buyers.market.filter((b) => !b.done).length, shut = placeShut("market");
+    title = shut ? "Рынок закрыт. Работает по субботам с 8:00 до 12:00." : "Рынок. " + (left ? "Покупателей в очереди: " + left + "." : "Очередь закончилась.");
+    btns.push(mb("trade", shut || (!left ? "Покупателей больше нет" : !LOGIC.buyerWish(S.inv, S.day, S.flags, changeLevel(), 0) ? "Нечего продавать: в рюкзаке нет урожая" : timeReason(ACTIONS.trade.min))));
+    btns.push(mb("weigh", shut || (Object.keys(MASS).some((f) => famCount(f) > 0) ? timeReason(ACTIONS.weigh.min) : "Нечего взвешивать")));
+    if (S.orders.active.some((x) => x.need.kind === "meet" && x.place === "market")) btns.push(mb("help", shut || timeReason(ACTIONS.help.min)));
   } else if (id === "well") {
     title = "Колодец";
     btns.push(mb("help", S.orders.active.some((x) => x.need.kind === "meet" && x.place === "well") ? timeReason(ACTIONS.help.min) : "Тут никто не ждёт"));
@@ -1764,7 +1854,7 @@ function doHarvest(b) {
   const n = sumArr(b.sown), big = b.missed === 0 ? n : 0, c = b.crop;
   S.stats.hseq++; S.harvest.push({ id: "h" + S.stats.hseq, bed: b.id, crop: c, rows: b.rows, cols: b.cols, grid: b.sown.slice(), big, small: n - big });
   logEvent("Собрал урожай на грядке " + b.id);
-  b.crop = null; b.sown = new Array(b.rows * b.cols).fill(0); b.highlight = []; b.growth = 0; b.missed = 0; b.watered = false;
+  b.crop = null; b.sown = new Array(b.rows * b.cols).fill(0); b.highlight = []; b.growth = 0; b.missed = 0; b.watered = LOGIC.weatherOf(S.day) === "rain";   // под дождём пересеянная грядка остаётся политой
   openDialog({ kind: "info", title: "Урожай", data: { obj: "bed" + b.id }, reply: "Урожай в корзине. Запиши его в амбарную книгу в сарае." });
   beep("done"); spend(min);
   return OK();
@@ -1797,10 +1887,10 @@ const APPLES = { red: 16, green: 12 };
 function doPickApples(tree) {
   if (S.trees[tree].picked === S.day) return fail("Яблоки сегодня уже собраны");
   if (timeReason(ACTIONS.pickApples.min)) return fail(timeReason(ACTIONS.pickApples.min));
-  const n = APPLES[tree], adj = tree === "red" ? "красных" : "зелёных";
+  const n = APPLES[tree], col = tree === "red" ? "red" : "green";
   S.trees[tree].picked = S.day; addInv("apple:" + tree, n); invalidateBg();
-  logEvent("Собрал " + nounPhrase(n, "яблоко", "в") + " (" + (tree === "red" ? "красные" : "зелёные") + ")");
-  openDialog({ kind: "info", title: "Яблоки", data: { obj: tree === "red" ? "treeRed" : "treeGreen" }, reply: "Собрано: " + n + " " + adj + " " + plural(n, "яблоко", "яблока", "яблок") + "." });
+  logEvent("Собрал " + LOGIC.applePhrase(n, col));
+  openDialog({ kind: "info", title: "Яблоки", data: { obj: tree === "red" ? "treeRed" : "treeGreen" }, reply: "Собрано: " + LOGIC.applePhrase(n, col) + "." });
   beep("done"); spend(ACTIONS.pickApples.min); return OK();
 }
 /* --- яблоки: раскладывание по корзинкам --- */
@@ -1819,9 +1909,12 @@ function shareState(d) {
   const eq = t.pile === 0 && LOGIC.shareCheck(t.cells).equal;
   if (eq) { t.phase = "write"; t.k = t.cells[0]; d.reply = "Поровну!"; }
 }
+// Подпись «по k в корзинке»: «по 4 яблока», а для 1 и 21 — «в каждой корзинке 1 яблоко» (после «по» они не склоняются).
+const perText = (k) => (LOGIC.poSafe(k) ? "в корзинках по " + nounPhrase(k, "яблоко", "по") : "в каждой корзинке " + nounPhrase(k, "яблоко"));
 function finishShare(d) {
   const t = d.data;
-  if (!t.tried) { t.tried = true; t.firstOk = +t.pad === t.k; attempt("divrem", t.firstOk, t.firstOk ? "" : "в корзинках по " + t.k + " яблок, а написал " + t.pad); }
+  // Раскладывание — «деление с остатком» (пишется, когда куча кончилась, см. basketTap), а запись «по k в корзинке» — «массивы»
+  if (!t.tried) { t.tried = true; t.firstOk = +t.pad === t.k; attempt("arrays", t.firstOk, t.firstOk ? "" : perText(t.k) + ", а написал " + t.pad); }
   if (+t.pad !== t.k) { t.hl = 0; d.reply = "Посчитай яблоки в одной корзинке."; beep("no"); return fail(d.reply); }
   if (timeReason(ACTIONS.share.min)) { d.reply = timeReason(ACTIONS.share.min); return fail(d.reply); }
   if (t.order) for (let i = 0; i < t.c; i++) {
@@ -1849,7 +1942,7 @@ function finishBasket(d) {
 /* --- продажа: покупатель даёт купюру, сдачу собирает ребёнок из кассы --- */
 const saleNounText = (key, q, cs) => (key === "potato" ? q / 4 + " кг картошки" : key.indexOf("box:") === 0 ? nounPhrase(q, "коробка", cs) + " яиц" : key === "jar" ? nounPhrase(q, "банка", cs) + " молока" : nounPhrase(q, ITEMS[key].noun, cs));
 const goodsText = (items) => joinAnd(items.map((i) => saleNounText(i.key, i.q, "в")));
-const changeLevel = () => Math.min(3, S.skills.change ? S.skills.change.level : 1);
+const changeLevel = () => LOGIC.changeStage(S.skills.change);
 function openSale(o) {
   const items = o.items || [], price = o.price, paid = o.paid, name = o.name || "Покупатель";
   const wantItems = o.want === "items" && items.length > 1;
@@ -1858,12 +1951,21 @@ function openSale(o) {
 }
 function startBuyer(list, market) {
   const idx = list.findIndex((b) => !b.done); if (idx < 0) return fail("Покупателей больше нет");
+  if (market && !LOGIC.isOpen("market", S.day, S.time)) { openDialog({ kind: "closed", data: { place: "market" }, reply: "Рынок закрывается, приходи в следующую субботу." }); return fail("Рынок закрыт"); }
   if (timeReason(ACTIONS.serve.min)) return fail(timeReason(ACTIONS.serve.min));
+  const lvl = changeLevel();
   if (market && list[idx].mass && famCount("potato") >= 4) {
-    const m = [2000, 1000, 1500].filter((g) => g / 250 <= famCount("potato") && LOGIC.priceOf("potato", S.day, S.flags) * g / 1000 % 100 === 0)[0];
+    // «весовому» покупателю дают такую массу, чтобы сумма влезла в границы ступени «сдачи» (1-я: 1 кг не дороже 49 ₽; 2-я: до 99 ₽; дальше больше): 2 кг, 1 кг или 1 кг 500 г
+    const pp = LOGIC.priceOf("potato", S.day, lvl >= 3 ? S.flags : null), cap = lvl < 2 ? 4900 : lvl < 2.5 ? 9900 : lvl === 3 ? 9999 : 49999;
+    const m = (lvl < 2 ? [1000] : [2000, 1000, 1500]).filter((g) => g / 250 <= famCount("potato") && pp * g / 1000 % 100 === 0 && pp * g / 1000 <= cap)[0];
     if (m) return openWeigh({ obj: "market", item: "potato", target: m, buyer: list[idx], market: true, label: "Покупатель просит взвесить:" });
   }
-  const w = LOGIC.buyerWish(S.inv, S.day, S.flags, changeLevel(), idx, { items: list[idx].want === "items" }); if (!w) return fail("Нечего продавать: в рюкзаке нет урожая");
+  const w = LOGIC.buyerWish(S.inv, S.day, S.flags, lvl, idx, { items: list[idx].want === "items" }); if (!w) return fail("Нечего продавать: в рюкзаке нет урожая");
+  if (w.none) {   // нужного дешёвого товара нет: покупатель называет его и уходит, это не попытка «сдачи»
+    list[idx].done = true;
+    openDialog({ kind: "info", title: market ? "Рынок" : "Прилавок", data: { obj: market ? "market" : "stall" }, reply: list[idx].name + ": «" + (w.few ? "Маловато. Тогда зайду завтра." : w.ask === "apple" ? "Яблок нет. Тогда зайду завтра." : "Морковки нет. Тогда зайду завтра.") + "»" });
+    return OK();
+  }
   openSale({ items: w.items, price: w.total, paid: LOGIC.payNote(w.total, changeLevel()), want: w.want, name: list[idx].name, buyer: list[idx].id, market, obj: market ? "market" : "stall" });
   return OK();
 }
@@ -1882,7 +1984,9 @@ function submitSale(d) {
   [S.buyers.gate, S.buyers.market].forEach((l) => l.forEach((b) => { if (b.id === t.buyer) b.done = true; }));
   logEvent("Продал " + (t.items.length ? goodsText(t.items) : "товар") + " — " + LOGIC.moneyWords(t.price));
   dailyNow().sold++;
-  t.done = true; d.reply = "Спасибо!" + (!kBefore && S.flags.kopecks ? " Теперь в кассе есть копейки: 1 рубль = 100 копеек." : ""); beep("coin"); spend(ACTIONS.serve.min); return OK();
+  t.done = true; d.reply = "Спасибо!" + (!kBefore && S.flags.kopecks ? " Теперь в кассе есть копейки: 1 рубль = 100 копеек." : ""); beep("coin"); spend(ACTIONS.serve.min);
+  if (t.market && S.time < DAY_END && !LOGIC.isOpen("market", S.day, S.time)) d.reply += " Рынок закрывается, приходи в следующую субботу.";
+  return OK();
 }
 const laidOf = (m) => Object.keys(m).reduce((a, k) => a + (+k) * m[k], 0);
 /* --- весы с гирями --- */
@@ -1934,6 +2038,8 @@ const itemLabel = (k) => (ITEMS[k] ? ITEMS[k].label : ERRANDS[k] ? ERRANDS[k].la
 const orderById = (id) => S.orders.active.find((o) => o.id === id);
 const deliverable = (obj) => S.orders.active.filter((o) => o.place === obj && ["give", "baskets", "share", "weigh", "errand", "sale", "pack", "tape"].indexOf(o.need.kind) >= 0);
 const noteLines = (o) => (S.settings.split ? o.sentences : [o.text]);
+// Строка с сутью на карточке записки: первое предложение с числом; если чисел нет — первое, кроме приветствия. Подпись («— Катя») карточка показывает отдельно.
+const noteGist = (o) => { const ss = o.sentences.filter((x) => x.charAt(0) !== "—"); return ss.find((x) => /\d/.test(x)) || ss.find((x) => !/^Привет/.test(x)) || ss[0] || o.sentences[0]; };
 function takeOrder(id) {
   const where = S.orders.board.some((o) => o.id === id) ? "board" : S.orders.mailbox.some((o) => o.id === id) ? "mailbox" : null;
   if (!where) return fail("Такой записки нет");
@@ -1947,17 +2053,30 @@ function takeOrder(id) {
 function thanks(o, res) {
   let t = res.late ? res.text + " " : "";
   t += o.reward > 0 ? "Вот спасибо! Держи " + LOGIC.moneyWords(o.reward) + "." : "Спасибо! Как раз то, что нужно.";
-  if (o.gift) t += " И ещё пакетик семян в подарок.";
+  if (o.gift || o.giftPk) t += " И ещё пакетик семян в подарок.";
   return t;
 }
-function payReward(o) { if (o.reward > 0) S.wallet = LOGIC.walletAdd(S.wallet, LOGIC.makeChange(o.reward)); if (o.gift) Object.keys(o.gift).forEach((k) => addInv(k, o.gift[k])); }
+// Подарок семенами считается пакетиками по текущему размеру (на втором уровне «деления» морковь — по 12); gift у старых записок — готовое число семян.
+function payReward(o) {
+  if (o.reward > 0) S.wallet = LOGIC.walletAdd(S.wallet, LOGIC.makeChange(o.reward));
+  if (o.gift) Object.keys(o.gift).forEach((k) => addInv(k, o.gift[k]));
+  if (o.giftPk) Object.keys(o.giftPk).forEach((k) => addInv(k, o.giftPk[k] * packetOf(k.slice(5))));
+}
+// Закрытый заказ забирает у ребёнка то, что выдали при взятии: посылку, письмо, яйца дяди Миши (и коробки из них). Свои яйца не трогаем.
+function returnTaken(o) {
+  if (!o.take) return;
+  Object.keys(o.take).forEach((k) => {
+    addInv(k, -Math.min(inv(k), o.take[k]));
+    if (k === "egg:misha") addInv("box:misha", -Math.min(inv("box:misha"), Math.floor(o.take[k] / 10)));
+  });
+}
 function finishOrder(o) {
   S.orders.active = S.orders.active.filter((x) => x.id !== o.id); S.orders.done.push(o.id); S.stats.ordersDone++;
   logEvent("Выполнил заказ " + NEIGHBORS[o.from].short); beep("coin");
 }
 function recordOrder(o, res, offer) {
   if (o.tried) return; o.tried = true;
-  Object.keys(res.skills).forEach((sk) => attempt(sk, res.skills[sk] === 1, res.skills[sk] === 1 ? "" : LOGIC.orderErrText(o, res.reason, offer)));
+  Object.keys(res.skills).forEach((sk) => attempt(sk, res.skills[sk] === 1, res.skills[sk] === 1 ? "" : LOGIC.orderErrText(o, res.reason, offer, res.info)));
 }
 function submitDeliver(d) {
   const t = d.data, o = orderById(t.oid); if (!o) return fail("Заказа уже нет");
@@ -1966,11 +2085,11 @@ function submitDeliver(d) {
   const empty = !sumArr(Object.keys(of.items).map((k) => of.items[k])) && !offer.baskets.length && !offer.bags.length;
   if (empty) { d.reply = "Сначала выбери, что отдать."; return fail(d.reply); }
   if (timeReason(ACTIONS.deliver.min)) { d.reply = timeReason(ACTIONS.deliver.min); return fail(d.reply); }
-  const res = LOGIC.checkOrder(o, offer, { day: S.day, time: S.time });
+  const res = LOGIC.checkOrder(o, offer, { day: S.day, time: S.time, flags: S.flags });
   if (!res.ok) {
     if (res.reason !== "early") recordOrder(o, res, offer);
     d.reply = res.text; beep("no");
-    if (res.closed) { S.orders.active = S.orders.active.filter((x) => x.id !== o.id); delete S.orders.envelopes[o.id]; logEvent("Не успел заказ " + NEIGHBORS[o.from].short + " — срок был " + dlText(o)); t.done = true; }
+    if (res.closed) { S.orders.active = S.orders.active.filter((x) => x.id !== o.id); delete S.orders.envelopes[o.id]; returnTaken(o); logEvent("Не успел заказ " + NEIGHBORS[o.from].short + " — срок был " + dlText(o)); t.done = true; }
     return fail(res.text);
   }
   recordOrder(o, res, offer);
@@ -1983,10 +2102,13 @@ function submitDeliver(d) {
     if (need.back) env = LOGIC.walletAdd(env, of.change, -1);
     S.wallet = LOGIC.walletAdd(S.wallet, env); delete S.orders.envelopes[o.id];
   }
-  payReward(o); finishOrder(o); t.done = true; d.reply = thanks(o, res); spend(ACTIONS.deliver.min); return OK();
+  // Яйца дяди Миши, которые не поместились в коробки, он оставляет ребёнку: они становятся его белыми яйцами.
+  let rest = 0; if (o.take && o.take["egg:misha"]) { rest = inv("egg:misha"); addInv("egg:misha", -rest); addInv("egg:white", rest); }
+  payReward(o); finishOrder(o); t.done = true; d.reply = thanks(o, res) + (rest > 0 ? (rest === 1 ? " Оставшееся яйцо оставь себе." : " Оставшиеся яйца оставь себе.") : ""); spend(ACTIONS.deliver.min); return OK();
 }
 function openDeliver(m, oid) {
   const list = deliverable(m.obj); if (!list.length) return fail("Тут нет твоих заказов");
+  if (m.obj === "post" && placeShut("post")) return fail(placeShut("post"));
   if (timeReason(ACTIONS.deliver.min)) return fail(timeReason(ACTIONS.deliver.min));
   if (!oid && list.length > 1) { openDialog({ kind: "pick", data: { obj: m.obj } }); return OK(); }
   const o = list.find((x) => x.id === oid) || list[0];
@@ -1994,6 +2116,7 @@ function openDeliver(m, oid) {
 }
 function postSend(m) {
   const o = S.orders.active.find((x) => x.need.kind === "post" && x.need.sub === "send"); if (!o) return fail("У тебя нет посылки");
+  if (placeShut("post")) return fail(placeShut("post"));
   if (timeReason(ACTIONS.postSend.min)) return fail(timeReason(ACTIONS.postSend.min));
   if (S.time + ACTIONS.postSend.min > o.deadlineTime) {
     const t = "отправил посылку в " + fmtTime(S.time) + ", а нужно было до " + fmtTime(o.deadlineTime);
@@ -2007,21 +2130,24 @@ function postSend(m) {
 }
 function postTake(m) {
   const o = S.orders.active.find((x) => x.need.kind === "post" && x.need.sub === "take"); if (!o) return fail("Для тебя нет посылки");
+  if (placeShut("post")) return fail(placeShut("post"));
   if (timeReason(ACTIONS.postTake.min)) return fail(timeReason(ACTIONS.postTake.min));
+  const from = o.need.from;
+  if (from && S.time < from) { openDialog({ kind: "meetWait", data: { obj: m.obj, oid: o.id, at: from, then: "postTake" }, lines: ["Вера отдаст посылку после " + fmtTime(from) + "."] }); return OK(); }
   o.skills.forEach((sk) => attempt(sk, true)); payReward(o); finishOrder(o);
-  openDialog({ kind: "info", title: "Почта", data: { obj: m.obj }, reply: "Посылка получена. В ней — 2 пакетика семян моркови." });
+  openDialog({ kind: "info", title: "Почта", data: { obj: m.obj }, reply: "Посылка получена. В ней — " + nounPhrase(o.giftPk ? o.giftPk["seed:carrot"] : 2, "пакетик") + " семян моркови." });
   spend(ACTIONS.postTake.min); return OK();
 }
 function doHelp(m) {
   const o = S.orders.active.find((x) => x.need.kind === "meet" && x.place === m.obj); if (!o) return fail("Тут никто не ждёт");
   const [a, b] = o.window, nb = NEIGHBORS[o.from], cap = capital(nb.gen), pron = nb.g === "f" ? "Она" : "Он", where = o.need.at === "well" ? "к колодцу" : "на рынок";
   if (S.day !== o.deadlineDay) return fail("Тут никто не ждёт");
-  if (S.time < a) { openDialog({ kind: "meetWait", data: { obj: m.obj, oid: o.id, at: a }, lines: [cap + " ещё нет. " + pron + " будет в " + fmtTime(a) + "."] }); return OK(); }
+  if (S.time < a) { openDialog({ kind: "meetWait", data: { obj: m.obj, oid: o.id, at: a }, lines: [cap + " ещё нет. " + pron + " будет " + (o.after ? "после " : "в ") + fmtTime(a) + "."] }); return OK(); }
   if (S.time >= b) {
-    const t = "пришёл " + where + " в " + fmtTime(S.time) + ", а " + nb.name + " ждал в " + fmtTime(a);
+    const t = "пришёл " + where + " в " + fmtTime(S.time) + ", а " + nb.name + " ждал " + LOGIC.winText(o);
     orderFailSkills(o).forEach((sk) => attempt(sk, false, t)); S.orders.active = S.orders.active.filter((x) => x.id !== o.id);
-    logEvent("Не успел заказ " + nb.short + " — срок был в " + fmtTime(a));
-    openDialog({ kind: "info", title: "Опоздал", data: { obj: m.obj }, reply: cap + " уже нет. " + pron + " ждал в " + fmtTime(a) + "." }); beep("no"); return OK();
+    logEvent("Не успел заказ " + nb.short + " — срок был " + dlText(o));
+    openDialog({ kind: "info", title: "Опоздал", data: { obj: m.obj }, reply: cap + " уже нет. " + pron + " ждал " + LOGIC.winText(o) + "." }); beep("no"); return OK();
   }
   if (timeReason(ACTIONS.help.min)) return fail(timeReason(ACTIONS.help.min));
   orderFailSkills(o).forEach((sk) => attempt(sk, true)); payReward(o); finishOrder(o);
@@ -2055,7 +2181,10 @@ function openPack(m, what) {
   const act = what === "egg" ? ACTIONS.packEggs : ACTIONS.packMilk;
   if (timeReason(act.min)) return fail(timeReason(act.min));
   let color = null;
-  if (what === "egg") { const w = inv("egg:white"), b = inv("egg:brown"); if (w + b <= 0) return fail("Нет яиц"); color = w >= b ? "white" : "brown"; }
+  if (what === "egg") {
+    const w = inv("egg:white"), b = inv("egg:brown"), mi = inv("egg:misha"); if (w + b + mi <= 0) return fail("Нет яиц");
+    color = mi > 0 ? "misha" : w >= b ? "white" : "brown";   // яйца дяди Миши раскладываем первыми: по ним записка
+  }
   else if (inv("milk") <= 0) return fail("Молока нет");
   const t = { obj: m.obj, what, color, total: 0, fields: ["", ""], field: 0, mode: "enter", step: 0, tried: false, done: false };
   t.total = packTotal(t);
@@ -2081,9 +2210,9 @@ function submitPack(d) {
   if (timeReason(act.min)) { d.reply = timeReason(act.min); return fail(d.reply); }
   if (!t.tried) attempt("divrem", true);
   if (egg) { addInv("egg:" + t.color, -parts.full * size); addInv("box:" + t.color, parts.full); } else { addInv("milk", -parts.full * size); addInv("jar", parts.full); }
-  logEvent(egg ? "Разложил яйца: " + nounPhrase(parts.full, "коробка", "в") : "Разлил молоко: " + nounPhrase(parts.full, "банка", "в"));
+  logEvent(egg ? (parts.full ? "Разложил яйца: " + nounPhrase(parts.full, "коробка", "в") : "Пересчитал яйца: полных коробок нет") : (parts.full ? "Разлил молоко: " + nounPhrase(parts.full, "банка", "в") : "Пересчитал молоко: полных банок нет"));
   t.done = true; t.step = parts.full; t.mode = "count";
-  d.reply = "Получилось: " + (LOGIC.packText(LOGIC.pack(t.total, size, parts.full), egg ? "box" : "jar") || "ничего не поместилось.");
+  d.reply = "Получилось: " + LOGIC.packText(LOGIC.pack(t.total, size, parts.full), egg ? "box" : "jar");
   beep("done"); spend(act.min); return OK();
 }
 /* --- мерная лента (после амбара): отпилить доску для деда Егора и измерить грядку или забор --- */
@@ -2164,21 +2293,21 @@ function moveCoin(d, den, toPiggy) {
 }
 /* --- заказы: появление и закрытие --- */
 function addOrder(tpl, params, where) {
-  S.orders.seq++; const o = LOGIC.makeOrder(tpl, params, { day: S.day, seq: S.orders.seq });
+  S.orders.seq++; const o = LOGIC.makeOrder(tpl, params, { day: S.day, seq: S.orders.seq, flags: S.flags });
   S.orders[where].push(o); S.orders.lastTpl[tpl] = S.day; return o;
 }
 const dlText = LOGIC.dlText;
 function orderFailSkills(o) { const k = o.need.kind; return k === "meet" ? ["clock"].concat(o.skills.indexOf("readTime") >= 0 ? ["readTime"] : []) : k === "post" ? ["duration", "clock"] : ["readTime"]; }
 function failText(o) {
   const k = o.need.kind, nb = NEIGHBORS[o.from];
-  if (k === "meet") return "не пришёл " + (o.need.at === "well" ? "к колодцу" : "на рынок") + ": " + nb.name + " ждал в " + fmtTime(o.window[0]);
+  if (k === "meet") return "не пришёл " + (o.need.at === "well" ? "к колодцу" : "на рынок") + ": " + nb.name + " ждал " + LOGIC.winText(o);
   if (k === "post") return (o.need.sub === "take" ? "не забрал посылку до " : "не отправил посылку до ") + fmtTime(o.deadlineTime);
   return LOGIC.orderErrText(o, "late", {});
 }
 function closeOrderFailed(o) {
   const t = failText(o); orderFailSkills(o).forEach((sk) => attempt(sk, false, t));
   logEvent("Не успел заказ " + NEIGHBORS[o.from].short + " — срок был " + dlText(o)); delete S.orders.envelopes[o.id];
-  if (o.take) Object.keys(o.take).forEach((k) => addInv(k, -o.take[k]));   // посылка или письмо возвращаются почтальону
+  returnTaken(o);   // посылка, письмо и яйца дяди Миши возвращаются хозяевам; свои яйца остаются
 }
 function expireOrders(day) {
   S.orders.board = S.orders.board.filter((o) => o.expireDay > day); S.orders.mailbox = S.orders.mailbox.filter((o) => o.expireDay > day);
@@ -2228,7 +2357,7 @@ function doTravel(d) {
   if (to === "village" && HOURS[t]) {
     const r = LOGIC.canMakeIt(before, road, t, S.day), h = HOURS[t];
     const why = r.reason === "notYet" ? h.lc + " ещё не " + (h.shut === "закрыта" ? "открылась" : "открылся") : r.reason === "closed" ? h.lc + " уже " + h.went : h.lc + " сегодня не работает";
-    attempt("duration", r.ok, r.ok ? "" : "пошёл " + h.to + " в " + fmtTime(before) + " — " + why);
+    attempt("duration", r.ok, r.ok ? "" : "пришёл " + h.to + " в " + fmtTime(before + road) + " — " + why);
   }
   S.ui.dialog = null; S.scene = to; Object.assign(S.player, (boat ? ARRIVE_BOAT : ARRIVE)[to]); walker = null; S.ui.walking = false;
   logEvent(boat ? (to === "village" ? "Переплыл на лодке в деревню" : "Вернулся домой на лодке") : to === "village" ? "Сходил в деревню" : "Вернулся домой");
@@ -2290,9 +2419,19 @@ function endDay() {
     tomorrow: "Завтра: " + WEATHER_WORD[LOGIC.weatherOf(S.day)] + "." + (rain ? " Дождь сам польёт грядки." : "") };
   S.ui.screen = "dayEnd";
 }
+// Плашка «Что нового» утром: что созрело, есть ли новые записки и какая погода. Коротко, две–три строки, одна кнопка.
+function morning() {
+  if (S.time !== DAY_START || S.ui.screen || S.ui.dialog) return;
+  const lines = [], ripe = S.beds.filter((b) => b.crop && b.growth >= CROPS[b.crop].days), nb = S.orders.board.length, mb = S.orders.mailbox.length, w = LOGIC.weatherOf(S.day);
+  if (ripe.length) lines.push("Созрело: " + joinAnd(ripe.map((b) => cropName(b.crop) + " на грядке " + b.id)) + ".");
+  if (nb || mb) lines.push((nb ? "На доске у почты: " + nounPhrase(nb, "записка") + "." : "") + (nb && mb ? " " : "") + (mb ? "В почтовом ящике — записка от Веры." : ""));
+  lines.push("Сегодня " + WEATHER_WORD[w] + (w === "rain" ? ": поливать не нужно." : S.beds.some((b) => b.crop) ? ": грядки надо полить." : "."));
+  openDialog({ kind: "morning", title: "Что нового", lines, buttons: [B("close", "Понятно", { cls: "gold" })] });
+}
 function wake() {
   if (S.ui.screen !== "dayEnd") return fail("Сейчас не вечер");
   S.ui.screen = S.real.daysToday >= S.settings.daysPerReal ? "sleep" : null;
+  if (!S.ui.screen) morning();
   return OK();
 }
 
@@ -2443,7 +2582,7 @@ const A = {
     }
     if (d.kind === "note" && id === "back") { if (d.data.back === "orders") openDialog({ kind: "orders" }); else openDialog({ kind: "notes", data: { where: d.data.where } }); return OK(); }
     if (d.kind === "pick" && id.indexOf("order:") === 0) { const m = { obj: d.data.obj }; return openDeliver(m, id.slice(6)); }
-    if (d.kind === "meetWait" && id === "wait") { const t = d.data, wait = t.at - S.time; S.ui.dialog = null; spend(wait); return S.ui.dialog ? OK() : doHelp({ obj: t.obj }); }
+    if (d.kind === "meetWait" && id === "wait") { const t = d.data, wait = t.at - S.time; S.ui.dialog = null; spend(wait); return S.ui.dialog ? OK() : t.then === "postTake" ? postTake({ obj: t.obj }) : doHelp({ obj: t.obj }); }
     if (d.kind === "deliver" && id === "submit") return submitDeliver(d);
     if (d.kind === "weigh" && id === "bag") return submitWeigh(d);
     if (d.kind === "weigh" && id.indexOf("item:") === 0) { if (d.data.phase === "free") { d.data.item = id.slice(5); d.data.n = 0; } return OK(); }
@@ -2545,7 +2684,15 @@ const A = {
   basketTap(i) {
     const d = S.ui.dialog; if (!d || (d.kind !== "share" && d.kind !== "basket")) return fail("Нет корзинок");
     const t = d.data; if (!(i >= 0 && i < (t.cells || []).length)) return fail("Нет такой корзинки");
-    if (d.kind === "share") { if (t.phase !== "fill" || t.pile <= 0) return fail("Куча пуста"); t.pile--; t.cells[i]++; shareState(d); }
+    if (d.kind === "share") {
+      if (t.phase !== "fill" || t.pile <= 0) return fail("Куча пуста");
+      t.pile--; t.cells[i]++;
+      if (t.pile === 0 && !t.laid) {   // куча кончилась: первая попытка «деления» — поровну ли разложено
+        t.laid = true; const eq = LOGIC.shareCheck(t.cells).equal;
+        attempt("divrem", eq, eq ? "" : "разложил " + nounPhrase(t.n, "яблоко", "в") + " в " + nounPhrase(t.c, "корзинка", "в") + " не поровну: " + joinAnd(t.cells.map(String)));
+      }
+      shareState(d);
+    }
     else { if (t.done) return fail("Уже готово"); t.cells[i]++; }
     d.reply = d.kind === "share" && t.phase === "write" ? "Поровну!" : null; return OK();
   },
@@ -2654,7 +2801,7 @@ const A = {
     else if (S.ui.screen === "start") { S.ui.screen = null; openDialog({ kind: "tasks" }); }
     return OK();
   },
-  allowMore() { S.real.daysToday = Math.max(0, S.real.daysToday - 1); S.ui.screen = null; S.ui.back = null; return OK(); },
+  allowMore() { S.real.daysToday = Math.max(0, S.real.daysToday - 1); S.ui.screen = null; S.ui.back = null; morning(); return OK(); },
   // «Начать заново» не обнуляет счётчик игровых дней за реальную дату, иначе им можно обойти лимит.
   resetGame() {
     const real = S.real, today = STORE.todayKey();
@@ -2666,7 +2813,7 @@ const A = {
   checkDate() {
     if (S.ui.screen !== "sleep") return fail("Ферма не спит");
     const today = STORE.todayKey(); if (S.real.date === today) return fail("Дата та же");
-    S.real = { date: today, daysToday: 0 }; S.ui.screen = null; return OK();
+    S.real = { date: today, daysToday: 0 }; S.ui.screen = null; morning(); return OK();
   },
   hintOk() { hintSeen = true; try { localStorage.setItem("ferma-hint-small", "1"); } catch (e) {} $("smallHint").hidden = true; return OK(); },
   openTasks() { if (S.ui.screen) return fail("Сейчас нельзя"); openDialog({ kind: "tasks" }); return OK(); },
@@ -2935,8 +3082,17 @@ function drawBoat(x, y) {
   y += REDUCED ? 0 : Math.round(Math.sin(frame / 40));
   fr(cx, "#6f4424", x, y + 6, 58, 12); fr(cx, "#a0673a", x + 4, y + 4, 50, 5); fr(cx, "#6f4424", x + 28, y - 16, 3, 22); fr(cx, "#fff3d6", x + 31, y - 14, 16, 16); fr(cx, "#e0453a", x + 31, y - 14, 16, 3);
 }
-// Живые мелочи двора: товар на прилавке, письмо в ящике, куры у курятника, лодка у причала.
+// Табличка на месте будущей постройки: название и цена; у цели, на которую копим сейчас, рамка золотая.
+function drawSign(g, now) {
+  const x = g.site[0], y = g.site[1], w = 100, h = 46;
+  fr(cx, PAL.woodDark, x - 16, y + h / 2 - 2, 5, 20); fr(cx, PAL.woodDark, x + 11, y + h / 2 - 2, 5, 20);
+  fr(cx, now ? PAL.highlight : PAL.woodDark, x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4); fr(cx, PAL.wood, x - w / 2, y - h / 2, w, h);
+  cx.textAlign = "center"; cx.textBaseline = "middle"; cx.font = '14px "Russo One", sans-serif'; cx.fillStyle = "#fff8e8"; cx.fillText(g.sign, x, y - 11);
+  cx.fillStyle = PAL.highlight; cx.fillText(fmtMoney(g.price), x, y + 11);
+}
+// Живые мелочи двора: товар на прилавке, письмо в ящике, куры у курятника, лодка у причала, таблички на местах будущих построек.
 function drawFarmExtras() {
+  GOALS.forEach((g, i) => { if (!S.flags[g.flags[0]] && g.site) drawSign(g, i === S.piggy.goal); });
   const sx = 2 * 32, sy = 18 * 32, shown = [["apple", "apple"], ["carrot", "carrot"], ["zucchini", "zucchini"], ["cabbage", "cabbage"], ["potato", "potato"], ["pumpkin", "pumpkin"]].filter((f) => famCount(f[0]) > 0).slice(0, 4);
   shown.forEach((f, i) => { cx.save(); cx.translate(sx + 5 + i * 7, sy + 17); cx.scale(0.45, 0.45); drawPlant(cx, f[1], 3, 0, 0); cx.restore(); });
   if (S.orders.mailbox.length) { fr(cx, "#fff8e8", 4 * 32 + 8, 18 * 32 + 5, 14, 9); fr(cx, PAL.ink, 4 * 32 + 8, 18 * 32 + 5, 14, 1); fr(cx, PAL.roof, 4 * 32 + 14, 18 * 32 + 8, 3, 3); }
@@ -3070,12 +3226,12 @@ function fieldsHtml(t, labels) {
 }
 // Лента: жёлтая, чёрточки через 10 см, подписи через 50 см. cut — доска 3 м с меткой; measure — забор или грядка в натуральную величину и лента под ней.
 function tapeScale(c, x0, y, w, maxCm, px, col) {
-  fr(c, "#caa21e", x0, y, w, 34); fr(c, "#ffd84a", x0, y + 2, w, 30);
-  c.font = '700 11px Nunito, sans-serif'; c.textAlign = "center"; c.textBaseline = "top";
+  fr(c, "#caa21e", x0, y, w, 40); fr(c, "#ffd84a", x0, y + 2, w, 36);
+  c.font = '800 14px Nunito, sans-serif'; c.textAlign = "center"; c.textBaseline = "top";
   for (let cm = 0; cm <= maxCm; cm += 10) {
     const x = x0 + cm * px, big = cm % 50 === 0;
-    fr(c, PAL.ink, Math.round(x), y + 2, 1, big ? 18 : 10);
-    if (big && cm > 0) { c.fillStyle = PAL.ink; c.fillText(cm % 100 === 0 ? cm / 100 + " м" : Math.floor(cm / 100) ? Math.floor(cm / 100) + " м " + (cm % 100) + " см" : cm + " см", x, y + 21); }
+    fr(c, PAL.ink, Math.round(x), y + 2, 1, big ? 16 : 10);
+    if (big && cm > 0) { c.fillStyle = PAL.ink; c.fillText(cm % 100 === 0 ? cm / 100 + " м" : Math.floor(cm / 100) ? Math.floor(cm / 100) + " м " + (cm % 100) + " см" : cm + " см", x, y + 20); }
   }
 }
 function drawTape(cvs, t) {
@@ -3098,14 +3254,14 @@ function drawTape(cvs, t) {
   if (t.reveal) {
     const m = Math.floor(len / 100) * 100;
     if (t.phase === "read") {
-      fr(c, "rgba(76,175,106,0.55)", x0, 108, m * px, 12); fr(c, "rgba(240,138,36,0.7)", x0 + m * px, 108, (len - m) * px, 12);
+      fr(c, "rgba(76,175,106,0.55)", x0, 116, m * px, 12); fr(c, "rgba(240,138,36,0.7)", x0 + m * px, 116, (len - m) * px, 12);
       c.font = '800 14px Nunito, sans-serif'; c.textAlign = "center"; c.textBaseline = "top"; c.fillStyle = PAL.ink;
-      if (m) c.fillText(m / 100 + " м", x0 + m * px / 2, 124); if (len > m) c.fillText(len - m + " см", x0 + m * px + (len - m) * px / 2, 124);
+      if (m) c.fillText(m / 100 + " м", x0 + m * px / 2, 132); if (len > m) c.fillText(len - m + " см", x0 + m * px + (len - m) * px / 2, 132);
     } else {
       const n = Math.floor(len / SECTION);
-      c.font = '800 11px Nunito, sans-serif'; c.textAlign = "center"; c.textBaseline = "top";
-      for (let k = 0; k < n; k++) { fr(c, k % 2 ? "rgba(76,175,106,0.6)" : "rgba(63,143,216,0.55)", x0 + k * SECTION * px, 108, SECTION * px, 14); c.fillStyle = PAL.ink; c.fillText(String(k + 1), x0 + (k + 0.5) * SECTION * px, 124); }
-      if (len % SECTION) fr(c, "rgba(240,138,36,0.7)", x0 + n * SECTION * px, 108, (len % SECTION) * px, 14);
+      c.font = '800 14px Nunito, sans-serif'; c.textAlign = "center"; c.textBaseline = "top";
+      for (let k = 0; k < n; k++) { fr(c, k % 2 ? "rgba(76,175,106,0.6)" : "rgba(63,143,216,0.55)", x0 + k * SECTION * px, 116, SECTION * px, 14); c.fillStyle = PAL.ink; c.fillText(String(k + 1), x0 + (k + 0.5) * SECTION * px, 132); }
+      if (len % SECTION) fr(c, "rgba(240,138,36,0.7)", x0 + n * SECTION * px, 116, (len % SECTION) * px, 14);
     }
   }
 }
@@ -3165,12 +3321,12 @@ function bodyHtml(d) {
       fams.forEach((f) => (f === "letter" ? ["letter"] : f === "parcel" ? ["parcel"] : famItems(f)).forEach((k) => { if (inv(k) > 0 || of.items[k]) keys.push(k); }));
       body += keys.length ? keys.map(row).join("") : "<p>У тебя нет подходящего урожая.</p>";
     } else if (n.kind === "pack" || n.kind === "tape") {
-      const keys = (n.kind === "tape" ? ["plank"] : n.jars ? ["jar"] : ["box:white", "box:brown"]).filter((k) => inv(k) > 0 || of.items[k]);
+      const keys = (n.kind === "tape" ? ["plank"] : n.jars ? ["jar"] : ["box:misha", "box:white", "box:brown"]).filter((k) => inv(k) > 0 || of.items[k]);
       body += keys.length ? keys.map(row).join("") : "<p>" + (n.kind === "tape" ? "У тебя нет доски. Отпили её мерной лентой в сарае." : n.jars ? "У тебя нет банок с молоком." : "У тебя нет коробок с яйцами.") + "</p>";
     } else if (n.kind === "errand") {
       const keys = Object.keys(ERRANDS).filter((k) => inv(k) > 0 || k === n.item || of.items[k]).filter((k) => inv(k) > 0 || of.items[k]); body += keys.length ? keys.map(row).join("") : "<p>У тебя нет покупок для этого заказа.</p>";
     } else if (n.kind === "baskets" || n.kind === "share") {
-      body += S.baskets.length ? '<div class="opts">' + S.baskets.map((b, i) => '<button class="btn bsel' + (of.baskets.indexOf(i) >= 0 ? " sel" : "") + '" data-call="toggleBasket" data-arg="' + i + '">Корзинка: ' + nounPhrase(b.n, "яблоко") + " (" + (b.item === "apple:red" ? "красные" : "зелёные") + ")</button>").join("") + "</div>" : "<p>У тебя нет корзинок.</p>";
+      body += S.baskets.length ? '<div class="opts">' + S.baskets.map((b, i) => '<button class="btn bsel' + (of.baskets.indexOf(i) >= 0 ? " sel" : "") + '" data-call="toggleBasket" data-arg="' + i + '">Корзинка: ' + LOGIC.applePhrase(b.n, b.item === "apple:red" ? "red" : "green") + "</button>").join("") + "</div>" : "<p>У тебя нет корзинок.</p>";
     } else if (n.kind === "weigh") {
       body += S.bags.length ? '<div class="opts">' + S.bags.map((b, i) => '<button class="btn bsel' + (of.bags.indexOf(i) >= 0 ? " sel" : "") + '" data-call="toggleBag" data-arg="' + i + '">Мешочек: ' + LOGIC.fmtMass(b.g) + " " + BAGWORD[b.item] + "</button>").join("") + "</div>" : "<p>У тебя нет мешочков с весов.</p>";
     }
@@ -3465,6 +3621,8 @@ function boot() {
     if (S.real.date !== today) S.real = { date: today, daysToday: 0 };
     if (S.real.daysToday >= S.settings.daysPerReal) S.ui.screen = "sleep"; else if (S.time >= DAY_END) openNight();
   }
+  // Первый настоящий запуск (и сохранение, которое ни разу не начинало день): утренние записки и покупатель уже в первый день.
+  if (S.orders.genDay !== S.day) startDay();
   layout(); initInput(); renderUI(); STORE.save(S);
   STORE.connect(() => S, (remote) => {
     if (S.ui.dialog || S.ui.screen || walker) return;
@@ -3481,7 +3639,7 @@ function boot() {
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { invalidateBg(); renderUI(); });
 }
 window.FERMA = {
-  version: "1.0.0", ready: false,
+  version: "1.0.1", ready: false,
   logic: LOGIC,
   data: { MAPS, OBJECTS, HOURS, CROPS, NOUNS, WEEKDAYS, SKILLS, GOALS, LEVEL_TEXT, ITEMS, SCHEMA: STORE.SCHEMA },
   world: { standOf: (id) => WORLD.standOf(id, S), grid: (scene) => WORLD.grid(scene, S) },

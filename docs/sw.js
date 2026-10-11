@@ -1,6 +1,6 @@
 // Offline cache: stale-while-revalidate for this site and Google Fonts. CACHE changes with every build.
-const CACHE = "cmfl-4df664563d";
-const CORE = ["./", "index.html", "trenazhery.html", "plan.html", "komiksy.html", "manifest-arena.webmanifest", "manifest-plan.webmanifest", "manifest-comics.webmanifest", "manifest-home.webmanifest", "icons/arena-180.png", "icons/arena-192.png", "icons/arena-512.png", "icons/comics-180.png", "icons/comics-192.png", "icons/comics-512.png", "icons/plan-180.png", "icons/plan-192.png", "icons/plan-512.png"];
+const CACHE = "cmfl-dda7376985";
+const CORE = ["./", "index.html", "trenazhery.html", "plan.html", "komiksy.html", "ferma.html", "oborona.html", "manifest-arena.webmanifest", "manifest-plan.webmanifest", "manifest-comics.webmanifest", "manifest-ferma.webmanifest", "manifest-oborona.webmanifest", "manifest-home.webmanifest", "icons/arena-180.png", "icons/arena-192.png", "icons/arena-512.png", "icons/comics-180.png", "icons/comics-192.png", "icons/comics-512.png", "icons/ferma-180.png", "icons/ferma-192.png", "icons/ferma-512.png", "icons/oborona-180.png", "icons/oborona-192.png", "icons/oborona-512.png", "icons/plan-180.png", "icons/plan-192.png", "icons/plan-512.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
