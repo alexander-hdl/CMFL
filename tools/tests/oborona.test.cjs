@@ -1,4 +1,4 @@
-// Приёмочные и модульные тесты «Обороны таблицы», этап 1 (прототип).
+// Приёмочные и модульные тесты «Обороны таблицы»: этап 1 (прототип) и этап 2 (полная игра).
 // Запуск: node tools/tests/oborona.test.cjs
 const { run } = require("./_harness.cjs");
 
@@ -9,7 +9,7 @@ run("oborona", async (t, page) => {
   // ---- помощники ----
   const ev = (fn, arg) => page.evaluate(fn, arg);
   // после действий, меняющих экран, рисуем кадр (render() заодно обновляет DOM-полосы), чтобы проверки DOM не ждали requestAnimationFrame
-  const api = (name, ...args) => ev(([n, a]) => { const r = window.OBORONA.api[n](...a); if (["reset", "loadLevel", "retry", "fight", "pause", "resume", "endWave"].includes(n)) window.OBORONA.render(); return r; }, [name, args]);
+  const api = (name, ...args) => ev(([n, a]) => { const r = window.OBORONA.api[n](...a); if (["reset", "demo", "loadLevel", "retry", "fight", "pause", "resume", "endWave"].includes(n)) window.OBORONA.render(); return r; }, [name, args]);
   const st = () => ev(() => window.OBORONA.state());
   const load = async (fx) => { await ev(() => window.OBORONA.api.manual(true)); return ev((f) => { const r = window.OBORONA.api.loadLevel(f); window.OBORONA.render(); return r; }, fx); };
   const setup = (towers, beams) => ev(([tw, bm]) => {
@@ -410,7 +410,7 @@ run("oborona", async (t, page) => {
   // ================= T1-6 демо-волна =================
   console.log("-- T1-6 демонстрационная волна");
   await ev(() => window.OBORONA.api.manual(true));
-  await api("reset");
+  await api("demo");
   const d0 = await st();
   t.eq(d0.ribbon.map((r) => r.value), [24, 56, 18, 42, 24, 56, 42, 18], "лента демо-волны: 24, 56, 18, 42, 24, 56, 42, 18");
   t.ok(d0.phase === "prep" && d0.hearts === 10 && d0.level.waveCount === 1 && d0.towers.length === 0, "демо открывается в подготовке, 10 сердечек, пустое поле");
@@ -461,7 +461,7 @@ run("oborona", async (t, page) => {
   const q1 = await api("step", 4400).then(st), q2 = await api("step", 200).then(st);
   t.ok(q1.queue === 2 && q2.queue === 1, "перед боссом пауза на 1500 мс: второй враг выходит в 4500 мс, а не в 3000");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await api("reset"); await api("applySolution"); await api("fight");
+  await api("demo"); await api("applySolution"); await api("fight");
   await api("stepUntilWaveEnd");
   await ev(() => window.OBORONA.render());
   t.ok((await st()).toast === "Волна отбита!", "prefers-reduced-motion: волна проходится так же");
@@ -473,7 +473,7 @@ run("oborona", async (t, page) => {
   const pats = [/^\d+, а луч даёт \d+$/, /^\d+ − \d+ = \d+$/, /^\d+( = \d+ × \d+)?$/, /^Останется \d+ — такого луча нет$/, /^Сначала поставь башню$/, /^У башни уже два луча$/];
   t.ok(q.textLog.length > 0 && q.textLog.every((x) => pats.some((p) => p.test(x))), "каждый текст в textLog подходит под шаблон: " + [...new Set(q.textLog)].slice(0, 4).join(" | "));
   const scr = await ev(() => ({ btns: Array.from(document.querySelectorAll("button")).filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== "hidden").map((b) => b.id || (b.classList.contains("tile") ? "tile" : b.className)), ids: Array.from(document.querySelectorAll("[id]")).map((e) => e.id) }));
-  t.ok(scr.btns.every((b) => ["soundBtn", "pauseBtn", "fightBtn", "retryBtn", "tile"].includes(b)) && !scr.ids.some((i) => /map|night|adult|quiz|question/i.test(i)), "в DOM только поле, полосы и кнопки уровня: экранов карты, ночи, взрослого и викторины нет (видимые кнопки: " + Array.from(new Set(scr.btns)).join(", ") + ")");
+  t.ok(scr.btns.every((b) => ["soundBtn", "pauseBtn", "fightBtn", "retryBtn", "tile"].includes(b)) && !scr.ids.some((i) => /quiz|question/i.test(i)), "на экране боя только поле, полосы и кнопки уровня, викторины нет (видимые кнопки: " + Array.from(new Set(scr.btns)).join(", ") + ")");
   const forms2 = await ev(() => ({ n: document.querySelectorAll("input, textarea, select, [contenteditable]").length, q: document.body.innerText.split("\n").filter((l) => /\?\s*$/.test(l)).length }));
   t.ok(forms2.n === 0 && forms2.q === 0, "на странице нет полей ввода и видимых текстов, оканчивающихся на «?»");
 
@@ -505,7 +505,7 @@ run("oborona", async (t, page) => {
   t.ok(ta.every((x) => x[1] === "none"), "touch-action: none у html, body, #app, полос, тоста и карточки конца: щипок по полосе не масштабирует страницу (" + JSON.stringify(ta.filter((x) => x[1] !== "none")) + ")");
   t.eq(await ev(() => getComputedStyle(document.getElementById("fightBtn")).touchAction), "manipulation", "у кнопок touch-action: manipulation");
   // (п5) подготовка: «Пауза» не занимает место, лента не сжата
-  await api("reset");
+  await api("demo");
   const prepUI = await ev(() => {
     const pb = document.getElementById("pauseBtn"), cards = Array.from(document.querySelectorAll(".card")).map((c) => c.getBoundingClientRect()), rb = document.getElementById("ribbon").getBoundingClientRect();
     return { disp: getComputedStyle(pb).display, w: pb.getBoundingClientRect().width, cw: cards[0].width, right: cards[cards.length - 1].right, rbRight: rb.right, wave: document.getElementById("waveNo").textContent };
@@ -681,7 +681,7 @@ run("oborona", async (t, page) => {
   const q3 = await stepUntil("s => s.enemies.length === 0 || s.hearts < 10", 900, 50);
   t.ok(q3.hearts === 9 && q3.events.filter((e) => e.type === "pass" && !e.quiet).length === 2, "оба луча не подходят (42 и 35): оба прохода с полной реакцией, враг дошёл");
   // демо: безупречная волна не шумит
-  await api("reset"); await api("applySolution"); await api("fight");
+  await api("demo"); await api("applySolution"); await api("fight");
   const quiet = await ev(() => {
     const a = window.OBORONA.api; a.stepUntilWaveEnd();
     const s = window.OBORONA.state();
@@ -781,7 +781,7 @@ run("oborona", async (t, page) => {
     }
   }
   t.eq(overlayBad, [], "пауза и экран конца: ни одна плашка, кнопка и надпись не заходят на поле (4 раскладки × 3 размера окна)");
-  await ev(() => window.OBORONA.api.reset());
+  await ev(() => window.OBORONA.api.demo());
   await api("fight"); await api("pause");
   await page.waitForTimeout(100);
   const pz = await ev(() => { const b = document.getElementById("pauseBtn").getBoundingClientRect(), n = document.getElementById("pauseNote").getBoundingClientRect(), bar = document.getElementById("bar").getBoundingClientRect(); return { btnIn: b.top >= 0 && b.bottom <= bar.bottom, noteIn: n.top >= 0 && n.bottom <= bar.bottom && n.right <= b.left, btnH: b.height, noteTxt: document.getElementById("pauseNote").innerText.replace(/\s+/g, " ") }; });
@@ -883,7 +883,7 @@ run("oborona", async (t, page) => {
   const r5 = (await st()).renders;
   t.ok(r5 - r4 <= 1, "prefers-reduced-motion: искры и пульсы стоят, перерисовок нет (" + (r5 - r4) + ")");
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await ev(() => window.OBORONA.api.reset());
+  await ev(() => window.OBORONA.api.demo());
   await ev(() => { const a = window.OBORONA.api; a.applySolution(); a.fight(); a.stepUntilWaveEnd(); });
   await page.waitForTimeout(4500);
   const r6 = (await st()).renders;
@@ -910,7 +910,7 @@ run("oborona", async (t, page) => {
   const sr = [await starRun(2), await starRun(5), await starRun(9)];
   t.ok(sr[0].stars === 3 && sr[0].hearts === 8 && sr[1].stars === 2 && sr[1].hearts === 5 && sr[2].stars === 1 && sr[2].hearts === 1, "звёзды в плашке конца равны starsFor(сердечки): 8 → 3, 5 → 2, 1 → 1");
   t.ok(sr[0].text === "Волна позади: 0 из 2" && sr[0].sounds.join() === "chime" && sr[0].flags === false, "волна без побед: честный текст «Волна позади: 0 из 2», тихий звон вместо фанфары, флажков нет");
-  await api("reset"); await api("applySolution"); await api("fight");
+  await api("demo"); await api("applySolution"); await api("fight");
   await ev(() => window.OBORONA.api.stepUntilWaveEnd());
   await ev(() => window.OBORONA.render());
   const win = await st();
@@ -920,7 +920,7 @@ run("oborona", async (t, page) => {
   // вход: холм и дорожка доходят до края окна, крепость и крыша внутри поля
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.waitForTimeout(300);
-  await api("reset");
+  await api("demo");
   await ev(() => window.OBORONA.render());
   const px = await ev(() => {
     const O = window.OBORONA, v = O.state().view, cv = document.getElementById("field"), cx = cv.getContext("2d"), L = O.layouts.L1, get = (x, y) => Array.from(cx.getImageData(Math.round(x), Math.round(y), 1, 1).data);
@@ -936,7 +936,7 @@ run("oborona", async (t, page) => {
   await page.waitForTimeout(250);
   // отдельно: визуальные приёмы выключаются в reduced-motion, но волна и праздник те же
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await api("reset"); await api("applySolution"); await api("fight");
+  await api("demo"); await api("applySolution"); await api("fight");
   await ev(() => window.OBORONA.api.stepUntilWaveEnd());
   await ev(() => window.OBORONA.render());
   const rm = await st();
@@ -948,7 +948,7 @@ run("oborona", async (t, page) => {
   for (const [w, h] of [[1024, 600], [1024, 768], [1366, 768], [1920, 1080]]) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(250);
-    await api("reset");
+    await api("demo");
     const r = await ev(() => {
       const s = window.OBORONA.state(), v = s.view;
       const btn = Array.from(document.querySelectorAll("button")).filter((b) => b.getClientRects().length).map((b) => { const r = b.getBoundingClientRect(); return { id: b.id || b.className, h: r.height, w: r.width }; });
@@ -967,7 +967,752 @@ run("oborona", async (t, page) => {
     t.ok(r.small.length === 0 && r.nbtn >= 10, w + "×" + h + ": все " + r.nbtn + " кнопок от 48 px" + (r.small.length ? " (малы: " + JSON.stringify(r.small) + ")" : ""));
     t.ok(r.cardsOk && Math.abs(r.barH - v.barH) < 1 && Math.abs(r.handBottom - r.handTop - v.handH) < 1, w + "×" + h + ": карточки ленты внутри полосы, высоты полос по формуле");
   }
+
+  // ======================================================================
+  // ЭТАП 2: полная игра
+  // ======================================================================
+  const resetAll = (date) => ev((d) => { const a = window.OBORONA.api; a.manual(true); a.reset(true); a.setToday(d || "2026-10-10"); return window.OBORONA.state().today; }, date);
+  const playWaves = (n) => ev((cnt) => { const a = window.OBORONA.api, out = []; for (let i = 0; i < cnt; i++) { a.applySolution(); a.fight(); out.push(a.stepUntilWaveEnd()); } return out; }, n || 3);
+  const playLevel = (id, seed, waves) => ev(([i, sd, w]) => {
+    const O = window.OBORONA, a = O.api, r = a.startLevel(i, { seed: sd, waves: w });
+    if (!r.ok) return r;
+    for (let k = 0; k < 3; k++) { a.applySolution(); a.fight(); a.stepUntilWaveEnd(); }
+    return Object.assign({ ok: true }, O.state().result);
+  }, [id, seed || 1, waves || null]);
+  const expSave = () => ev(() => window.OBORONA.api.exportSave());
+  const imp = (o) => ev((x) => window.OBORONA.api.importSave(x), o);
+  const mkWaves = (enemies, sol) => [0, 1, 2].map(() => ({ enemies: enemies.slice(), gap: 3000, solution: sol }));
+  const DIG10 = DIG.concat([10]), DIG6 = DIG.concat([10, 20, 30, 40]);
+
+  // ================= T2-1 раскладки L2–L4 =================
+  console.log("-- T2-1 раскладки L1–L4");
+  const lay2 = await ev(() => {
+    const O = window.OBORONA, out = {};
+    ["L1", "L2", "L3", "L4"].forEach((k) => { out[k] = O.layouts[k].links.map((l) => ({ id: l.id, lab: l.labelAt, cross: l.cross.map((c) => [c.path, c.t, c.x, c.y]) })); });
+    return { out, val: ["L1", "L2", "L3", "L4"].map((k) => O.logic.validateLayout(O.layouts[k])), lens: ["L2", "L3", "L4"].map((k) => O.layouts[k].paths.map((p) => p.len)), mul: O.layouts.L3.speedMul };
+  });
+  const EXP = {
+    L2: { "A-M": [248, 355, [[0, 0.1240, 184, 270]]], "M-C": [520, 185, [[0, 0.3064, 456, 270]]], "D-M": [248, 545, [[1, 0.1240, 184, 630]]], "M-E": [520, 715, [[1, 0.3064, 456, 630]]], "G-H": [1063, 365, [[0, 0.7915, 1130, 450], [1, 0.7915, 1130, 450]]], "P-H": [1260, 535, [[0, 0.8790, 1260, 450], [1, 0.8790, 1260, 450]]] },
+    L3: { "A-B": [183, 130, [[0, 0.0870, 250, 215]]], "B-C": [443, 300, [[0, 0.1774, 510, 215]]], "C-D": [703, 130, [[0, 0.2678, 770, 215]]], "E-F": [1087, 605, [[0, 0.7357, 1020, 690]]], "F-G": [827, 775, [[0, 0.8261, 760, 690]]], "G-H": [567, 605, [[0, 0.9165, 500, 690]]] },
+    L4: { "A-B": [163, 365, [[0, 0.1597, 230, 450]]], "B-C": [423, 535, [[0, 0.3403, 490, 450]]], "C-D": [683, 365, [[0, 0.5208, 750, 450]]], "D-E": [943, 535, [[0, 0.7014, 1010, 450]]], "E-F": [1203, 365, [[0, 0.8819, 1270, 450]]] }
+  };
+  ["L2", "L3", "L4"].forEach((k) => {
+    const bad = [];
+    lay2.out[k].forEach((l) => {
+      const e = EXP[k][l.id];
+      if (!e || !near(l.lab.x, e[0], 2) || !near(l.lab.y, e[1], 2) || l.cross.length !== e[2].length) { bad.push(l.id); return; }
+      e[2].forEach((c, i) => { const g = l.cross[i]; if (g[0] !== c[0] || !near(g[1], c[1], 0.002) || !near(g[2], c[2], 2) || !near(g[3], c[3], 2)) bad.push(l.id + "#" + i); });
+    });
+    t.ok(bad.length === 0 && lay2.out[k].length === Object.keys(EXP[k]).length, k + ": cross и labelAt всех связей совпадают с разделом 4 (допуск 0,002 / 2 ед.)" + (bad.length ? " " + bad : ""));
+  });
+  t.eq(lay2.val, [[], [], [], []], "validateLayout(L1–L4) → []");
+  t.ok(near(lay2.lens[0][0], 1487.2, 0.2) && near(lay2.lens[1][0], 2875, 0.5) && near(lay2.lens[2][0], 1440, 0.1) && lay2.mul === 1.25, "длины дорожек L2 ≈ 1487,2, L3 = 2875, L4 = 1440; у L3 speedMul 1,25");
+
+  // ================= T2-2 чистые функции =================
+  console.log("-- T2-2 splitHint, tipFor, addDays, Лейтнер, итоги");
+  const l2 = await ev(() => {
+    const L = window.OBORONA.logic;
+    const split = {}; [[3, 4], [3, 6], [3, 7], [3, 8], [4, 4], [4, 6], [4, 7], [4, 8], [6, 6], [6, 7], [6, 8], [7, 7], [7, 8], [8, 8], [3, 3]].forEach((p) => { split[p.join("x")] = L.splitHint(p[0], p[1]); });
+    const dig2 = {}; [[12, 3], [14, 4], [23, 4], [25, 3], [35, 2], [47, 2], [16, 5], [19, 4]].forEach((p) => { dig2[p.join("x")] = L.splitHint(p[0], p[1]); });
+    const facts = { "7x8": { box: 2, due: "2026-10-09" }, "6x7": { box: 1, due: "2026-10-10" }, "2x2": { box: 3, due: "2026-10-12" } };
+    const base = { box: 2, due: "2026-10-10", seen: 4 };
+    return {
+      split, dig2, nine: L.splitHint(7, 9), nine2: L.splitHint(9, 7), rev: L.splitHint(8, 7),
+      tips: [L.tipFor(7, 9), L.tipFor(6, 7), L.tipFor(4, 7), L.tipFor(8, 7), L.tipFor(3, 7), L.tipFor(5, 7), L.tipFor(2, 7), L.tipFor(10, 7), L.tipFor(7, 8, { boss: true }), L.tipFor(23, 4, { boss: true }), L.tipFor(7, 7), L.tipFor(7, 9, { boss: true })],
+      days: [L.addDays("2026-10-10", 3), L.addDays("2026-12-30", 3), L.addDays("2026-03-28", 1), L.addDays("2024-02-28", 1), L.addDays("2026-10-10", 0)],
+      lu: [L.leitnerUpdate(base, "good", "2026-10-10"), L.leitnerUpdate({ box: 2, due: "2026-10-11" }, "good", "2026-10-10"), L.leitnerUpdate({ box: 4, due: "2026-10-10" }, "fail", "2026-10-10"), L.leitnerUpdate({ box: 5, due: "2026-10-01" }, "good", "2026-10-10"), L.leitnerUpdate(undefined, "none", "2026-10-10"), L.leitnerUpdate({ box: 2, due: "2026-10-10" }, "ok", "2026-10-10"), L.leitnerUpdate({ box: 1, due: "2026-10-10" }, "good", "2026-10-10")],
+      immut: JSON.stringify(base),
+      due: L.dueCards(facts, "2026-10-10"),
+      wo: [L.waveOutcome([{ card: "7x8", res: "good" }, { card: "7x8", res: "fail" }]), L.waveOutcome([{ card: "7x8", res: "ok" }, { card: "7x8", res: "good" }, { card: "6x8", res: "none" }])],
+      alt: [L.altPairLine(24, [3, 8], L.DIGITS), L.altPairLine(24, [6, 4], L.DIGITS), L.altPairLine(56, [7, 8], L.DIGITS), L.altPairLine(12, [3, 4], L.DIGITS)],
+      iv: L.INTERVALS
+    };
+  });
+  const SPL = { "3x4": [2, 2], "3x6": [3, 3], "3x7": [5, 2], "3x8": [5, 3], "4x4": [2, 2], "4x6": [3, 3], "4x7": [5, 2], "4x8": [5, 3], "6x6": [3, 3], "6x7": [5, 2], "6x8": [5, 3], "7x7": [5, 2], "7x8": [5, 3], "8x8": [5, 3] };
+  t.ok(Object.keys(SPL).every((k) => { const [a, b] = k.split("x").map(Number), [p, q] = SPL[k], g = l2.split[k], x = Math.min(a, b), y = Math.max(a, b); return g && g.op === "+" && g.text === x + " × " + y + " = " + x + " × " + p + " + " + x + " × " + q && JSON.stringify(g.parts) === JSON.stringify([[x, p], [x, q]]) && JSON.stringify(g.beamParts) === JSON.stringify(g.parts); }) && l2.split["3x3"] === null, "splitHint: вся таблица «Трудных пятнадцати» (3x3 — null)");
+  t.eq(l2.split["7x8"], { op: "+", text: "7 × 8 = 7 × 5 + 7 × 3", parts: [[7, 5], [7, 3]], beamParts: [[7, 5], [7, 3]] }, "splitHint(7, 8) целиком");
+  t.eq(l2.nine, { op: "−", text: "7 × 9 = 7 × 10 − 7", parts: [[7, 10], [7, 1]], beamParts: [[7, 5], [7, 4]] }, "splitHint(7, 9): 10 минус одно, лучами 5 + 4");
+  t.ok(JSON.stringify(l2.nine2) === JSON.stringify(l2.nine) && JSON.stringify(l2.rev) === JSON.stringify(l2.split["7x8"]), "splitHint не зависит от порядка аргументов");
+  const D2 = { "12x3": [10, 2, 3], "14x4": [10, 4, 4], "23x4": [20, 3, 4], "25x3": [20, 5, 3], "35x2": [30, 5, 2], "47x2": [40, 7, 2], "16x5": [10, 6, 5], "19x4": [10, 9, 4] };
+  t.ok(Object.keys(D2).every((k) => { const [big, small] = k.split("x").map(Number), [tens, ones, x] = D2[k], g = l2.dig2[k]; return g.text === big + " × " + x + " = " + tens + " × " + x + " + " + ones + " × " + x && JSON.stringify(g.beamParts) === JSON.stringify([[tens, x], [ones, x]]); }), "splitHint: двузначные по разрядам, 8 карточек земли 6 (23 × 4 = 20 × 4 + 3 × 4)");
+  t.eq(l2.tips, [
+    "×9 — это ×10 и минус одно: 7 × 9 = 7 × 10 − 7 = 70 − 7 = 63", "×6 — это ×5 и плюс одно: 6 × 7 = 5 × 7 + 7 = 35 + 7 = 42", "×4 — это удвоить дважды: 4 × 7: 7 → 14 → 28",
+    "×8 — это удвоить трижды: 8 × 7: 7 → 14 → 28 → 56", "×3 — удвой и прибавь ещё раз: 3 × 7 = 14 + 7 = 21", "×5 — половина от ×10: 5 × 7 — половина от 70, это 35",
+    "×2 — сложи число с собой: 2 × 7 = 7 + 7 = 14", "×10 — припиши ноль: 10 × 7 = 70", "Разрежь: 7 × 8 = 7 × 5 + 7 × 3 = 35 + 21 = 56",
+    "Разрежь по разрядам: 23 × 4 = 20 × 4 + 3 × 4 = 80 + 12 = 92", "Разрежь: 7 × 7 = 7 × 5 + 7 × 2 = 35 + 14 = 49", "Разрежь: 7 × 9 = 7 × 10 − 7 = 70 − 7 = 63"], "tipFor: все приёмы раздела 10.5 (×9, ×6, ×4, ×8, ×3, ×5, ×2, ×10, разрезание, по разрядам, 7x7)");
+  t.eq(l2.days, ["2026-10-13", "2027-01-02", "2026-03-29", "2024-02-29", "2026-10-10"], "addDays: через конец года, високосный февраль");
+  t.ok(l2.lu[0].box === 3 && l2.lu[0].due === "2026-10-13" && l2.lu[0].seen === 4 && l2.lu[0].lastDay === "2026-10-10" && l2.lu[0].masteredOn === "2026-10-10", "leitnerUpdate: коробка 2 + good в срок → 3, due через 3 дня, masteredOn");
+  t.ok(l2.lu[1].box === 2 && l2.lu[1].due === "2026-10-11", "leitnerUpdate: good до срока ничего не меняет (повышение раз в день)");
+  t.ok(l2.lu[2].box === 1 && l2.lu[2].due === "2026-10-10", "leitnerUpdate: fail → коробка 1, due сегодня");
+  t.ok(l2.lu[3].box === 5 && l2.lu[3].due === "2026-10-24", "leitnerUpdate: коробка 5 остаётся, due через 14 дней");
+  t.ok(l2.lu[4].box === 1 && l2.lu[4].due === "2026-10-10" && l2.lu[5].box === 2 && l2.lu[6].box === 2 && l2.lu[6].due === "2026-10-11", "leitnerUpdate: новая карточка none → коробка 1; ok не меняет; 1 + good → 2, due завтра");
+  t.eq(l2.immut, JSON.stringify({ box: 2, due: "2026-10-10", seen: 4 }), "leitnerUpdate не меняет вход");
+  t.eq(l2.iv, { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14 }, "INTERVALS: 0, 1, 3, 7, 14 дней");
+  t.eq(l2.due, ["7x8", "6x7"], "dueCards: по due, затем по коробке");
+  t.eq(l2.wo, [{ "7x8": "fail" }, { "7x8": "good", "6x8": "none" }], "waveOutcome: fail сильнее good, good сильнее ok, none отдельно");
+  t.eq(l2.alt, ["24 можно было победить ещё лучом 4 × 6", "24 можно было победить ещё лучом 3 × 8", null, "12 можно было победить ещё лучом 2 × 6"], "altPairLine: другая пара того же числа или null");
+  const ls = await ev(() => {
+    const L = window.OBORONA.logic, mk = (keys, box) => { const f = {}; keys.forEach((k) => { f[k] = { box, bossDays: [], divDays: [] }; }); return f; };
+    const l3 = L.LANDS[2].facts, f3 = mk(l3, 3), f3b = mk(l3, 3); f3b["6x7"].box = 2;
+    const f4 = mk(L.LANDS[3].facts, 3), f4b = mk(L.LANDS[3].facts, 3); L.LANDS[3].facts.forEach((k) => { f4b[k].bossDays = ["2026-10-01"]; }); const f4c = JSON.parse(JSON.stringify(f4b)); f4c["7x8"].bossDays = [];
+    const f5 = mk(L.LANDS[4].facts, 3); L.LANDS[4].facts.forEach((k) => { f5[k].divDays = ["2026-10-01"]; });
+    const x7 = mk(["2x7", "3x7", "4x7", "5x7", "6x7", "7x7", "7x8", "7x9"], 3), x7b = JSON.parse(JSON.stringify(x7)); x7b["7x9"].box = 2;
+    return { n: L.LANDS.map((l) => l.facts.length), lv: L.LEVELS.length, perLand: [1, 2, 3, 4, 5, 6].map((i) => L.LEVELS.filter((l) => l.land === i).length), s3: [L.landStudied(3, f3), L.landStudied(3, f3b)], s4: [L.landStudied(4, f4), L.landStudied(4, f4b), L.landStudied(4, f4c)], s5: [L.landStudied(5, f5), L.landStudied(5, mk(L.LANDS[4].facts, 3))], rw: [L.rewardsEarned(x7), L.rewardsEarned(x7b), L.rewardsEarned({})] };
+  });
+  t.eq(ls.n, [23, 11, 7, 15, 33, 8], "земли: 23, 11, 7, 15, 33 и 8 карточек (раздел 8.1)");
+  t.ok(ls.lv === 25 && JSON.stringify(ls.perLand) === "[4,4,4,5,4,4]", "25 уровней: 4, 4, 4, 5, 4, 4");
+  t.eq([ls.s3, ls.s4, ls.s5], [[true, false], [false, true, false], [true, false]], "landStudied: земля 3 — все box ≥ 3; земля 4 — ещё bossDays; земля 5 — ещё divDays");
+  t.ok(ls.rw[0].includes("x7") && !ls.rw[1].includes("x7") && ls.rw[2].length === 0, "rewardsEarned: все карточки с 7 в коробке 3 → «x7»; без одной — нет");
+  const rnd = await ev(() => {
+    const L = window.OBORONA.logic, a = L.mulberry32(42), b = L.mulberry32(42), c = L.mulberry32(43);
+    const xs = [a(), a(), a()], ys = [b(), b(), b()];
+    return { same: JSON.stringify(xs) === JSON.stringify(ys), diff: xs[0] !== c(), range: xs.every((x) => x >= 0 && x < 1), h: [L.hashSeed("1-1|0|2026-10-10|0"), L.hashSeed("1-1|0|2026-10-10|0"), L.hashSeed("1-1|1|2026-10-10|0")] };
+  });
+  t.ok(rnd.same && rnd.diff && rnd.range && rnd.h[0] === rnd.h[1] && rnd.h[0] !== rnd.h[2] && Number.isInteger(rnd.h[0]) && rnd.h[0] >= 0, "mulberry32 и hashSeed: один seed — одна последовательность, значения в [0, 1)");
+  const sw = await ev(() => {
+    const O = window.OBORONA, L = O.logic, sol = L.solveWave(O.layouts.L1, [56, 42, 24, 18].map((v) => ({ value: v, kind: "normal" })), { hand: L.DIGITS });
+    const sol4 = L.solveWave(O.layouts.L4, [{ value: 56, kind: "normal" }], { hand: L.DIGITS, fixed: { B: 7 } }), no = L.solveWave(O.layouts.L1, [7, 11].map((v) => ({ value: v, kind: "normal" })), { hand: L.DIGITS });
+    const boss = L.solveWave(O.layouts.L1, [{ value: 56, kind: "boss", parts: [[7, 5], [7, 3]] }], { hand: L.DIGITS });
+    return { sol, sol4, no, boss };
+  });
+  t.ok(sw.sol && sw.sol.beams.length === 4 && ["56", "42", "24", "18"].every((k) => sw.sol.paths[k] === 0), "solveWave(L1, 56, 42, 24, 18) → решение с 4 лучами");
+  t.ok(sw.sol4 && sw.sol4.pads.B === 7 && (sw.sol4.pads.A === 8 || sw.sol4.pads.C === 8) && sw.no === null, "solveWave: неподвижная 7 на B даёт напарника 8; числа 7 и 11 без решения → null");
+  t.ok(sw.boss && sw.boss.beams.length === 2 && sw.boss.paths["56b"] === 0, "solveWave: босс 56 по частям 7 × 5 и 7 × 3 — два луча");
+
+  // ================= T2-3 Лейтнер в бою =================
+  console.log("-- T2-3 Лейтнер в бою");
+  const FL = { layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [56], gap: 3000 }] };
+  const card78 = async (setupFn) => {
+    await resetAll();
+    await imp({ facts: { "7x8": { box: 2, due: "2026-10-10" } } });
+    await load(FL);
+    await setupFn();
+    await ev(() => { const a = window.OBORONA.api; if (window.OBORONA.state().phase === "prep") a.fight(); a.stepUntilWaveEnd(); });
+    return (await expSave()).facts["7x8"];
+  };
+  let c78 = await card78(() => setup({ A: 6, B: 7, C: 8 }, [["B", "C"]]));
+  t.ok(c78.box === 3 && c78.due === "2026-10-13" && c78.good === 1 && c78.seen === 1 && c78.lastDay === "2026-10-10", "луч 7 × 8 построен в подготовке: коробка 2 → 3, due 2026-10-13");
+  c78 = await card78(async () => { await setup({ A: 6, B: 7, C: 8 }, [["B", "C"]]); await api("placeTower", "C", 6); await api("placeTower", "C", 8); });
+  t.ok(c78.box === 2 && c78.ok === 1 && c78.good === 0, "луч перестроен дважды (смена цифры C на 6, потом на 8): коробка 2");
+  c78 = await card78(async () => {
+    await setup({ A: 6, B: 7, C: 8 }, []);
+    await api("fight"); await api("step", 100); await api("pause"); await api("beam", "B", "C"); await api("resume");
+  });
+  t.ok(c78.box === 2 && c78.ok === 1, "луч построен на паузе (phase battle): коробка 2 — победа засчитана как ok, повышения нет");
+  c78 = await card78(() => setup({ A: 6, B: 7, C: 8 }, []));
+  t.ok(c78.box === 1 && c78.due === "2026-10-10" && c78.fail === 1, "враг дошёл до крепости: коробка 1, due сегодня, fail 1");
+  c78 = await card78(async () => { await setup({ A: 6, B: 7, C: 8 }, [["B", "C"]]); await api("breakBeam", "B-C"); await api("beam", "B", "C"); });
+  t.ok(c78.box === 3, "луч порвали и построили заново в подготовке (edits 2 — один раз перестраивали): всё равно good");
+  // победа лучом другой пары того же числа: задуманная карточка получает none, карточка луча — good
+  await resetAll();
+  await imp({ facts: { "3x8": { box: 2, due: "2026-10-10" }, "4x6": { box: 2, due: "2026-10-10" } } });
+  await load({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [{ value: 24, card: "3x8" }], gap: 3000 }] });
+  await setup({ A: 4, B: 6 }, [["A", "B"]]);
+  await ev(() => { const a = window.OBORONA.api; a.fight(); a.stepUntilWaveEnd(); });
+  const f24 = (await expSave()).facts;
+  t.ok(f24["4x6"].box === 3 && f24["3x8"].box === 2 && f24["3x8"].seen === 1 && f24["3x8"].good === 0, "24 задумано как 3 × 8, побеждено лучом 4 × 6: карточка 4x6 — good (коробка 3), 3x8 — none (не меняется)");
+  // даты: повышение не чаще раза в день, дальше по интервалам 1, 3, 7, 14 дней
+  console.log("-- Лейтнер по датам");
+  await resetAll("2026-10-10");
+  const dayWave = async (date) => {
+    await ev((d) => window.OBORONA.api.setToday(d), date);
+    await load({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [56], gap: 3000 }] });
+    await setup({ A: 6, B: 7, C: 8 }, [["B", "C"]]);
+    await ev(() => { const a = window.OBORONA.api; a.fight(); a.stepUntilWaveEnd(); });
+    const c = (await expSave()).facts["7x8"];
+    return c.box + "@" + c.due;
+  };
+  const seq = [];
+  for (const d of ["2026-10-10", "2026-10-10", "2026-10-10", "2026-10-11", "2026-10-12", "2026-10-14", "2026-10-21", "2026-11-04"]) seq.push(await dayWave(d));
+  t.eq(seq, ["2@2026-10-11", "2@2026-10-11", "2@2026-10-11", "3@2026-10-14", "3@2026-10-14", "4@2026-10-21", "5@2026-11-04", "5@2026-11-18"],
+    "победа лучом из подготовки: день 1 — коробка 2 (повторы в тот же день ничего не меняют), 11-е — 3, 12-е — без изменений, 14-е — 4, 21-е — 5, 4 ноября — 5 с due через 14 дней");
+  await resetAll("2026-10-10");
+  await imp({ facts: { "7x8": { box: 4, due: "2026-10-17" } } });
+  await ev(() => window.OBORONA.api.setToday("2026-10-17"));
+  await load(FL); await ev(() => window.OBORONA.api.fight()); await ev(() => window.OBORONA.api.stepUntilWaveEnd());
+  t.eq((await expSave()).facts["7x8"].box + "@" + (await expSave()).facts["7x8"].due, "1@2026-10-17", "через неделю без луча: враг дошёл — коробка 1 и due сегодня");
+
+  // ================= T2-4 путаницы =================
+  console.log("-- T2-4 путаницы и время луча");
+  await resetAll();
+  await load({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [56], gap: 3000 }] });
+  await setup({ A: 6, B: 8 }, [["A", "B"]]);
+  await ev(() => { const a = window.OBORONA.api; a.fight(); a.stepUntilWaveEnd(); });
+  let cf = (await expSave()).confusions;
+  t.ok(cf["48|56"] && cf["48|56"].n === 1 && cf["48|56"].last === "2026-10-10", "врагу 56 построен только луч 6 × 8 = 48: путаница «48|56», n = 1");
+  await load({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [56, 48], gap: 3000 }] });
+  await setup({ A: 6, B: 8 }, [["A", "B"]]);
+  await ev(() => { const a = window.OBORONA.api; a.fight(); a.stepUntilWaveEnd(); });
+  cf = (await expSave()).confusions;
+  t.eq(cf["48|56"].n, 1, "волна [56, 48] с тем же лучом: 48 — число другого врага, путаница не записывается (n остался 1)");
+  await resetAll();
+  await load({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [56], gap: 3000 }] });
+  await setup({ A: 6, B: 7, C: 8 }, [["A", "B"], ["B", "C"]]);
+  await ev(() => { const a = window.OBORONA.api; a.fight(); a.stepUntilWaveEnd(); });
+  t.eq(Object.keys((await expSave()).confusions), [], "56 прошёл 6 × 7, но дальше есть нужный 7 × 8: путаницы нет");
+  const tm = (await expSave()).facts;
+  t.ok(tm["7x8"].msN === 1 && tm["7x8"].msSum >= 0 && tm["7x8"].msSum < 120000, "время построения луча 7 × 8 записано для взрослого (msN 1)");
+  t.ok(!(await ev(() => document.body.innerText)).match(/построен|среднем/), "ребёнку время построения нигде не показывается");
+
+  // ================= T2-5 боссы земли 6 =================
+  console.log("-- T2-5 босс-разрезание на земле 6");
+  const H6 = { layout: "L1", hand: DIG6, fixed: {}, hold: true, waves: [{ enemies: [] }] };
+  await load(H6);
+  t.eq(await ev(() => Array.from(document.querySelectorAll("#tiles .tile")).map((x) => Number(x.dataset.v))), DIG6, "рука земли 6: 2–9, 10, 20, 30, 40");
+  await setup({ A: 20, B: 4, C: 3 }, [["A", "B"], ["B", "C"]]);
+  await api("fight"); await api("spawn", 92, { kind: "boss" });
+  const bs1 = await stepUntil("s => s.enemies.length && s.enemies[0].value !== 92");
+  t.ok(bs1.enemies[0].value === 12 && bs1.texts.some((x) => x.text === "92 − 80 = 12"), "босс 92: луч 20 × 4 = 80 → «92 − 80 = 12», на щите 12");
+  const bs2 = await stepUntil("s => s.enemies.length === 0");
+  t.ok(bs2.enemies.length === 0 && bs2.events.some((e) => e.type === "kill" && e.beam === "B-C"), "луч 4 × 3 = 12 побеждает босса");
+  await load(F1);
+  await setup({ A: 6, B: 9 }, [["A", "B"]]);
+  await api("fight"); await api("spawn", 56, { kind: "boss" });
+  const bs3 = await stepUntil("s => s.texts.length > 0");
+  t.ok(bs3.enemies[0].value === 56 && bs3.texts[0].text === "Останется 2 — такого луча нет", "тупик: босс 56 и луч 6 × 9 = 54 — «Останется 2 — такого луча нет», число 56");
+
+  // ================= T2-6…T2-10 сборка волны =================
+  console.log("-- T2-6…T2-10 buildWave");
+  const injectT = () => ev(() => {
+    const O = window.OBORONA, L = O.logic;
+    window.__T = {
+      ctx: (id, wi, unl, today) => { const lv = L.LEVELS.find((l) => l.id === id); return { land: lv.land, levelId: id, waveIndex: wi, layout: O.layouts[lv.layout], hand: L.LANDS[lv.land - 1].hand, fixed: lv.fixed, wave: lv.waves[wi], unlocked: unl || [1, 2, 3, 4, 5, 6].slice(0, lv.land), today: today || "2026-10-10" };},
+      card: (box, due) => ({ box, due, seen: 3, good: 2, ok: 0, fail: 0, bossSeen: 0, bossDays: [], noHintDays: [], divDays: [], lastDay: "", masteredOn: "", msSum: 0, msN: 0 })
+    };
+  });
+  await injectT();
+  const det = await ev(() => {
+    const T = window.__T, L = window.OBORONA.logic;
+    const prof = () => ({ facts: { "3x3": T.card(1, "2026-10-09"), "3x4": T.card(2, "2026-10-20"), "4x4": T.card(3, "2026-10-20") }, confusions: {}, heavyStreak: 0, lightStreak: 0 });
+    const a = L.buildWave(prof(), T.ctx("2-3", 1, [1, 2]), 42), b = L.buildWave(prof(), T.ctx("2-3", 1, [1, 2]), 42), c = L.buildWave(prof(), T.ctx("2-3", 1, [1, 2]), 43);
+    const sigs = new Set(); for (let s = 1; s <= 12; s++) sigs.add(JSON.stringify(L.buildWave(prof(), T.ctx("2-3", 1, [1, 2]), s).enemies.map((e) => e.value)));
+    return { same: JSON.stringify(a) === JSON.stringify(b), type: typeof c === "object" && Array.isArray(c.enemies), differs: sigs.size > 1, seed: a.meta.seed, keys: Object.keys(a), n: a.enemies.length, sp: a.enemies.map((e) => e.spawnAt) };
+  });
+  t.ok(det.same && det.seed === 42, "buildWave(profile, ctx, 42) дважды — одинаковый результат до последнего поля");
+  t.ok(det.type && det.differs && ["enemies", "cards", "solution", "meta"].every((k) => det.keys.includes(k)), "с другим seed — другой порядок/состав (12 seed дали разные волны); выход: enemies, cards, solution, meta");
+  t.ok(det.sp[0] === 0 && det.sp.every((v, i) => i === 0 || v - det.sp[i - 1] >= 3000), "spawnAt растёт с шагом не меньше 3000 мс");
+
+  const solv = await ev(() => {
+    const O = window.OBORONA, L = O.logic, A = O.api, T = window.__T;
+    A.manual(true);
+    const mkF = (land, kind) => { const f = {}; L.LANDS.forEach((l) => { if (l.id <= land) l.facts.forEach((k, i) => { if (kind === "all") f[k] = Object.assign(T.card(4, "2026-10-30"), { bossSeen: 3, bossDays: ["2026-10-01"], divDays: ["2026-10-01"] }); else if (kind === "mid" && i % 2 === 0) f[k] = Object.assign(T.card(1 + (i % 3), i % 4 === 0 ? "2026-10-10" : "2026-10-20"), { bossSeen: i % 3 }); }); }); return f; };
+    const out = { waves: 0, bad: [], sims: 0, simBad: [], bosses: 0, kMax: {} };
+    L.LEVELS.forEach((lv) => lv.waves.forEach((w, wi) => ["empty", "mid", "all"].forEach((pn) => {
+      for (let seed = 1; seed <= 20; seed++) {
+        const prof = { facts: mkF(lv.land, pn), confusions: {}, heavyStreak: seed % 7 === 0 ? 2 : 0, lightStreak: seed % 5 === 0 ? 2 : 0 };
+        const easy = prof.heavyStreak >= 2, ctx = T.ctx(lv.id, wi);
+        const r = L.buildWave(prof, ctx, seed);
+        out.waves++;
+        const nb = r.enemies.filter((e) => e.kind === "boss").length, kLimit = Math.max(easy ? Math.max(1, w.k - 1) : prof.lightStreak ? Math.min(4, w.k + 1) : w.k, w.b ? 3 : 1);
+        if (!r.solution) out.bad.push([lv.id, wi, pn, seed, "нет решения"]);
+        else if (r.enemies.length !== (easy ? 6 : w.n) || nb !== w.b || r.meta.k > kLimit || r.meta.easy !== easy) out.bad.push([lv.id, wi, pn, seed, "n " + r.enemies.length + " b " + nb + " k " + r.meta.k]);
+        out.bosses += nb;
+        if (r.solution) {
+          A.loadLevel({ layout: lv.layout, hand: L.LANDS[lv.land - 1].hand, fixed: lv.fixed, hearts: 10, waves: [{ enemies: r.enemies, gap: r.meta.gap, solution: r.solution }] });
+          A.applySolution(); A.fight(); A.stepUntilWaveEnd();
+          const s = O.state(); out.sims++;
+          if (s.events.filter((e) => e.type === "kill").length !== r.enemies.length || s.events.some((e) => e.type === "gate")) out.simBad.push([lv.id, wi, pn, seed]);
+        }
+      }
+    })));
+    return out;
+  });
+  t.eq(solv.bad.slice(0, 5), [], "T2-7: все 25 уровней × 3 волны × seed 1…20 × 3 профиля (" + solv.waves + " волн): решение есть, число врагов и боссов по таблице, k не больше табличного");
+  t.ok(solv.sims === solv.waves && solv.simBad.length === 0, "T2-7: решение solveWave проходит через настоящую симуляцию — все враги побеждены, ни один не дошёл (" + solv.sims + " волн, провалов " + solv.simBad.length + (solv.simBad.length ? ": " + JSON.stringify(solv.simBad.slice(0, 3)) : "") + ")");
+  t.ok(solv.bosses > 600, "в волнах с боссами боссы действительно стоят (" + solv.bosses + " боссов)");
+
+  const ent = await ev(() => {
+    const T = window.__T, L = window.OBORONA.logic, out = { waves: 0, bad: [], keys: new Set() };
+    L.LEVELS.filter((l) => l.waves.some((w) => w.b)).forEach((lv) => lv.waves.forEach((w, wi) => {
+      if (!w.b) return;
+      for (let seed = 1; seed <= 6; seed++) {
+        const f = {}; L.LANDS[lv.land - 1].facts.forEach((k, i) => { if ((i + seed) % 2) f[k] = Object.assign(T.card(2 + (i % 3), seed % 3 === 0 && i % 4 === 0 ? "2026-10-10" : "2026-10-20"), { bossSeen: (i + seed) % 4, bossDays: (i * seed) % 3 ? [] : ["2026-10-01"] }); });
+        const r = L.buildWave({ facts: f, confusions: {}, heavyStreak: 0, lightStreak: 0 }, T.ctx(lv.id, wi), seed), vals = r.enemies.map((e) => e.value);
+        const bosses = r.enemies.filter((e) => e.kind === "boss"); out.waves++;
+        const [a, b] = bosses[0].card.split("x").map(Number), sp = L.splitHint(a, b);
+        out.keys.add(bosses[0].card);
+        if (sp && !sp.beamParts.every((p) => vals.includes(p[0] * p[1]))) out.bad.push([lv.id, wi, seed, bosses[0].card, vals.join()]);
+        if (bosses.some((x) => x.card !== bosses[0].card)) out.bad.push([lv.id, wi, seed, "разные боссы"]);
+      }
+    }));
+    return { waves: out.waves, bad: out.bad, keys: out.keys.size };
+  });
+  t.ok(ent.bad.length === 0 && ent.waves > 100 && ent.keys >= 3, "свита босса: рядом с боссом идут враги с числами его частей разрезания (7 × 5 = 35 и 7 × 3 = 21 для 7x8); два босса — одной карточки (" + ent.waves + " волн, " + ent.keys + " разных боссов)" + (ent.bad.length ? " " + JSON.stringify(ent.bad.slice(0, 2)) : ""));
+  const mix = await ev(() => {
+    const T = window.__T, L = window.OBORONA.logic, out = [];
+    const mkProf = (hs) => { const f = {}; ["3x3", "3x4", "4x4"].forEach((k) => { f[k] = T.card(1, "2026-10-09"); }); ["3x6", "3x7", "3x8", "3x9"].forEach((k) => { f[k] = T.card(2, "2026-10-20"); }); return { facts: f, confusions: {}, heavyStreak: hs || 0, lightStreak: 0 }; };
+    for (let seed = 1; seed <= 20; seed++) {
+      const prof = mkProf(0), r = L.buildWave(prof, T.ctx("2-4", 1, [1, 2]), seed);
+      const cards = Array.from(new Set(r.enemies.map((e) => e.card)));
+      out.push({ seed, meta: [r.meta.newCount, r.meta.dueCount, r.meta.famCount, r.meta.n, r.meta.k], newC: cards.filter((k) => !prof.facts[k]).length, dueC: cards.filter((k) => prof.facts[k] && prof.facts[k].due <= "2026-10-10").length, famC: cards.filter((k) => prof.facts[k] && prof.facts[k].due > "2026-10-10").length });
+    }
+    const e1 = L.buildWave(mkProf(2), T.ctx("2-4", 1, [1, 2]), 5), e2 = L.buildWave(mkProf(2), T.ctx("2-1", 0, [1, 2]), 5), lt = L.buildWave(Object.assign(mkProf(0), { lightStreak: 2 }), T.ctx("2-1", 0, [1, 2]), 5);
+    const prof2 = mkProf(2);
+    return { out, e1: { easy: e1.meta.easy, n: e1.enemies.length, k: e1.meta.k, gap: e1.meta.gap, newC: Array.from(new Set(e1.enemies.map((e) => e.card))).filter((k) => !prof2.facts[k]).length, sp: e1.enemies.map((e) => e.spawnAt) }, e2: { k: e2.meta.k, n: e2.enemies.length }, lt: { k: lt.meta.k, easy: lt.meta.easy } };
+  });
+  t.ok(mix.out.every((o) => JSON.stringify(o.meta) === "[1,2,7,10,4]" && o.newC === 1 && o.dueC >= 1 && o.dueC <= 2 && o.famC >= 1), "T2-8: профиль с 4 новыми, 3 повторяемыми и 4 знакомыми карточками, n = 10, k = 4: 1 новый враг, 2 повторяемых, 7 знакомых; одна новая карточка и 1–2 повторяемых (20 seed)");
+  t.ok(mix.e1.easy && mix.e1.n === 6 && mix.e1.k === 3 && mix.e1.gap === 4500 && mix.e1.newC === 0 && mix.e1.sp[1] === 4500, "T2-9: heavyStreak 2 → облегчённая волна: 6 врагов, k на 1 меньше (4 → 3), новых нет, интервал 4500 мс");
+  t.ok(mix.e2.k === 1 && mix.e2.n === 6 && mix.lt.k === 3 && !mix.lt.easy, "T2-9: облегчённая волна с k 2 → 1; две лёгкие подряд (lightStreak 2) → на одно число больше (k 2 → 3)");
+  // облегчение живьём: две тяжёлые волны подряд, затем облегчённая, после неё heavyStreak 0
+  await resetAll();
+  const hv = [];
+  for (let i = 0; i < 2; i++) {
+    await load({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [56, 56, 56], gap: 3000 }] });
+    await ev(() => { const a = window.OBORONA.api; a.fight(); a.stepUntilWaveEnd(); });
+    hv.push((await expSave()).profile.heavyStreak);
+  }
+  t.eq(hv, [1, 2], "две тяжёлые волны подряд (враги дошли): heavyStreak 1, затем 2");
+  const ez = await ev(() => { const O = window.OBORONA, a = O.api, r = a.startLevel("1-1", { seed: 3 }); return { r, meta: O.state().wave.meta, n: O.state().ribbon.length }; });
+  t.ok(ez.r.ok && ez.meta.easy === true && ez.n === 6 && ez.meta.gap === 4500, "следующая волна настоящего уровня облегчённая: easy, 6 врагов, интервал 4500 мс");
+  await playWaves(1);
+  t.eq((await expSave()).profile.heavyStreak, 0, "после облегчённой волны heavyStreak сбрасывается в 0");
+  // путаницы
+  const cfw = await ev(() => {
+    const T = window.__T, L = window.OBORONA.logic, out = [];
+    for (let seed = 1; seed <= 20; seed++) {
+      const facts = { "7x8": T.card(2, "2026-10-20"), "6x8": T.card(2, "2026-10-20"), "6x7": T.card(2, "2026-10-20"), "4x8": T.card(2, "2026-10-20"), "3x8": T.card(2, "2026-10-20") };
+      const r = L.buildWave({ facts, confusions: { "48|56": { n: 2, last: "2026-10-09" } }, heavyStreak: 0, lightStreak: 0 }, T.ctx("4-1", 0, [1, 2, 3, 4]), seed);
+      const vals = r.enemies.map((e) => e.value);
+      out.push(vals.includes(56) && vals.includes(48));
+    }
+    const none = []; for (let seed = 1; seed <= 20; seed++) { const facts = { "7x8": T.card(2, "2026-10-20"), "6x8": T.card(2, "2026-10-20") }; const r = L.buildWave({ facts, confusions: { "48|56": { n: 1 } }, heavyStreak: 0, lightStreak: 0 }, T.ctx("4-1", 0, [1, 2, 3, 4]), seed); none.push(r.enemies.length); }
+    return { out, none: none.length };
+  });
+  t.ok(cfw.out.every(Boolean), "T2-10: пара «48|56» с n = 2 и карточками 7x8, 6x8 в пуле → в волне есть и 56, и 48 (20 seed из 20)");
+
+  // ================= Карта мира =================
+  console.log("-- Карта мира");
+  await resetAll();
+  await ev(() => { window.OBORONA.api.toMap(); });
+  const mp = await ev(() => {
+    const s = window.OBORONA.state(), lands = Array.from(document.querySelectorAll(".land")), lv = Array.from(document.querySelectorAll(".lvl"));
+    return {
+      screen: s.screen, n: lands.length, nl: lv.length, closed: lands.filter((l) => l.classList.contains("closed")).length, enabled: lv.filter((b) => !b.disabled).map((b) => b.dataset.id),
+      names: lands.map((l) => l.querySelector(".lname").textContent), sub: lands.map((l) => l.querySelector(".lsub").textContent), rw: document.querySelectorAll(".rw").length, rwOn: document.querySelectorAll(".rw.on").length,
+      title: document.querySelector("#scrMap h1").textContent, adult: document.getElementById("adultBtn").textContent.trim(), rest: !!document.getElementById("mapRest"),
+      small: Array.from(document.querySelectorAll("#scrMap button")).filter((b) => b.getClientRects().length && (b.getBoundingClientRect().height < 48 || b.getBoundingClientRect().width < 48)).map((b) => b.dataset.id || b.id),
+      sw: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) <= innerWidth
+    };
+  });
+  t.ok(mp.screen === "map" && mp.n === 6 && mp.nl === 25 && mp.rw === 12 && mp.rwOn === 0 && mp.title === "Оборона таблицы", "карта мира: 6 земель, 25 кнопок уровней, 12 наград (все видны, ни одна не получена), заголовок");
+  t.eq(mp.names, ["Долина двоек, пятёрок и десяток", "Холмы троек и четвёрок", "Лес девяток и шестёрок", "Горы «Трудные пятнадцать»", "Земля деления", "Крепость двузначных"], "названия земель");
+  t.ok(mp.sub[0] === "Изучено 0 из 23" && mp.closed === 5 && mp.sub.slice(1).every((x) => x === "Откроется, когда изучишь примеры прошлой земли"), "земля 1: «Изучено 0 из 23»; остальные закрыты: «Откроется, когда изучишь примеры прошлой земли»");
+  t.eq(mp.enabled, ["1-1"], "в начале открыт один уровень — 1-1");
+  t.ok(mp.small.length === 0 && mp.adult === "Для взрослых" && !mp.rest, "кнопки карты от 48 px; кнопка «Для взрослых» на месте; надписи про отдых нет");
+  t.eq((await api("startLevel", "1-2")).reason, "closed", "startLevel(«1-2») до прохождения 1-1 — «closed»");
+  t.eq((await api("startLevel", "2-1")).reason, "closed", "startLevel(«2-1») при закрытой земле 2 — «closed»");
+  t.eq((await api("startLevel", "9-9")).reason, "unknown", "неизвестный уровень — «unknown»");
+  await page.click('.lvl[data-id="1-1"]');
+  const st11 = await st();
+  t.ok(st11.screen === "level" && st11.level.id === "1-1" && st11.level.layout === "L1" && st11.level.waveCount === 3 && st11.phase === "prep" && st11.level.practice === false, "касание кнопки уровня 1-1: экран level, раскладка L1, три волны, подготовка");
+  t.eq(await ev(() => document.getElementById("waveNo").textContent), "Волна 1 из 3", "в полосе «Волна 1 из 3»");
+  t.eq((await ev(() => Array.from(document.querySelectorAll("#tiles .tile")).map((x) => Number(x.dataset.v)))), DIG10, "рука земли 1: 2–9 и 10");
+  t.ok(await ev(() => { const b = document.getElementById("mapBtn"); return !b.hidden && b.getBoundingClientRect().width >= 48; }), "в подготовке есть кнопка «На карту» (от 48 px)");
+  const lv1 = await st();
+  t.ok(lv1.ribbon.length === 6 && new Set(lv1.ribbon.map((r) => r.value)).size === 2 && lv1.wave.meta.n === 6 && lv1.wave.solution && lv1.wave.cards.length === 2, "волна 1 уровня 1-1: 6 врагов, 2 разных числа, решение есть");
+  await page.click("#mapBtn");
+  t.eq((await st()).screen, "map", "«На карту» из подготовки: экран map, уровень не засчитан");
+  t.eq((await expSave()).today.levels, 0, "уход с уровня не засчитывается в лимит дня");
+  // уровни: три волны, звёзды, открытие следующего
+  const seedA = await ev(() => { const a = window.OBORONA.api; return a.startLevel("1-1", { seed: 77 }); });
+  const seedB = await ev(() => window.OBORONA.state().ribbon.map((r) => r.value).join());
+  await ev(() => window.OBORONA.api.startLevel("1-1", { seed: 77 }));
+  t.ok(seedA.seed === 77 && seedB === (await ev(() => window.OBORONA.state().ribbon.map((r) => r.value).join())) && (await st()).level.seed === 77, "startLevel(id, {seed}): один seed — та же волна; seed хранится в state().level.seed");
+  const pw = await playWaves(3);
+  const r11 = await st();
+  t.ok(pw.every((x) => x.ok) && r11.screen === "levelEnd" && r11.phase === "levelEnd" && r11.result.stars === 3 && r11.result.hearts === 10 && r11.hearts === 10, "уровень 1-1 пройден по решениям: три волны, 10 сердечек, 3 звезды, экран levelEnd");
+  const le = await ev(() => { const e = document.getElementById("scrLevelEnd"); return { vis: !e.hidden, txt: e.innerText.replace(/\s+/g, " "), stars: e.querySelectorAll(".bigstars .st.on").length, btn: e.querySelector("#lvDone").getBoundingClientRect().height, endCard: getComputedStyle(document.getElementById("endCard")).visibility }; });
+  t.ok(le.vis && /Уровень пройден!/.test(le.txt) && /Сохранено 10 сердечек из 10/.test(le.txt) && le.stars === 3 && le.btn >= 64 && /Дальше/.test(le.txt) && le.endCard === "hidden", "экран итогов: «Уровень пройден!», 3 звезды, «Сохранено 10 сердечек из 10», крупная «Дальше»");
+  const sv = await expSave();
+  t.ok(sv.levels["1-1"].stars === 3 && sv.levels["1-1"].plays === 1 && sv.today.levels === 1 && sv.today.session === 1 && sv.profile.lastLevel === "1-1" && sv.history.length === 1 && sv.history[0].lvl === "1-1" && sv.history[0].waves.length === 3, "сохранение: звёзды уровня, plays 1, today.levels 1, session 1, lastLevel, запись в history");
+  await api("levelEndNext");
+  t.eq((await st()).screen, "map", "«Дальше» после первого уровня — карта (сессия ещё не кончилась)");
+  const mp2 = await ev(() => ({ enabled: Array.from(document.querySelectorAll(".lvl")).filter((b) => !b.disabled).map((b) => b.dataset.id), done: Array.from(document.querySelectorAll(".lvl.done")).map((b) => b.dataset.id), stars: document.querySelectorAll('.lvl[data-id="1-1"] .st.on').length }));
+  t.ok(mp2.enabled.includes("1-1") && mp2.enabled.includes("1-2") && mp2.done[0] === "1-1" && mp2.stars === 3 && !mp2.enabled.includes("1-3"), "после 1-1 открыт 1-2; на кнопке пройденного уровня три звезды; 1-3 ещё закрыт");
+
+  // звёзды по сердечкам и честная доигровка
+  console.log("-- звёзды и сердечки");
+  await resetAll();
+  const bad1 = await ev(() => {
+    const O = window.OBORONA, a = O.api;
+    a.startLevel("1-1", { seed: 4 });
+    for (let w = 0; w < 3; w++) { a.fight(); a.stepUntilWaveEnd(); }
+    return O.state();
+  });
+  t.ok(bad1.screen === "levelEnd" && bad1.hearts === 0 && bad1.result.stars === 1 && bad1.result.text === "Волна позади: 0 из 6", "без лучей уровень доигрывается до конца: 0 сердечек, 1 звезда, честный итог волны (третья волна облегчённая: 6 врагов)");
+  t.eq(bad1.save.levels["1-1"].stars, 1, "лучший результат уровня сохранён (1 звезда)");
+  await api("levelEndNext");
+  await ev(() => { const a = window.OBORONA.api; a.startLevel("1-1", { seed: 4 }); });
+  await playWaves(3);
+  t.eq((await expSave()).levels["1-1"], { stars: 3, plays: 2 }, "перепрохождение лучше — лучший результат 3 звезды, plays 2");
+
+  // ================= T2-11 открытие земель =================
+  console.log("-- T2-11 открытие земель");
+  await resetAll();
+  const L1facts = {}; ["2x2", "2x3", "2x4", "2x5", "5x5", "2x10", "3x10", "5x10", "2x6", "3x5", "4x5", "4x10", "2x7", "5x6", "6x10", "2x8", "5x7", "7x10", "2x9", "5x8", "8x10", "5x9", "9x10"].forEach((k) => { L1facts[k] = { box: 3, due: "2026-10-30" }; });
+  await imp({ facts: L1facts });
+  t.eq((await expSave()).unlocked, [1], "до конца уровня земля 2 ещё закрыта (importSave не открывает земли сам)");
+  await playLevel("1-1", 9);
+  t.eq((await expSave()).unlocked, [1, 2], "все карточки земли 1 в коробке 3 → после конца уровня открыта земля 2");
+  await api("levelEndNext");
+  const mp3 = await ev(() => ({ enabled: Array.from(document.querySelectorAll(".lvl")).filter((b) => !b.disabled).map((b) => b.dataset.id), sub: document.querySelector('.land[data-land="1"] .lsub').textContent, closed: document.querySelectorAll(".land.closed").length }));
+  t.ok(mp3.enabled.includes("2-1") && !mp3.enabled.includes("2-2") && mp3.closed === 4 && mp3.sub === "Изучено 23 из 23", "на карте открыта земля 2 (уровень 2-1), в земле 1 «Изучено 23 из 23»");
+  // земля 4 и 5: нужна победа в роли босса
+  await resetAll();
+  const allKeys = await ev(() => window.OBORONA.logic.LANDS.slice(0, 4).map((l) => l.facts));
+  const f4 = {}; allKeys.forEach((arr) => arr.forEach((k) => { f4[k] = { box: 3, due: "2026-10-30" }; }));
+  const HARD = await ev(() => window.OBORONA.logic.HARD15);
+  HARD.forEach((k) => { f4[k] = { box: 3, due: "2026-10-30", bossDays: k === "7x8" ? [] : ["2026-10-01"] }; });
+  await imp({ facts: f4, unlocked: [1, 2, 3, 4] });
+  await playLevel("1-1", 9);
+  const ul1 = (await expSave()).unlocked;
+  t.ok(ul1.includes(4) && !ul1.includes(5), "земля 4 открыта, но у 7x8 bossDays пуст → земля 5 закрыта");
+  const sv4 = await expSave(); sv4.facts["7x8"].bossDays = ["2026-10-02"];
+  await imp(sv4);
+  await playLevel("1-2", 9);
+  t.ok((await expSave()).unlocked.includes(5), "bossDays есть у всех 15 карточек → земля 5 открыта");
+  // земля деления: неподвижные башни, divDays
+  console.log("-- земля деления на настоящем уровне");
+  await imp({ unlocked: [1, 2, 3, 4, 5] });
+  await ev(() => window.OBORONA.api.startLevel("5-1", { seed: 21 }));
+  const d5l = await st();
+  t.ok(d5l.level.land === 5 && d5l.level.layout === "L4" && JSON.stringify(d5l.level.fixed) === JSON.stringify({ B: 4, D: 7, F: 3 }) && d5l.towers.filter((x) => x.fixed).map((x) => x.pad + x.value).sort().join() === "B4,D7,F3", "уровень 5-1: раскладка L4, неподвижные башни B 4, D 7, F 3 стоят с начала");
+  t.eq((await api("placeTower", "D", 5)).reason, "fixed", "неподвижную башню на реальном уровне нельзя сменить");
+  const solve5 = await ev(() => window.OBORONA.state().wave.solution);
+  t.ok(solve5 && solve5.beams.every((b) => ["B", "D", "F"].some((p) => b.includes(p))), "решение земли деления: каждый луч идёт от неподвижной башни");
+  await playWaves(3);
+  const dd = (await expSave()).facts;
+  t.ok(Object.keys(dd).some((k) => dd[k].divDays && dd[k].divDays.length === 1 && dd[k].divDays[0] === "2026-10-10"), "победа лучом с неподвижной башней записывает divDays");
+
+  // ================= T2-12 подсказка-путь =================
+  console.log("-- T2-12 подсказка-путь и лампочка");
+  await resetAll();
+  const BOSSFX = () => ({ layout: "L1", hand: DIG, fixed: {}, track: true, waves: [{ enemies: [{ value: 35 }, { value: 56, kind: "boss", card: "7x8" }, { value: 21 }], gap: 3000, solution: { pads: { A: 5, B: 7, C: 3 }, beams: [["A", "B"], ["B", "C"]] } }] });
+  await load(BOSSFX());
+  const h1 = await st();
+  t.ok(h1.hint && h1.hint.visible === true && h1.hint.link === "A-B" && h1.hint.text === "7 × 5" && h1.ribbon.every((r) => !r.lamp), "новый босс 7x8: подсказка видна сама — связь A-B, текст «7 × 5», лампочки нет");
+  await ev(() => window.OBORONA.render());
+  const hf = await st();
+  t.ok(hf.frame.hint && hf.frame.hint.link === "A-B" && hf.frame.hint.text === "7 × 5", "подсказка нарисована: в frame.hint связь A-B и призрачная плашка «7 × 5»");
+  const hpix = await ev(() => {
+    const O = window.OBORONA, s = O.state(), v = s.view, cv = document.getElementById("field"), cx = cv.getContext("2d"), L = O.layouts.L1;
+    // на дорожке между входом и связью A-B (t 0,1657): белый штрих рядом с осью
+    let white = 0; for (let x = 20; x < 250; x += 2) { const d = cx.getImageData(Math.round((v.ox + x * v.s) * (cv.width / v.W)), Math.round((v.oy + 480 * v.s) * (cv.width / v.W)), 1, 1).data; if (d[0] > 240 && d[1] > 235 && d[2] > 225) white++; }
+    return white;
+  });
+  t.ok(hpix > 8, "на оси дорожки от входа до точки пересечения A-B видны белые штрихи пунктира (" + hpix + " точек)");
+  await setup({ A: 5, B: 7, C: 3 }, [["B", "A"], ["B", "C"]]);
+  t.eq((await st()).frame.hint, null, "когда луч на этой связи построен, подсказка уходит с поля");
+  await api("fight");
+  await ev(() => window.OBORONA.api.stepUntilWaveEnd());
+  const h2 = await expSave();
+  t.ok(h2.facts["7x8"].bossSeen === 1 && h2.facts["7x8"].bossDays.length === 1 && h2.facts["7x8"].noHintDays.length === 0, "первая встреча: bossSeen 1, победа записана в bossDays; подсказка была видна, noHintDays пуст");
+  await imp({ facts: { "7x8": { box: 3, due: "2026-10-20", bossSeen: 2 } } });
+  await load(BOSSFX());
+  const h3 = await st();
+  t.ok(h3.hint && h3.hint.visible === false && h3.ribbon.filter((r) => r.lamp).length === 1 && h3.ribbon.find((r) => r.lamp).kind === "boss" && (await st()).frame.hint === null, "bossSeen 2: подсказка скрыта, на карточке босса в ленте лампочка (lamp: true)");
+  t.ok(await ev(() => { const b = document.querySelector(".card.boss .lamp"); return !!b && b.getBoundingClientRect().width >= 48 && b.getBoundingClientRect().height >= 48; }), "лампочка в DOM: кнопка на карточке босса не меньше 48 px");
+  await page.click(".card.boss .lamp");
+  await ev(() => window.OBORONA.render());
+  const h4 = await st();
+  t.ok(h4.hint.visible && h4.frame.hint && h4.ribbon.every((r) => !r.lamp), "касание лампочки: подсказка видна до конца волны, лампочка гаснет");
+  await setup({ A: 5, B: 7, C: 3 }, [["B", "A"], ["B", "C"]]);
+  await api("fight"); await ev(() => window.OBORONA.api.stepUntilWaveEnd());
+  t.eq((await expSave()).facts["7x8"].noHintDays, [], "победа с лампочкой не считается победой без подсказки");
+  await load(BOSSFX());
+  await setup({ A: 5, B: 7, C: 3 }, [["B", "A"], ["B", "C"]]);
+  await api("fight"); await ev(() => window.OBORONA.api.stepUntilWaveEnd());
+  t.eq((await expSave()).facts["7x8"].noHintDays, ["2026-10-10"], "победа без лампочки: сегодняшний день в noHintDays");
+  await ev(() => window.OBORONA.api.setToday("2026-10-11"));
+  await load(BOSSFX());
+  t.ok((await st()).hint && (await st()).ribbon.some((r) => r.lamp), "в тот же день после победы без подсказки лампочка ещё есть, а на следующий день (1 запись) — тоже");
+  await setup({ A: 5, B: 7, C: 3 }, [["B", "A"], ["B", "C"]]);
+  await api("fight"); await ev(() => window.OBORONA.api.stepUntilWaveEnd());
+  const h5 = (await expSave()).facts["7x8"];
+  t.eq(h5.noHintDays, ["2026-10-10", "2026-10-11"], "победа без подсказки в два разных дня: noHintDays из двух дат");
+  await load(BOSSFX());
+  const h6 = await st();
+  t.ok(h6.hint === null && h6.ribbon.every((r) => !r.lamp) && h6.frame.hint === null, "после двух дней подсказки нет совсем: hint null, лампочки нет");
+
+  // ================= T2-13 итоги, «можно было ещё», ночь =================
+  console.log("-- T2-13 итоги уровня и экран ночи");
+  await resetAll();
+  const W24 = mkWaves([24, 24], { pads: { A: 3, B: 8 }, beams: [["A", "B"]] });
+  const r24 = await playLevel("1-1", 3, W24);
+  t.ok(r24.ok && r24.alts.includes("24 можно было победить ещё лучом 4 × 6"), "24 побеждён лучом 3 × 8: в итогах «24 можно было победить ещё лучом 4 × 6»");
+  const le2 = await ev(() => document.getElementById("scrLevelEnd").innerText.replace(/\s+/g, " "));
+  t.ok(/24 можно было победить ещё лучом 4 × 6/.test(le2), "эта строка видна на экране итогов");
+  t.ok(/Приём:/.test(le2) === false, "приём на итогах — только если на уровне были ошибки или неуверенные победы");
+  const W24b = mkWaves([24], { pads: { A: 4, B: 6 }, beams: [["A", "B"]] });
+  await api("levelEndNext");
+  const r24b = await playLevel("1-2", 3, W24b);
+  t.ok(r24b.alts.includes("24 можно было победить ещё лучом 3 × 8"), "тот же 24 лучом 4 × 6: «24 можно было победить ещё лучом 3 × 8»");
+  // приём: после ошибки
+  await api("levelEndNext");
+  const WBAD = mkWaves([56], { pads: {}, beams: [] });
+  const rb = await playLevel("1-3", 3, WBAD);
+  t.ok(rb.tip && /^×8 — это удвоить трижды: 8 × 7: 7 → 14 → 28 → 56$/.test(rb.tip.text) && rb.stars === 2 && rb.hearts === 7, "враги дошли: на итогах «Приём:» для самой трудной карточки (7x8 → ×8 — удвоить трижды)");
+  t.ok(/Приём:\s*×8/.test(await ev(() => document.getElementById("scrLevelEnd").innerText)), "приём виден на экране итогов");
+  // три уровня за сессию — ночь
+  const sess = await expSave();
+  t.ok(sess.today.levels === 3 && sess.today.session === 3, "сыграно 3 уровня: today.levels 3, session 3");
+  await api("levelEndNext");
+  const nt = await ev(() => { const e = document.getElementById("scrNight"); return { screen: window.OBORONA.state().screen, txt: e.innerText.replace(/\s+/g, " "), more: !!e.querySelector("#nightMore"), map: !!e.querySelector("#nightMap"), btnH: Array.from(e.querySelectorAll("button")).map((b) => b.getBoundingClientRect().height) }; });
+  t.ok(nt.screen === "night" && /Крепость закрывается на ночь/.test(nt.txt) && /Освоено сегодня:/.test(nt.txt) && /Завтра вернутся:/.test(nt.txt) && /Можно было ещё:/.test(nt.txt) && /Приём:/.test(nt.txt), "после трёх уровней экран night: «Крепость закрывается на ночь», «Освоено сегодня:», «Завтра вернутся:», «Можно было ещё:», «Приём:»");
+  t.ok(/Пример становится освоенным, когда побеждаешь его в два разных дня/.test(nt.txt), "если за день ничего не освоено — подсказка «Пример становится освоенным, когда побеждаешь его в два разных дня»");
+  t.ok(nt.more && nt.map && /Ещё один уровень/.test(nt.txt) && !/Крепость отдыхает до завтра/.test(nt.txt) && nt.btnH.every((h) => h >= 64), "до лимита (3 из 5) есть крупная кнопка «Ещё один уровень» и «На карту»; надписи про отдых нет");
+  t.ok(/7 × 8/.test(nt.txt) && /24 можно было победить ещё лучом (3 × 8|4 × 6)/.test(nt.txt), "в «Завтра вернутся» — трудный пример 7 × 8, в «Можно было ещё» — строки за весь день");
+  t.eq((await expSave()).today.session, 0, "после показа ночи session = 0");
+  const nm = await api("nightMore");
+  const sn = await st();
+  t.ok(nm.ok && sn.screen === "level" && sn.level.id === "1-4", "«Ещё один уровень» открывает следующий после сыгранного уровень 1-4 и экран level (" + sn.level.id + ")");
+
+  // ================= Лимит уровней в день =================
+  console.log("-- лимит уровней в день");
+  await resetAll();
+  await ev(() => window.OBORONA.api.setSetting("perDay", 2));
+  await playLevel("1-1", 5); await api("levelEndNext");
+  t.eq((await st()).screen, "map", "первый уровень при лимите 2: после «Дальше» карта");
+  await playLevel("1-2", 5);
+  await api("levelEndNext");
+  const lim = await ev(() => { const e = document.getElementById("scrNight"); return { screen: window.OBORONA.state().screen, txt: e.innerText.replace(/\s+/g, " "), more: !!e.querySelector("#nightMore"), vis: getComputedStyle(e.querySelector(".resttext")).visibility, font: parseFloat(getComputedStyle(e.querySelector(".resttext")).fontSize) }; });
+  t.ok(lim.screen === "night" && /Крепость отдыхает до завтра/.test(lim.txt) && !lim.more && lim.vis === "visible" && lim.font >= 28, "лимит 2 из 2: на экране night крупная надпись «Крепость отдыхает до завтра», кнопки «Ещё один уровень» нет");
+  t.eq((await api("nightMore")).reason, "limit", "nightMore после лимита — «limit»");
+  await api("toMap");
+  const lm = await ev(() => ({ txt: document.getElementById("mapRest") && document.getElementById("mapRest").innerText, enabled: Array.from(document.querySelectorAll(".lvl")).filter((b) => !b.disabled).length, vis: document.getElementById("mapRest") && getComputedStyle(document.getElementById("mapRest")).visibility }));
+  t.ok(lm.txt === "Крепость отдыхает до завтра" && lm.enabled === 0 && lm.vis === "visible", "на карте та же надпись «Крепость отдыхает до завтра» и все кнопки уровней неактивны");
+  t.eq((await api("startLevel", "1-2")).reason, "limit", "startLevel после лимита — «limit»");
+  await page.reload(); await page.waitForFunction(() => window.OBORONA && window.OBORONA.ready); await injectT();
+  await ev(() => window.OBORONA.api.manual(true));
+  t.ok(await ev(() => { const s = window.OBORONA.state(); return s.screen === "map" && s.rest && /Крепость отдыхает до завтра/.test(document.getElementById("scrMap").innerText); }), "после перезагрузки страницы надпись «Крепость отдыхает до завтра» на месте");
+  await ev(() => window.OBORONA.api.setToday("2026-10-11"));
+  t.ok(await ev(() => { const s = window.OBORONA.state(); return !s.rest && !/Крепость отдыхает/.test(document.getElementById("scrMap").innerText) && window.OBORONA.api.startLevel("1-2", { seed: 1 }).ok; }), "на следующий день надписи нет, уровень запускается");
+
+  // ================= T2-14 экран взрослого =================
+  console.log("-- T2-14 экран взрослого");
+  await resetAll();
+  await imp({
+    facts: { "7x8": { box: 3, due: "2026-10-13", seen: 7, good: 4, ok: 1, fail: 2, msSum: 38400, msN: 6, bossSeen: 2, bossDays: ["2026-10-09"] }, "6x8": { box: 1, due: "2026-10-10", seen: 4, good: 0, ok: 1, fail: 3 }, "2x2": { box: 5, due: "2026-11-01", seen: 2, good: 2 } },
+    confusions: { "48|56": { n: 3, last: "2026-10-09" }, "42|48": { n: 1, last: "2026-10-09" } }
+  });
+  await api("toMap");
+  const bb = await ev(() => { const r = document.getElementById("adultBtn").getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, h: r.height }; });
+  t.ok(bb.h >= 48, "кнопка «Для взрослых» не меньше 48 px");
+  await page.mouse.move(bb.x, bb.y); await page.mouse.down();
+  await page.waitForTimeout(1000);
+  const ring1 = await ev(() => parseFloat(getComputedStyle(document.querySelector("#adultBtn .hring rect")).strokeDashoffset));
+  await page.mouse.up();
+  const ring2 = await ev(() => parseFloat(getComputedStyle(document.querySelector("#adultBtn .hring rect")).strokeDashoffset));
+  t.ok((await st()).screen === "map" && ring1 > 20 && ring1 < 80 && ring2 === 100, "удержание 1 с и отпускание: экран остался map, кольцо заполнялось (" + Math.round(ring1) + ") и сбросилось");
+  await page.mouse.move(bb.x, bb.y); await page.mouse.down();
+  await page.waitForTimeout(2200);
+  await page.mouse.up();
+  t.eq((await st()).screen, "adult", "удержание больше 2 с открывает экран взрослого");
+  const ad = await ev(() => {
+    const e = document.getElementById("scrAdult"), cell = e.querySelector('.gc[data-a="7"][data-b="8"]'), cell2 = e.querySelector('.gc[data-a="3"][data-b="4"]');
+    return { n: e.querySelectorAll(".gc").length, txt: e.innerText.replace(/\s+/g, " "), c78: getComputedStyle(cell).backgroundColor, c34: getComputedStyle(cell2).backgroundColor, ch: cell.getBoundingClientRect().height, cw: cell.getBoundingClientRect().width, hd: Array.from(e.querySelectorAll(".agrid .ah")).map((x) => x.textContent).join("") };
+  });
+  t.ok(ad.n === 64 && ad.ch >= 48 && ad.cw >= 48, "в сетке 64 клетки (2–9 × 2–9), клетки от 48 px");
+  t.eq(ad.hd.slice(0, 8) + "|" + ad.hd.slice(8), "23456789|23456789", "заголовки столбцов и строк 2–9");
+  t.ok(ad.c78 === "rgb(255, 210, 74)" && ad.c34 === "rgb(42, 77, 93)", "цвет клетки — коробка Лейтнера: 7 × 8 (коробка 3) жёлтая, 3 × 4 (не было) тёмная");
+  ["Карта таблицы", "Не было", "Самые трудные", "Частые путаницы", "Сегодня", "Сыграно уровней: 0 из 5", "Скорость врагов", "Медленно", "Обычно", "Быстрее", "Уровней в день", "Звук", "Крупный шрифт", "Сбросить прогресс", "Закрыть"].forEach((w) => t.ok(ad.txt.includes(w), "экран взрослого: «" + w + "»"));
+  t.ok(ad.txt.includes("6 × 8 = 48 — коробка 1, ошибок 3") && ad.txt.includes("56 ↔ 48 — 3 раза"), "«Самые трудные»: «6 × 8 = 48 — коробка 1, ошибок 3»; «Частые путаницы»: «56 ↔ 48 — 3 раза»");
+  await page.click('.gc[data-a="7"][data-b="8"]');
+  t.eq(await ev(() => document.getElementById("adInfo").innerText), "7 × 8 = 56 · коробка 3 · верно 5 из 7 (71 %) · луч в среднем 6,4 с · босс побеждён в 1 день", "касание клетки 7 × 8: коробка, точность, среднее время луча, босс");
+  await page.click('.gc[data-a="3"][data-b="4"]');
+  t.eq(await ev(() => document.getElementById("adInfo").innerText), "3 × 4 = 12 · ещё не встречался", "клетка без карточки: «ещё не встречался»");
+  // настройки
+  await page.click('[data-act="speed"][data-v="slow"]');
+  t.eq((await expSave()).settings.speed, "slow", "«Медленно» сохраняется сразу");
+  await page.click('[data-act="perDay"][data-v="1"]'); await page.click('[data-act="perDay"][data-v="1"]');
+  t.eq((await expSave()).settings.perDay, 7, "кнопка «+» увеличивает число уровней в день (5 → 7)");
+  for (let i = 0; i < 12; i++) await page.click('[data-act="perDay"][data-v="-1"]');
+  t.eq((await expSave()).settings.perDay, 1, "кнопка «−» не опускает ниже 1");
+  for (let i = 0; i < 12; i++) await page.click('[data-act="perDay"][data-v="1"]');
+  t.eq((await expSave()).settings.perDay, 10, "и не поднимает выше 10");
+  await page.click('[data-act="perDay"][data-v="-1"]'); await page.click('[data-act="perDay"][data-v="-1"]'); await page.click('[data-act="perDay"][data-v="-1"]'); await page.click('[data-act="perDay"][data-v="-1"]'); await page.click('[data-act="perDay"][data-v="-1"]');
+  t.eq((await expSave()).settings.perDay, 5, "перед уровнем вернули 5");
+  await page.click('[data-act="sound"][data-v="false"]');
+  t.eq((await expSave()).settings.sound, false, "звук выключен и сохранён");
+  await page.click('[data-act="bigFont"][data-v="true"]');
+  t.ok((await expSave()).settings.bigFont === true && (await ev(() => document.body.classList.contains("big"))), "«Крупный шрифт» включён: класс на странице и в сохранении");
+  await page.click('[data-act="bigFont"][data-v="false"]');
+  t.ok(await ev(() => !document.body.classList.contains("big") && !window.OBORONA.state().save.settings.bigFont), "«Крупный шрифт» выключается");
+  // сброс: двойное подтверждение
+  await page.click('[data-act="reset1"]');
+  const rs = await ev(() => ({ txt: document.getElementById("scrAdult").innerText.replace(/\s+/g, " "), facts: Object.keys(window.OBORONA.state().save.facts).length }));
+  t.ok(/Точно сбросить\? Это нельзя отменить/.test(rs.txt) && /Да, сбросить/.test(rs.txt) && rs.facts === 3, "«Сбросить прогресс»: первое касание только спрашивает «Точно сбросить? Это нельзя отменить», прогресс цел");
+  await page.click('[data-act="reset0"]');
+  t.ok(await ev(() => !/Точно сбросить/.test(document.getElementById("scrAdult").innerText)) && Object.keys((await expSave()).facts).length === 3, "«Отмена» прячет вопрос, прогресс цел");
+  await page.click('[data-act="reset1"]'); await page.click('[data-act="reset2"]');
+  const rs2 = await expSave();
+  t.ok(Object.keys(rs2.facts).length === 0 && rs2.unlocked.length === 1 && rs2.settings.speed === "slow" && rs2.settings.sound === false && (await st()).screen === "map", "«Да, сбросить»: прогресс обнулён, настройки сохранены (скорость «Медленно», звук выкл.), открыта карта");
+  await ev(() => window.OBORONA.api.setSetting("sound", true));
+  // скорость в новом уровне
+  await ev(() => window.OBORONA.api.openAdult());
+  t.eq((await st()).screen, "adult", "api.openAdult() открывает экран без удержания");
+  await page.click('[data-act="close"]');
+  t.eq((await st()).screen, "map", "«Закрыть» — на карту");
+  await ev(() => { const a = window.OBORONA.api; a.startLevel("1-1", { seed: 8 }); a.fight(); a.spawn(56); });
+  const slow = (await api("step", 1000).then(st)).enemies[0];
+  t.ok(Math.abs(slow.t - 35 / 1509.0725) < 1e-4, "скорость «Медленно» действует в новом уровне: за 1 с враг проходит 35 ед. (t = " + slow.t.toFixed(5) + ")");
+  await ev(() => window.OBORONA.api.setSetting("speed", "normal"));
+
+  // ================= T2-15 дублирование в db =================
+  console.log("-- T2-15 db");
+  const dbctx = await t.context.browser().newContext({ viewport: { width: 1024, height: 768 }, locale: "ru-RU" });
+  const dbp = await dbctx.newPage();
+  const dbperr = []; dbp.on("pageerror", (e) => dbperr.push(e.message));
+  await dbp.addInitScript(() => {
+    window.__sets = [];
+    window.claude = { use: (n) => (n === "db" ? Promise.resolve({ doc: (path) => ({ set: (d) => { window.__sets.push({ path, v: d.v, facts: Object.keys(d.facts).length, at: d.updatedAt }); return Promise.resolve(); }, onSnapshot: (cb) => { window.__snap = cb; } }) }) : Promise.resolve(null)) };
+  });
+  await dbp.goto("file://" + t.file);
+  await dbp.waitForFunction(() => window.OBORONA && window.OBORONA.ready);
+  await dbp.evaluate(() => { const a = window.OBORONA.api; a.manual(true); a.setToday("2026-10-10"); a.startLevel("1-1", { seed: 2 }); for (let i = 0; i < 3; i++) { a.applySolution(); a.fight(); a.stepUntilWaveEnd(); } });
+  await dbp.waitForTimeout(1300);
+  const sets = await dbp.evaluate(() => window.__sets);
+  t.ok(sets.length >= 1 && sets.every((x) => x.path === "oborona/save" && x.v === 1) && sets[sets.length - 1].facts > 0, "после уровня фейковая db получила set документа oborona/save с v: 1 и фактами (" + sets.length + " записей, склеены задержкой 700 мс)");
+  const merged = await dbp.evaluate(() => {
+    const O = window.OBORONA, before = O.api.exportSave().updatedAt;
+    window.__snap({ exists: true, data: () => ({ v: 1, updatedAt: 5, facts: { "9x9": { box: 5, due: "2026-11-01" } } }) });
+    const stale = !!O.api.exportSave().facts["9x9"];
+    window.__snap({ exists: true, data: () => ({ v: 1, updatedAt: Date.now() + 100000, facts: { "9x9": { box: 4, due: "2026-11-01" } }, settings: { perDay: 7 } }) });
+    return { stale, fresh: O.api.exportSave().facts["9x9"], pd: O.api.exportSave().settings.perDay, before };
+  });
+  t.ok(merged.stale === false && merged.fresh && merged.fresh.box === 4 && merged.pd === 7, "снимок db со старым updatedAt игнорируется, со свежим — применяется (выигрывает больший updatedAt)");
+  t.eq(dbperr, [], "в странице с db нет ошибок");
+  await dbctx.close();
+  // без window.claude всё работает из localStorage (основная страница), ключ сохранения есть
+  t.ok(await ev(() => !!localStorage.getItem("oborona-save") && JSON.parse(localStorage.getItem("oborona-save")).v === 1), "без window.claude сохранение лежит в localStorage[«oborona-save»] (v 1)");
+
+  // ================= T2-16 миграция, типы, битая строка =================
+  console.log("-- T2-16 миграция");
+  const reloadPage = async () => { await page.reload(); await page.waitForFunction(() => window.OBORONA && window.OBORONA.ready); await injectT(); await ev(() => window.OBORONA.api.manual(true)); };
+  await ev(() => { localStorage.setItem("oborona-save", JSON.stringify({ facts: { "7x8": { box: 3, due: "2026-10-13" } } })); localStorage.removeItem("oborona-save-bad"); });
+  await reloadPage();
+  const mg = await expSave();
+  t.ok(mg.v === 1 && mg.settings.perDay === 5 && mg.settings.speed === "normal" && mg.facts["7x8"].box === 3 && mg.facts["7x8"].due === "2026-10-13" && mg.facts["7x8"].seen === 0 && Array.isArray(mg.facts["7x8"].bossDays) && JSON.stringify(mg.unlocked) === "[1]", "сохранение без v и без settings: после загрузки v 1, settings.perDay 5, факт на месте и дополнен полями");
+  await ev(() => { localStorage.setItem("oborona-save", JSON.stringify({ v: 1, facts: { "7x8": { box: "много", due: 5, seen: null, bossDays: "нет" }, "кривой": 1, "3x4": null }, settings: { perDay: "a", speed: "turbo", sound: "yes", bigFont: 1 }, unlocked: null, levels: [], profile: null, today: 3, seenRewards: "x7", history: {} })); });
+  await reloadPage();
+  const ty = await expSave();
+  t.ok(ty.facts["7x8"].box === 1 && /^\d{4}-\d{2}-\d{2}$/.test(ty.facts["7x8"].due) && ty.facts["7x8"].seen === 0 && Array.isArray(ty.facts["7x8"].bossDays) && !ty.facts["кривой"] && Object.keys(ty.facts).length === 2 && ty.facts["3x4"].box === 1, "проверка типов: box строкой, due числом, seen null, лишний ключ, null вместо карточки — умолчания");
+  t.ok(ty.settings.perDay === 5 && ty.settings.speed === "normal" && ty.settings.sound === true && ty.settings.bigFont === false && JSON.stringify(ty.unlocked) === "[1]" && JSON.stringify(ty.levels) === "{}" && ty.profile.heavyStreak === 0 && ty.today.levels === 0 && JSON.stringify(ty.seenRewards) === "[]" && JSON.stringify(ty.history) === "[]", "неверные типы в settings, unlocked, levels, profile, today, seenRewards, history → умолчания");
+  await ev(() => { localStorage.setItem("oborona-save", "{не json"); localStorage.removeItem("oborona-save-bad"); });
+  await reloadPage();
+  const bad = await ev(() => ({ bad: localStorage.getItem("oborona-save-bad"), save: window.OBORONA.api.exportSave() }));
+  t.ok(bad.bad === "{не json" && Object.keys(bad.save.facts).length === 0 && bad.save.v === 1, "битая строка сохранения: игра стартует с умолчаний, а сама строка лежит в «oborona-save-bad»");
+  await ev(() => { localStorage.setItem("oborona-save", JSON.stringify({ v: 7, newField: 1, facts: { "2x2": { box: 4, due: "2026-10-30" } }, unlocked: [1, 3, 9] })); });
+  await reloadPage();
+  const fut = await expSave();
+  t.ok(fut.v === 7 && fut.facts["2x2"].box === 4 && JSON.stringify(fut.unlocked) === "[1,3]", "более новая версия схемы читается как есть (v 7), недостающее дополняется, лишние земли отбрасываются");
+  await ev(() => { localStorage.setItem("oborona-save", "[1,2]"); });
+  await reloadPage();
+  t.ok(await ev(() => localStorage.getItem("oborona-save-bad") === "[1,2]"), "JSON, но не объект — тоже откладывается в «oborona-save-bad»");
+  await resetAll();
+
+  // ================= T2-17 награды =================
+  console.log("-- T2-17 награды");
+  const x7f = {}; ["2x7", "3x7", "4x7", "5x7", "6x7", "7x7", "7x8", "7x9"].forEach((k) => { x7f[k] = { box: 3, due: "2026-10-30" }; });
+  await imp({ facts: x7f });
+  t.ok((await ev(() => window.OBORONA.logic.rewardsEarned(window.OBORONA.api.exportSave().facts))).includes("x7"), "rewardsEarned(facts) содержит «x7» — все карточки с 7 в коробке 3");
+  const rw1 = await playLevel("1-1", 3, W24);
+  t.ok(rw1.newRewards.join() === "x7" && /Новая башня: башня-маяк/.test(await ev(() => document.getElementById("scrLevelEnd").innerText)), "на итогах строка «Новая башня: башня-маяк»");
+  t.eq((await expSave()).seenRewards, ["x7"], "награда записана в seenRewards");
+  await api("levelEndNext");
+  t.ok(await ev(() => document.querySelectorAll(".rw.on").length === 1 && document.querySelector(".rw.on b").textContent === "Башня-маяк"), "на карте награда «Башня-маяк» цветная, остальные 11 — силуэты");
+  const rw2 = await playLevel("1-2", 3, W24b);
+  t.eq(rw2.newRewards, [], "второй раз та же награда не объявляется");
+  await load({ layout: "L1", hand: DIG, fixed: {}, hold: true, waves: [{ enemies: [] }] });
+  await setup({ A: 7, B: 5 }, []);
+  await page.waitForTimeout(800);
+  await ev(() => window.OBORONA.render());
+  const lamp = await ev(() => {
+    const O = window.OBORONA, s = O.state(), v = s.view, cv = document.getElementById("field"), cx = cv.getContext("2d"), P = O.layouts.L1.padById;
+    const px = (x, y) => Array.from(cx.getImageData(Math.round((v.ox + x * v.s) * (cv.width / v.W)), Math.round((v.oy + y * v.s) * (cv.width / v.W)), 1, 1).data);
+    return { seven: px(P.A.x, P.A.y - 36), five: px(P.B.x, P.B.y - 36) };
+  });
+  t.ok(lamp.seven[0] > 240 && lamp.seven[1] > 190 && lamp.seven[2] < 120 && !(lamp.five[0] > 240 && lamp.five[1] > 190 && lamp.five[2] < 120), "башня 7 нарисована маяком (жёлтая лампа над основанием), башня 5 — обычная");
+
+  // ================= П7 за 15 минут ни одного вопроса (настоящие уровни) =================
+  console.log("-- П7 15 минут игры без вопросов");
+  await resetAll();
+  await ev(() => window.OBORONA.api.setSetting("perDay", 10));
+  const p7 = await ev(() => {
+    const O = window.OBORONA, a = O.api, out = { ms: 0, levels: 0, waves: 0, badText: [], badScreens: [], forms: 0, q: 0, seen: [] };
+    const pats = [/^\d+, а луч даёт \d+$/, /^\d+ − \d+ = \d+$/, /^\d+( = \d+ × \d+)?$/, /^Останется \d+ — такого луча нет$/, /^Сначала поставь башню$/, /^У башни уже два луча$/];
+    const order = ["1-1", "1-2", "1-3", "1-4"];
+    const scan = () => {
+      out.forms += document.querySelectorAll("input, textarea, select, [contenteditable]").length;
+      out.q += document.body.innerText.split("\\n").filter((l) => /\\?\\s*$/.test(l)).length;
+    };
+    while (out.ms < 900000 && out.levels < 12) {
+      const id = order[out.levels % 4], r = a.startLevel(id, { seed: 100 + out.levels });
+      if (!r.ok) { out.badScreens.push("startLevel " + id + " " + r.reason); break; }
+      for (let w = 0; w < 3; w++) {
+        a.applySolution(); a.fight();
+        const rr = a.stepUntilWaveEnd(); out.ms += rr.ms; out.waves++;
+        scan();
+        const s = O.state();
+        s.screensSeen.forEach((x) => { if (!["map", "level", "levelEnd", "night"].includes(x)) out.badScreens.push(x); });
+        s.textLog.forEach((x) => { if (!pats.some((p) => p.test(x))) out.badText.push(x); });
+      }
+      scan();
+      a.levelEndNext(); scan();
+      if (O.state().screen === "night") { scan(); a.nightMore(); }
+      out.levels++;
+    }
+    out.seen = O.state().screensSeen;
+    return out;
+  });
+  t.ok(p7.ms >= 900000 && p7.waves >= 15, "сыграно 15 минут боевого времени (" + Math.round(p7.ms / 60000) + " мин, " + p7.levels + " уровней, " + p7.waves + " волн)");
+  t.eq(p7.badText.slice(0, 3), [], "каждый текст на поле — один из шаблонов («56, а луч даёт 42», «56 − 35 = 21», «Останется 2 — такого луча нет», «56 = 7 × 8», отказы)");
+  t.ok(p7.forms === 0 && p7.q === 0 && p7.badScreens.length === 0, "на всех экранах нет полей ввода, списков выбора и видимых текстов, оканчивающихся на «?»; экраны только из {map, level, levelEnd, night} (" + p7.seen.join(", ") + ")");
+
+  // ================= П8 перезагрузка и лимит =================
+  console.log("-- П8 прогресс переживает перезагрузку");
+  await resetAll();
+  await ev(() => window.OBORONA.api.setSetting("speed", "fast"));
+  await playLevel("1-1", 31);
+  await api("levelEndNext");
+  const p8before = await expSave();
+  await reloadPage();
+  const p8after = await expSave();
+  t.ok(JSON.stringify(p8before.facts) === JSON.stringify(p8after.facts) && JSON.stringify(p8before.levels) === JSON.stringify(p8after.levels) && JSON.stringify(p8before.today) === JSON.stringify(p8after.today) && JSON.stringify(p8before.unlocked) === JSON.stringify(p8after.unlocked) && JSON.stringify(p8before.settings) === JSON.stringify(p8after.settings), "после page.reload() факты, уровни, today, unlocked и настройки совпадают с тем, что было");
+  t.ok(Object.keys(p8after.facts).length > 0 && p8after.levels["1-1"].stars === 3 && p8after.settings.speed === "fast", "прогресс на месте: факты есть, уровень 1-1 на 3 звезды, скорость «Быстрее»");
+  t.ok(await ev(() => { const e = document.querySelector('.lvl[data-id="1-1"]'); return window.OBORONA.state().screen === "map" && e.classList.contains("done") && !document.querySelector('.lvl[data-id="1-2"]').disabled; }), "после перезагрузки на карте 1-1 пройден, 1-2 открыт");
+  await ev(() => window.OBORONA.api.setSetting("speed", "normal"));
+  // лимит через новую страницу с подменой даты (addInitScript, как в разделе 16)
+  await ev(() => window.OBORONA.api.setSetting("perDay", 2));
+  await playLevel("1-2", 32); await api("levelEndNext");
+  const p8 = await ev(() => ({ screen: window.OBORONA.state().screen, rest: /Крепость отдыхает до завтра/.test(document.getElementById("scrMap").innerText) || /Крепость отдыхает до завтра/.test(document.getElementById("scrNight").innerText) }));
+  t.ok(p8.screen === "night" && p8.rest, "лимит 2: после второго уровня экран night с «Крепость отдыхает до завтра»");
+  const np = await t.context.newPage();
+  await np.addInitScript(() => { window.OBORONA_TODAY = "2026-10-11"; });
+  await np.goto("file://" + t.file);
+  await np.waitForFunction(() => window.OBORONA && window.OBORONA.ready);
+  const nxt = await np.evaluate(() => { const O = window.OBORONA; O.api.manual(true); return { rest: /Крепость отдыхает/.test(document.getElementById("scrMap").innerText), start: O.api.startLevel("1-2", { seed: 3 }).ok, today: O.state().today, levels: O.api.exportSave().today }; });
+  t.ok(!nxt.rest && nxt.start && nxt.today === "2026-10-11", "новая страница с датой 2026-10-11: надписи нет, startLevel принимается (лимит новых суток)");
+  await np.close();
+  await ev(() => window.OBORONA.api.setToday("2026-10-10"));
+
+  // ================= Прочее: ночь после 3 уровней без лимита, сессии =================
+  console.log("-- сессии");
+  await resetAll();
+  const ses = await ev(() => {
+    const O = window.OBORONA, a = O.api, out = [];
+    ["1-1", "1-2", "1-3"].forEach((id) => { a.startLevel(id, { seed: 5 }); for (let i = 0; i < 3; i++) { a.applySolution(); a.fight(); a.stepUntilWaveEnd(); } a.levelEndNext(); out.push(O.state().screen); });
+    return out;
+  });
+  t.eq(ses, ["map", "map", "night"], "два уровня подряд — на карту, после третьего — ночь");
+  await ev(() => window.OBORONA.api.setToday("2026-10-11"));
+  const ds = await expSave();
+  t.ok(ds.today.levels === 0 && ds.today.session === 0 && ds.today.date === "2026-10-11", "на следующий день счётчики уровней и сессии обнуляются");
+  const nt2 = await ev(() => { window.OBORONA.api.toMap(); return window.OBORONA.state().rest; });
+  t.eq(nt2, false, "и надпись об отдыхе пропадает");
+  await ev(() => window.OBORONA.api.setToday("2026-10-10"));
+
   await page.setViewportSize({ width: 1024, height: 768 });
   const fin = await ev(() => window.OBORONA.version);
-  t.eq(fin, "0.1.0", "версия 0.1.0");
+  t.eq(fin, "1.0.0", "версия 1.0.0");
 });

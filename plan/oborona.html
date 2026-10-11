@@ -104,6 +104,123 @@ button { font: inherit; color: inherit; }
 #ghost { position: fixed; left: 0; top: 0; z-index: 20; width: var(--tile); height: var(--tile); pointer-events: none; margin: 0; }
 #ghost[hidden] { display: none; }
 #ghost.tile { cursor: grabbing; transform: scale(1.1); box-shadow: 0 8px 0 rgba(0,0,0,.25); opacity: .95; }
+
+/* Лампочка на карточке босса */
+.card.haslamp { min-width: 48px; min-height: 48px; width: max(var(--card), 48px); height: max(var(--card), 48px); }
+.card .lamp { position: absolute; inset: -6px; width: auto; height: auto; padding: 0; border: 0; border-radius: 14px; background: transparent; cursor: pointer; touch-action: manipulation; }
+.card .lamp svg { position: absolute; right: -2px; top: -12px; width: 26px; height: 26px; filter: drop-shadow(0 1px 0 rgba(0,0,0,.4)); }
+
+/* Экраны: карта, итоги уровня, ночь, взрослый */
+.screen { position: fixed; inset: 0; z-index: 30; overflow: auto; padding: 14px 20px 18px; color: var(--ink); background: radial-gradient(1100px 620px at 15% -10%, #24566b 0%, #12303f 45%, var(--bg) 100%); touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.screen button { touch-action: manipulation; }
+.screen h1 { margin: 0; font-family: var(--f-display); font-weight: 400; letter-spacing: .01em; }
+.screen h2 { margin: 0 0 8px; font-family: var(--f-display); font-weight: 400; font-size: 22px; }
+.btn.big { min-height: 72px; font-size: 26px; padding: 0 40px; }
+body.big .screen { font-size: 20px; }
+body.big .lsub, body.big .rw span { font-size: 16px; }
+.st { fill: #2a4d5d; stroke: #4a6b7a; stroke-width: 1.4; stroke-linejoin: round; }
+.st.on { fill: var(--gold); stroke: var(--ink-dark); stroke-width: 1.6; }
+
+.mapwrap { max-width: 1320px; min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.maphead { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; }
+.maphead h1 { font-size: 32px; }
+.rest { padding: 8px 20px; border-radius: 18px; background: var(--panel-2); border: 3px solid var(--gold); font-family: var(--f-display); font-size: 24px; color: var(--gold); text-align: center; }
+.mapbody { display: flex; gap: 14px; flex: 1 1 auto; min-height: 0; }
+.lands { flex: 1 1 auto; min-width: 0; display: grid; grid-auto-rows: minmax(76px, 1fr); gap: 8px; }
+.land { display: flex; align-items: center; gap: 12px; padding: 6px 12px 6px 10px; border-radius: 18px; background: var(--panel); border: 3px solid var(--line); border-left: 10px solid var(--lc, var(--gold)); min-width: 0; }
+.land.closed { opacity: .74; border-left-color: #3b5663; }
+.land.done { border-color: var(--good); border-left-color: var(--lc); }
+.lico { flex: none; width: 54px; height: 54px; border-radius: 14px; background: var(--panel-2); display: grid; place-items: center; }
+.lico svg { width: 44px; height: 44px; }
+.linfo { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+.lname { font-family: var(--f-display); font-size: 19px; line-height: 1.1; }
+.lsub { font-weight: 700; font-size: 15px; line-height: 1.15; color: var(--muted); }
+.lbar { height: 8px; border-radius: 5px; background: var(--b0); overflow: hidden; }
+.lbar i { display: block; height: 100%; border-radius: 5px; background: var(--lc, var(--good)); }
+.lvls { flex: none; display: flex; gap: 6px; }
+.lvl { width: 56px; height: 64px; padding: 4px 0; border-radius: 14px; border: 3px solid var(--line); background: var(--panel-2); color: var(--ink); font-family: var(--f-display); font-size: 24px; line-height: 1; display: grid; grid-template-rows: 1fr auto; place-items: center; cursor: pointer; }
+.lvl.open { border-color: var(--gold); }
+.lvl.done { background: #24503f; border-color: var(--good); }
+.lvl:disabled { opacity: .42; cursor: default; }
+.lvl:not(:disabled):active { transform: translateY(2px); }
+.lst { display: flex; gap: 1px; }
+.lst .st { width: 14px; height: 14px; }
+.rewards { flex: none; width: 340px; padding: 10px 12px 12px; border-radius: 18px; background: var(--panel); border: 3px solid var(--line); align-self: stretch; }
+.rgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rw { display: grid; justify-items: center; align-content: start; text-align: center; gap: 2px; padding: 6px 4px 7px; border-radius: 12px; background: var(--panel-2); }
+.rw canvas { width: 52px; height: 52px; }
+.rw b { font-size: 13px; line-height: 1.1; overflow-wrap: anywhere; }
+.rw span { font-size: 12.5px; line-height: 1.12; color: var(--muted); font-weight: 700; overflow-wrap: anywhere; }
+.rw.off b { color: var(--muted); }
+.mapfoot { display: flex; align-items: center; min-height: 52px; }
+.holdbtn { position: relative; min-height: 52px; height: 52px; padding: 0 22px 0 16px; font-family: var(--f-body); font-weight: 800; font-size: 17px; border-radius: 26px; }
+.holdbtn .hico { width: 22px; height: 22px; }
+.holdbtn .hring { position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); pointer-events: none; overflow: visible; }
+.holdbtn .hring rect { fill: none; stroke: var(--gold); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; vector-effect: non-scaling-stroke; }
+
+.endbox, .nightbox { max-width: 760px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.endbox h1, .nightbox h1 { font-size: 40px; line-height: 1.1; }
+.bigstars { display: flex; gap: 10px; }
+.bigstars .st { filter: drop-shadow(0 4px 0 rgba(0,0,0,.25)); }
+.hrow { display: flex; gap: 4px; }
+.hrt { width: 28px; height: 26px; fill: #ff6f61; stroke: var(--ink-dark); stroke-width: 2.4; stroke-linejoin: round; }
+.hrt.off { fill: #2a4d5d; stroke: #4a6b7a; }
+.hline { margin: 0; font-family: var(--f-display); font-size: 28px; }
+.alt, .tip { margin: 0; padding: 10px 18px; border-radius: 16px; background: var(--panel-2); font-weight: 800; font-size: 21px; line-height: 1.25; max-width: 700px; }
+.tip b { color: var(--gold); }
+.newrw { display: flex; align-items: center; gap: 12px; margin: 0; padding: 6px 18px 6px 8px; border-radius: 16px; border: 3px solid var(--gold); background: var(--panel); font-family: var(--f-display); font-size: 24px; }
+.newrw canvas { width: 60px; height: 60px; }
+.moon { width: 84px; height: 84px; }
+.nrow { width: 100%; padding: 10px 18px; border-radius: 16px; background: var(--panel); border: 2px solid var(--line); text-align: left; font-size: 20px; line-height: 1.3; font-weight: 700; display: grid; gap: 3px; }
+.nrow b { font-family: var(--f-display); font-weight: 400; color: var(--gold); font-size: 20px; }
+.nbtns { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+.resttext { padding: 14px 26px; border-radius: 20px; border: 3px solid var(--gold); background: var(--panel-2); font-family: var(--f-display); font-size: 30px; color: var(--gold); }
+
+.adultwrap { max-width: 1300px; margin: 0 auto; }
+.adhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.adhead h1 { font-size: 30px; }
+.adbody { display: grid; grid-template-columns: 488px minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.adcol { padding: 12px 14px; border-radius: 18px; background: var(--panel); border: 2px solid var(--line); min-width: 0; }
+.adcol ul { margin: 0 0 12px; padding-left: 20px; font-weight: 700; font-size: 17px; line-height: 1.5; }
+.adcol p { margin: 0 0 10px; font-weight: 700; font-size: 17px; }
+.muted { color: var(--muted); }
+.agrid { display: grid; grid-template-columns: repeat(9, 48px); gap: 3px; }
+.ah { display: grid; place-items: center; height: 30px; font-family: var(--f-display); font-size: 17px; color: var(--muted); }
+.agrid .ah:nth-child(9n+1):not(:first-child) { height: 48px; }
+.gc { width: 48px; height: 48px; padding: 0; border-radius: 10px; border: 3px solid transparent; font-family: var(--f-display); font-size: 17px; cursor: pointer; background: var(--b0); color: var(--ink); }
+.gc.b0 { background: var(--b0); } .gc.b1 { background: var(--b1); color: #2a0d08; } .gc.b2 { background: var(--b2); color: #2a1600; } .gc.b3 { background: var(--b3); color: #2a2200; } .gc.b4 { background: var(--b4); color: #11300a; } .gc.b5 { background: var(--b5); color: #06280f; }
+.gc.sel { border-color: var(--ink); box-shadow: 0 0 0 2px var(--gold); }
+.legend { display: flex; gap: 6px; margin: 10px 0 6px; font-weight: 800; font-size: 14px; align-items: center; }
+.legend span { padding: 4px 10px; border-radius: 8px; background: var(--b0); }
+.legend .b1 { background: var(--b1); color: #2a0d08; } .legend .b2 { background: var(--b2); color: #2a1600; } .legend .b3 { background: var(--b3); color: #2a2200; } .legend .b4 { background: var(--b4); color: #11300a; } .legend .b5 { background: var(--b5); color: #06280f; }
+.adinfo { min-height: 72px; padding: 8px 12px; border-radius: 12px; background: var(--panel-2); line-height: 1.3; }
+.srow { display: grid; gap: 6px; margin-bottom: 12px; }
+.srow b { font-size: 17px; }
+.segs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn.seg { min-height: 52px; padding: 0 14px; font-family: var(--f-body); font-weight: 800; font-size: 17px; border-radius: 14px; }
+.btn.seg.on { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+.perday { min-width: 3ch; text-align: center; font-family: var(--f-display); font-size: 26px; }
+.btn.danger { min-height: 52px; font-family: var(--f-body); font-weight: 800; font-size: 18px; border-color: var(--bad); color: var(--bad); margin-top: 4px; }
+.resetbox { padding: 10px 12px; border-radius: 14px; border: 3px solid var(--bad); }
+.resetbox p { margin: 0 0 10px; }
+@media (max-width: 1180px) {
+  .adbody { grid-template-columns: 488px minmax(0, 1fr); }
+  .adbody .adcol:first-child { grid-row: span 2; }
+  .rewards { width: 300px; padding: 8px 10px 10px; }
+  .rewards h2 { margin-bottom: 6px; font-size: 20px; }
+  .rgrid { grid-template-columns: 1fr; gap: 3px; }
+  .rw { grid-template-columns: 38px minmax(0, 1fr); justify-items: start; align-content: center; align-items: center; text-align: left; column-gap: 8px; row-gap: 0; padding: 1px 8px; }
+  .rw canvas { grid-row: span 2; width: 38px; height: 38px; }
+  .rw b { font-size: 14px; }
+  .rw span { font-size: 12.5px; }
+  .lname { font-size: 17px; }
+  .lvl { width: 50px; height: 60px; font-size: 22px; }
+  .lvls { gap: 5px; }
+  .land { gap: 10px; }
+  .lico { width: 44px; height: 44px; }
+  .lico svg { width: 36px; height: 36px; }
+}
+@media (max-height: 700px) { .screen { padding: 10px 14px 12px; } .lands { grid-auto-rows: minmax(70px, 1fr); } .lico { width: 46px; height: 46px; } }
 </style>
 <div id="app">
   <canvas id="field"></canvas>
@@ -111,6 +228,7 @@ button { font: inherit; color: inherit; }
     <div id="hearts"><svg viewBox="0 0 32 30" aria-hidden="true"><path d="M16 28.5C4 20 1 13.5 1 8.8 1 4.4 4.4 1.5 8.4 1.5c3.4 0 6.1 1.9 7.6 5 1.5-3.1 4.2-5 7.6-5 4 0 7.4 2.9 7.4 7.3 0 4.7-3 11.2-15 19.7z" fill="#ff6f61" stroke="#1d2b3a" stroke-width="2.4" stroke-linejoin="round"/></svg><b>10</b></div>
     <div id="waveNo">Волна 1 из 1</div>
     <div id="ribbon"><span class="rtitle">Следующая волна</span><div class="rtitle pnote" id="pauseNote" hidden><b>Пауза</b><span>Лучи можно перестроить</span></div><div class="cards"></div></div>
+    <button id="mapBtn" class="btn ghost round" aria-label="На карту" title="На карту" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V20h4.5v-5.5h3V20H18v-9.5" fill="currentColor"/></svg></button>
     <button id="soundBtn" class="btn ghost round" aria-label="Звук" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path id="soundWaves" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path id="soundOff" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="display:none"/></svg></button>
     <button id="pauseBtn" class="btn ghost" hidden>Пауза</button>
   </header>
@@ -124,6 +242,10 @@ button { font: inherit; color: inherit; }
   </div>
   <div id="toast" hidden></div>
   <div id="ghost" class="tile" hidden></div>
+  <section id="scrMap" class="screen" hidden></section>
+  <section id="scrLevelEnd" class="screen" hidden></section>
+  <section id="scrNight" class="screen" hidden></section>
+  <section id="scrAdult" class="screen" hidden></section>
   <div id="rotate" role="alert"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="6" width="24" height="42" rx="5" fill="none" stroke="#f2f6ee" stroke-width="4"/><circle cx="32" cy="41" r="2.4" fill="#f2f6ee"/><path d="M12 50a22 22 0 0 0 38 6" fill="none" stroke="#ffc83d" stroke-width="4" stroke-linecap="round"/><path d="M52 47l-2 9-9-2" fill="none" stroke="#ffc83d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Поверни планшет</b><span>Игра идёт на горизонтальном экране</span></div>
 </div>
 <script>
@@ -133,13 +255,14 @@ button { font: inherit; color: inherit; }
 /* ======================================================================
    1. CONST — размеры поля, время, цвета
    ====================================================================== */
-const VERSION = "0.1.0";
+const VERSION = "1.0.0";
 const DT = 1000 / 60;                       // фиксированный шаг симуляции, мс
 const FIELD_W = 1600, FIELD_H = 900;        // поле в условных единицах
 const PATH_HALF = 40, PAD_R = 44, TOWER_R = 40, ENEMY_R = 42, BOSS_R = 58;
 const LABEL_BAND = 85, LABEL_FONT = 40, PLATE_PAD_X = 14, FORT_R = 70, MAX_BEAMS = 2;
 const CATCH_PX = 40, TOWER_TOUCH_PX = 16, DRAG_PX = 12;   // радиусы касания в px
 const SPEEDS = { slow: 35, normal: 50, fast: 65 };         // ед./с
+const INTERVALS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14 };       // дни до повтора по коробкам Лейтнера
 const TM = { spark: 650, fly: 800, pass: 1000, reduce: 1500, gate: 2000, knock: 600, grey: 600, hit: 400, win: 300, waveEnd: 1500, bossExtra: 1500, refuse: 1000 };
 const COLORS = {
   grass1: "#8fd16f", grass2: "#7cc160", bush: "#6aae52", rock: "#b9b2a3",
@@ -187,6 +310,46 @@ const DEMO = {
     solution: { pads: { A: 8, B: 7, C: 6, D: 8, E: 3, F: 6 }, beams: [["A", "B"], ["B", "C"], ["D", "E"], ["E", "F"]] }
   }]
 };
+
+// Земли: карточки в порядке ввода, рука, число уровней. Карточка — неупорядоченная пара: 7 × 8 и 8 × 7 — «7x8»
+const HAND1 = DIGITS.concat([10]), HAND6 = DIGITS.concat([10, 20, 30, 40]);
+const HARD15 = "3x3 3x4 4x4 3x6 3x7 3x8 4x6 4x7 4x8 6x6 6x7 6x8 7x7 7x8 8x8".split(" ");
+const ALL36 = (function () { const r = []; for (let a = 2; a <= 9; a++) for (let b = a; b <= 9; b++) r.push(a + "x" + b); return r; })();
+const LAND5_NEED = 33;                                  // сколько карточек земли деления нужно изучить (все 33; при долгой игре можно снизить)
+const LANDS = [
+  { id: 1, name: "Долина двоек, пятёрок и десяток", facts: "2x2 2x3 2x4 2x5 5x5 2x10 3x10 5x10 2x6 3x5 4x5 4x10 2x7 5x6 6x10 2x8 5x7 7x10 2x9 5x8 8x10 5x9 9x10".split(" "), hand: HAND1, levels: 4 },
+  { id: 2, name: "Холмы троек и четвёрок", facts: "3x3 3x4 4x4 3x6 3x7 3x8 3x9 4x6 4x7 4x8 4x9".split(" "), hand: DIGITS, levels: 4 },
+  { id: 3, name: "Лес девяток и шестёрок", facts: "6x6 6x9 9x9 6x7 6x8 7x9 8x9".split(" "), hand: DIGITS, levels: 4 },
+  { id: 4, name: "Горы «Трудные пятнадцать»", facts: HARD15, hand: DIGITS, levels: 5, boss: true },
+  { id: 5, name: "Земля деления", facts: ALL36.filter((k) => k !== "2x2" && k !== "2x5" && k !== "5x5"), hand: DIGITS, levels: 4 },
+  { id: 6, name: "Крепость двузначных", facts: "3x12 4x14 4x23 3x25 2x35 2x47 5x16 4x19".split(" "), hand: HAND6, levels: 4, boss: true }
+];
+// Уровни: волна — {n врагов, k разных чисел, b боссов}
+function lv(id, layout, ws, fixed) {
+  return { id, land: Number(id.charAt(0)), layout, waves: ws.map((w) => ({ n: w[0], k: w[1], b: w[2] || 0 })), fixed: fixed || {} };
+}
+const LEVELS = [
+  lv("1-1", "L1", [[6, 2], [8, 2], [8, 3]]), lv("1-2", "L1", [[6, 2], [8, 3], [10, 3]]), lv("1-3", "L2", [[8, 2], [8, 3], [10, 3]]), lv("1-4", "L2", [[8, 3], [10, 3], [10, 4]]),
+  lv("2-1", "L1", [[8, 2], [8, 3], [10, 3]]), lv("2-2", "L2", [[8, 2], [8, 3], [10, 3]]), lv("2-3", "L1", [[8, 3], [10, 3], [10, 4]]), lv("2-4", "L2", [[8, 3], [10, 4], [12, 4]]),
+  lv("3-1", "L1", [[8, 3], [10, 3], [10, 4]]), lv("3-2", "L2", [[8, 3], [10, 3], [10, 4]]), lv("3-3", "L3", [[8, 3], [10, 3], [10, 4]]), lv("3-4", "L3", [[8, 3], [10, 4], [12, 4]]),
+  lv("4-1", "L1", [[8, 3, 0], [8, 3, 1], [10, 3, 1]]), lv("4-2", "L3", [[8, 3, 0], [8, 3, 1], [10, 4, 1]]), lv("4-3", "L1", [[8, 3, 1], [10, 3, 1], [10, 3, 1]]),
+  lv("4-4", "L3", [[8, 3, 1], [10, 4, 1], [10, 4, 1]]), lv("4-5", "L3", [[8, 3, 1], [10, 4, 1], [10, 4, 2]]),
+  lv("5-1", "L4", [[8, 2], [8, 3], [10, 3]], { B: 4, D: 7, F: 3 }), lv("5-2", "L4", [[8, 2], [8, 3], [10, 3]], { B: 6, D: 8, F: 7 }),
+  lv("5-3", "L4", [[8, 2], [8, 3], [10, 3]], { B: 9, D: 6, F: 8 }), lv("5-4", "L4", [[8, 3], [10, 3], [10, 3]], { B: 7, D: 9, F: 8 }),
+  lv("6-1", "L1", [[8, 3, 1], [8, 3, 1], [10, 3, 1]]), lv("6-2", "L3", [[8, 3, 1], [10, 3, 1], [10, 4, 1]]), lv("6-3", "L1", [[8, 3, 1], [10, 3, 1], [10, 3, 1]]), lv("6-4", "L3", [[8, 3, 1], [10, 4, 1], [10, 4, 2]])
+];
+const LEVEL_BY_ID = {};
+LEVELS.forEach((l) => { LEVEL_BY_ID[l.id] = l; });
+// Награды (известны заранее): внешний вид башен за освоенные ряды и частей крепости
+const REWARDS = [
+  { id: "x2", name: "Башня-близнец", row: 2, cond: "Все примеры на 2" }, { id: "x3", name: "Башня-трилистник", row: 3, cond: "Все примеры на 3" },
+  { id: "x4", name: "Квадратная башня", row: 4, cond: "Все примеры на 4" }, { id: "x5", name: "Звёздная башня", row: 5, cond: "Все примеры на 5" },
+  { id: "x6", name: "Сотовая башня", row: 6, cond: "Все примеры на 6" }, { id: "x7", name: "Башня-маяк", row: 7, cond: "Все примеры на 7" },
+  { id: "x8", name: "Восьмигранная башня", row: 8, cond: "Все примеры на 8" }, { id: "x9", name: "Кристальная башня", row: 9, cond: "Все примеры на 9" },
+  { id: "x10", name: "Часовая башня", row: 10, cond: "Все примеры на 10" }, { id: "hard", name: "Крепостная пушка", land: 4, cond: "Изучи горы «Трудные пятнадцать»" },
+  { id: "div", name: "Весы на воротах", land: 5, cond: "Изучи землю деления" }, { id: "two", name: "Двойная крепость", land: 6, cond: "Изучи крепость двузначных" }
+];
+const TIP_ORDER = [9, 6, 4, 8, 3, 5, 2, 10];            // какой ряд подсказывать первым
 
 /* ======================================================================
    3. LOGIC — чистые функции без DOM, Date.now() и Math.random()
@@ -360,6 +523,412 @@ function validateLayout(L, o) {
   return bad;
 }
 
+// ---- Даты, карточки, коробки Лейтнера ----
+function addDays(date, n) {
+  const p = date.split("-").map(Number), d = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n));
+  return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") + "-" + String(d.getUTCDate()).padStart(2, "0");
+}
+function newCard(today) {
+  return { box: 1, due: today, seen: 0, good: 0, ok: 0, fail: 0, lastDay: "", masteredOn: "", msSum: 0, msN: 0, bossSeen: 0, bossDays: [], noHintDays: [], divDays: [] };
+}
+// outcome: "good" | "ok" | "fail" | "none". Повышение — только если карточка «пора повторить» (раз в день); вход не меняется
+function leitnerUpdate(card, outcome, today) {
+  const c = Object.assign(newCard(today), card ? JSON.parse(JSON.stringify(card)) : {});
+  if (outcome === "good" && c.due <= today) { c.box = Math.min(5, c.box + 1); c.due = addDays(today, INTERVALS[c.box]); }
+  else if (outcome === "fail") { c.box = 1; c.due = today; }
+  c.lastDay = today;
+  if (c.box >= 3 && !c.masteredOn) c.masteredOn = today;
+  return c;
+}
+function dueCards(facts, today) {
+  return Object.keys(facts).filter((k) => facts[k].box >= 1 && facts[k].due <= today)
+    .sort((p, q) => (facts[p].due < facts[q].due ? -1 : facts[p].due > facts[q].due ? 1 : facts[p].box - facts[q].box || (p < q ? -1 : 1)));
+}
+// Итог карточки за волну: есть fail — fail; иначе есть good — good; иначе ok; только «none» — none
+function waveOutcome(results) {
+  const out = {};
+  results.forEach((r) => {
+    const cur = out[r.card], rank = { none: 0, ok: 1, good: 2, fail: 3 };
+    if (cur === undefined || rank[r.res] > rank[cur]) out[r.card] = r.res;
+  });
+  return out;
+}
+function cardStudied(landId, c) {
+  return !!c && c.box >= 3 && (landId !== 4 || (c.bossDays || []).length >= 1) && (landId !== 5 || (c.divDays || []).length >= 1);
+}
+function landProgress(land, facts) {
+  const L = LANDS[land - 1];
+  const done = L.facts.filter((k) => cardStudied(land, facts[k])).length;
+  return { done, total: L.facts.length, need: land === 5 ? LAND5_NEED : L.facts.length };
+}
+function landStudied(land, facts) { const p = landProgress(land, facts); return p.done >= p.need; }
+function rewardsEarned(facts) {
+  const ok = (k) => !!facts[k] && facts[k].box >= 3, out = [];
+  REWARDS.forEach((r) => {
+    let yes;
+    if (r.row) { yes = true; for (let a = 2; a <= 9; a++) if (!ok(factKey(a, r.row))) yes = false; }
+    else yes = landStudied(r.land, facts);
+    if (yes) out.push(r.id);
+  });
+  return out;
+}
+// «24 можно было победить ещё лучом 4 × 6»: другая пара того же числа или null
+function altPairLine(v, used, hand) {
+  const ps = pairsFor(v, hand), u = used.slice().sort((a, b) => a - b);
+  if (ps.length < 2) return null;
+  const alt = ps.find((p) => p[0] !== u[0] || p[1] !== u[1]);
+  return alt ? v + " можно было победить ещё лучом " + alt[0] + " × " + alt[1] : null;
+}
+
+// ---- Разрезание и приёмы ----
+function splitHint(a, b) {
+  const x = Math.min(a, b), y = Math.max(a, b);
+  if (y >= 10) {                                          // двузначное на однозначное: по разрядам
+    const tens = Math.floor(y / 10) * 10, ones = y % 10;
+    return { op: "+", text: y + " × " + x + " = " + tens + " × " + x + " + " + ones + " × " + x, parts: [[tens, x], [ones, x]], beamParts: [[tens, x], [ones, x]] };
+  }
+  const mk = (p, q) => ({ op: "+", text: x + " × " + y + " = " + x + " × " + p + " + " + x + " × " + q, parts: [[x, p], [x, q]], beamParts: [[x, p], [x, q]] });
+  if (y === 9) return { op: "−", text: x + " × 9 = " + x + " × 10 − " + x, parts: [[x, 10], [x, 1]], beamParts: [[x, 5], [x, 4]] };
+  if (y >= 7) return mk(5, y - 5);
+  if (y === 5) return mk(2, 3);
+  if (y === 4 || y === 6) return mk(y / 2, y / 2);
+  return null;                                            // 3 × 3, 2 × 2, 2 × 3: резать нечего
+}
+function tipFor(a, b, o) {
+  o = o || {};
+  const x = Math.min(a, b), y = Math.max(a, b);
+  if ((y >= 10 && y % 10 !== 0) || (o.boss && splitHint(a, b))) {
+    const s = splitHint(a, b);
+    if (s) {
+      const p = s.parts, v = p[0][0] * p[0][1], w = p[1][0] * p[1][1], r = x * y;
+      return (y >= 10 ? "Разрежь по разрядам: " : "Разрежь: ") + s.text + " = " + v + (s.op === "+" ? " + " : " − ") + w + " = " + r;
+    }
+  }
+  const r = TIP_ORDER.find((t) => t === a || t === b);
+  if (r === undefined) { const s = splitHint(a, b); return s ? tipFor(a, b, { boss: true }) : "Запомни: " + a + " × " + b + " = " + a * b; }
+  const other = r === a ? b : a, p = r * other;
+  if (r === 9) return "×9 — это ×10 и минус одно: " + other + " × 9 = " + other + " × 10 − " + other + " = " + other * 10 + " − " + other + " = " + p;
+  if (r === 6) return "×6 — это ×5 и плюс одно: 6 × " + other + " = 5 × " + other + " + " + other + " = " + 5 * other + " + " + other + " = " + p;
+  if (r === 4) return "×4 — это удвоить дважды: 4 × " + other + ": " + other + " → " + other * 2 + " → " + p;
+  if (r === 8) return "×8 — это удвоить трижды: 8 × " + other + ": " + other + " → " + other * 2 + " → " + other * 4 + " → " + p;
+  if (r === 3) return "×3 — удвой и прибавь ещё раз: 3 × " + other + " = " + other * 2 + " + " + other + " = " + p;
+  if (r === 5) return "×5 — половина от ×10: 5 × " + other + " — половина от " + other * 10 + ", это " + p;
+  if (r === 2) return "×2 — сложи число с собой: 2 × " + other + " = " + other + " + " + other + " = " + p;
+  return "×10 — припиши ноль: 10 × " + other + " = " + p;
+}
+
+// ---- Случайность только из seed ----
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a += 0x6D2B79F5;
+    let t = Math.imul(a ^ a >>> 15, a | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashSeed(str) {
+  let h = 0x811C9DC5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return h >>> 0;
+}
+function shuffled(arr, rng) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+
+// ---- Решатель волны: какие башни и лучи побеждают всех врагов ----
+// demands: [{value, kind: "normal"|"boss", parts?: [[x,y],[x,y]]}]. Результат {pads, beams, paths} или null
+function solveWave(layout, demands, o) {
+  o = o || {};
+  const hand = o.hand || DIGITS, fixed = o.fixed || {}, maxNodes = o.maxNodes || 20000;
+  const pv = Object.assign({}, fixed), cnt = {}, used = {}, order = [], anchor = [];
+  layout.pads.forEach((p) => { cnt[p.id] = 0; });
+  let nodes = 0, aborted = false;
+  const crossT = (l, p) => { for (let i = 0; i < l.cross.length; i++) if (l.cross[i].path === p) return l.cross[i].t; return null; };
+  const pairCache = {};
+  const prs = (v) => pairCache[v] || (pairCache[v] = pairsFor(v, hand));
+  const orients = (pr) => (pr[0] === pr[1] ? [[pr[0], pr[1]]] : [[pr[0], pr[1]], [pr[1], pr[0]]]);
+  const bosses = demands.filter((d) => d.kind === "boss"), normals = demands.filter((d) => d.kind !== "boss");
+  normals.sort((p, q) => prs(p.value).length - prs(q.value).length);
+  bosses.concat(normals).forEach((d) => order.push(d));
+  function put(l, va, vb) {
+    if (used[l.id]) return null;
+    if ((pv[l.a] !== undefined && pv[l.a] !== va) || (pv[l.b] !== undefined && pv[l.b] !== vb)) return null;
+    if (cnt[l.a] >= 2 || cnt[l.b] >= 2) return null;
+    const u = { l, sa: pv[l.a] === undefined, sb: pv[l.b] === undefined };
+    if (u.sa) pv[l.a] = va;
+    if (u.sb) pv[l.b] = vb;
+    cnt[l.a]++; cnt[l.b]++;
+    used[l.id] = { from: l.a, to: l.b, prod: va * vb };
+    return u;
+  }
+  function undo(u) {
+    if (u.sa) delete pv[u.l.a];
+    if (u.sb) delete pv[u.l.b];
+    cnt[u.l.a]--; cnt[u.l.b]--;
+    delete used[u.l.id];
+  }
+  function verify() {
+    for (let i = 0; i < order.length; i++) {
+      const d = order[i], p = anchor[i];
+      const bs = Object.keys(used).map((id) => ({ prod: used[id].prod, t: crossT(layout.linkById[id], p) })).filter((x) => x.t != null).sort((x, y) => x.t - y.t);
+      let e = { value: d.value, kind: d.kind === "boss" ? "boss" : "normal" }, dead = false;
+      for (const b of bs) {
+        const r = hitResult(e, b.prod, hand);
+        if (r.kind === "kill") { dead = true; break; }
+        if (r.kind === "reduce") e = { value: r.newValue, kind: e.kind };
+      }
+      if (!dead) return false;
+    }
+    return true;
+  }
+  function step(i, path, us) {
+    nodes++;
+    if (nodes > maxNodes) { aborted = true; for (let k = us.length - 1; k >= 0; k--) undo(us[k]); return false; }
+    anchor[i] = path;
+    if (rec(i + 1)) return true;
+    for (let k = us.length - 1; k >= 0; k--) undo(us[k]);
+    return false;
+  }
+  function direct(i, d) {
+    const ids = Object.keys(used).filter((id) => used[id].prod === d.value);
+    for (const id of ids) for (const c of layout.linkById[id].cross) { if (step(i, c.path, [])) return true; if (aborted) return false; }
+    for (let p = 0; p < layout.paths.length; p++) {
+      for (const l of layout.links) {
+        if (used[l.id] || crossT(l, p) == null) continue;
+        for (const pr of prs(d.value)) for (const og of orients(pr)) {
+          const u = put(l, og[0], og[1]);
+          if (!u) continue;
+          if (step(i, p, [u])) return true;
+          if (aborted) return false;
+        }
+      }
+    }
+    return false;
+  }
+  function rec(i) {
+    if (i === order.length) return verify();
+    const d = order[i];
+    if (d.kind === "boss" && d.parts && d.parts.length === 2) {
+      for (let p = 0; p < layout.paths.length; p++) {
+        const Lp = layout.links.filter((l) => !used[l.id] && crossT(l, p) != null).sort((x, y) => crossT(x, p) - crossT(y, p));
+        for (let ii = 0; ii < Lp.length; ii++) for (let jj = ii + 1; jj < Lp.length; jj++) for (const swap of [false, true]) {
+          const l0 = swap ? Lp[jj] : Lp[ii], l1 = swap ? Lp[ii] : Lp[jj];
+          for (const o0 of orients(d.parts[0])) for (const o1 of orients(d.parts[1])) {
+            const u0 = put(l0, o0[0], o0[1]);
+            if (!u0) continue;
+            const u1 = put(l1, o1[0], o1[1]);
+            if (!u1) { undo(u0); continue; }
+            if (step(i, p, [u0, u1])) return true;
+            if (aborted) return false;
+          }
+        }
+      }
+    }
+    return direct(i, d);
+  }
+  if (!order.length) return { pads: Object.assign({}, fixed), beams: [], paths: {} };
+  if (!rec(0)) return null;
+  const beams = layout.links.filter((l) => used[l.id]).map((l) => [used[l.id].from, used[l.id].to]);
+  const pads = {};
+  Object.keys(fixed).forEach((k) => { pads[k] = fixed[k]; });
+  beams.forEach((b) => { pads[b[0]] = pv[b[0]]; pads[b[1]] = pv[b[1]]; });
+  const paths = {};
+  order.forEach((d, i) => { paths[d.value + (d.kind === "boss" ? "b" : "")] = anchor[i]; });
+  return { pads, beams, paths };
+}
+
+// ---- Сборка волны под ребёнка ----
+// profile: {facts, confusions, heavyStreak, lightStreak}; ctx: {land, levelId, waveIndex, layout, hand, fixed, wave: {n, k, b}, unlocked, today}
+function buildWave(profile, ctx, seed) {
+  const rng = mulberry32(seed), hand = ctx.hand || DIGITS, facts = profile.facts || {}, today = ctx.today, land = ctx.land, layout = ctx.layout;
+  const fixed = ctx.fixed || {}, fixedVals = Object.keys(fixed).map((p) => fixed[p]), unlocked = ctx.unlocked || [1];
+  let n = ctx.wave.n, k = ctx.wave.k;
+  const b0 = ctx.wave.b || 0, easy = (profile.heavyStreak || 0) >= 2;
+  if (easy) { n = 6; k = Math.max(1, k - 1); } else if ((profile.lightStreak || 0) >= 2) k = Math.min(4, k + 1);
+  const gap = easy ? 4500 : 3000;
+  const valueOf = (key) => { const p = parseKey(key); return p[0] * p[1]; };
+  const inHand = (key) => parseKey(key).every((v) => hand.indexOf(v) >= 0);
+  // карточки, которые можно ставить врагами: земли ≤ текущей (открытые), рука позволяет, на земле деления — с неподвижной цифрой
+  const curSet = new Set(land === 6 ? [] : LANDS[land - 1].facts), landIds = [];
+  if (land === 6) landIds.push(1, 2, 3, 4); else for (let l = 1; l <= land; l++) if (l === land || unlocked.indexOf(l) >= 0) landIds.push(l);
+  const elig = [], eligSet = new Set();
+  landIds.slice().sort((p, q) => (p === land ? -1 : q === land ? 1 : p - q)).forEach((l) => LANDS[l - 1].facts.forEach((key) => {
+    if (eligSet.has(key) || !inHand(key)) return;
+    if (land === 5 && !parseKey(key).some((v) => fixedVals.indexOf(v) >= 0)) return;
+    eligSet.add(key); elig.push(key);
+  }));
+  const rankCur = (key) => (curSet.has(key) ? 0 : 1);
+  const dueAll = dueCards(facts, today).filter((key) => eligSet.has(key)), dueSet = new Set(dueAll);
+  const DUE = dueAll.filter((key) => rankCur(key) === 0).concat(dueAll.filter((key) => rankCur(key) === 1));
+  const NEW = easy ? [] : elig.filter((key) => curSet.has(key) && !facts[key]);
+  const FAM = shuffled(elig.filter((key) => facts[key] && facts[key].box >= 1 && !dueSet.has(key)).sort(), rng)
+    .map((key, i) => ({ key, i })).sort((p, q) => rankCur(p.key) - rankCur(q.key) || facts[p.key].box - facts[q.key].box || p.i - q.i).map((x) => x.key);
+  const catOf = (key) => (dueSet.has(key) ? "due" : facts[key] ? "fam" : "new");
+  // путаницы: пара чисел с n ≥ 2, у обеих есть знакомые карточки — ставим вместе (не больше одной пары на волну)
+  let pinPair = null;
+  Object.keys(profile.confusions || {}).filter((ck) => profile.confusions[ck].n >= 2).sort((p, q) => profile.confusions[q].n - profile.confusions[p].n || (p < q ? -1 : 1)).some((ck) => {
+    const vs = ck.split("|").map(Number);
+    const ks = vs.map((v) => elig.find((key) => facts[key] && valueOf(key) === v));
+    if (ks[0] && ks[1] && ks[0] !== ks[1]) { pinPair = ks; return true; }
+    return false;
+  });
+
+  function bossCandidates() {
+    if (!b0) return [null];
+    const bossOk = (key) => { const bp = parseKey(key), sp = splitHint(bp[0], bp[1]); return sp ? sp.beamParts.every((q) => hand.indexOf(q[0]) >= 0 && hand.indexOf(q[1]) >= 0) : inHand(key); };
+    const list = (land === 4 ? HARD15 : land === 6 ? LANDS[5].facts : []).filter(bossOk);
+    const tier = (key) => { const c = facts[key]; if (c && c.box >= 1 && c.due <= today) return 0; if (!c) return 1; if (land === 4 && !(c.bossDays || []).length) return 1; return 2; };
+    const arr = list.map((key, i) => { const c = facts[key]; return { key, i, t: tier(key), seen: c ? c.bossSeen || 0 : 0, box: c ? c.box : 0, due: c ? c.due : "" }; });
+    arr.sort((p, q) => p.t - q.t || (p.t === 0 ? (p.due < q.due ? -1 : p.due > q.due ? 1 : 0) || p.box - q.box : p.t === 1 ? p.seen - q.seen || p.box - q.box : p.box - q.box || p.seen - q.seen) || p.i - q.i);
+    return arr.map((x) => x.key).slice(0, 8).concat([null]);       // в конце — волна без босса, если ничего не решается
+  }
+
+  function allocate(groups, nNorm) {
+    const by = (c) => groups.filter((g) => g.cat === c);
+    const newG = by("new"), dueG = by("due"), famG = by("fam");
+    let tn = newG.length ? Math.max(1, Math.round(0.1 * n)) : 0, td = dueG.length ? Math.max(1, Math.round(0.2 * n)) : 0;
+    tn = Math.max(tn, newG.length); td = Math.max(td, dueG.length);
+    let tf = nNorm - tn - td;
+    if (!famG.length) { if (dueG.length) td += tf; else tn += tf; tf = 0; }
+    if (tf < famG.length) {
+      let need = famG.length - tf;
+      const fromD = Math.min(need, td - dueG.length); td -= fromD; need -= fromD;
+      const fromN = Math.min(need, tn - newG.length); tn -= fromN; need -= fromN;
+      tf = famG.length - need;
+      if (need > 0) return null;
+    }
+    if (tn + td + tf !== nNorm) return null;
+    const out = {};
+    [[newG, tn], [dueG, td], [famG, tf]].forEach((p) => p[0].forEach((g, i) => { out[g.key] = Math.floor(p[1] / p[0].length) + (i < p[1] % p[0].length ? 1 : 0); }));
+    return out;
+  }
+
+  function assemble(bossKey, pins) {
+    const forced = [];
+    let split = null, bossDemand = null;
+    if (bossKey) {
+      const bp = parseKey(bossKey);
+      split = splitHint(bp[0], bp[1]);
+      forced.push({ key: bossKey, cat: catOf(bossKey), role: "boss" });
+      if (split) {
+        const seen = new Set([bossKey]);
+        split.beamParts.forEach((p) => { const key = factKey(p[0], p[1]); if (!seen.has(key) && valueOf(key) !== valueOf(bossKey)) { seen.add(key); forced.push({ key, cat: "fam", role: "ent" }); } });
+      }
+      bossDemand = { value: valueOf(bossKey), kind: "boss", parts: split ? split.beamParts : null };
+    }
+    const takenK = new Set(forced.map((g) => g.key)), takenV = new Set(forced.map((g) => valueOf(g.key)));
+    const can = (key) => !takenK.has(key) && !takenV.has(valueOf(key));
+    const claim = (key) => { takenK.add(key); takenV.add(valueOf(key)); };
+    const std = [];
+    const kRest = Math.max(0, k - forced.length);
+    if (pins && pinPair && kRest >= 2 && can(pinPair[0]) && can(pinPair[1]) && valueOf(pinPair[0]) !== valueOf(pinPair[1])) {
+      pinPair.forEach((key) => { claim(key); std.push({ key, cat: catOf(key), pin: true }); });
+    }
+    const take = (list, cnt, cat) => { let got = 0; for (const key of list) { if (got >= cnt) break; if (can(key)) { claim(key); std.push({ key, cat }); got++; } } return got; };
+    let slots = kRest - std.length;
+    if (slots > 0) {
+      const tn = take(NEW, Math.min(1, slots), "new");
+      const td = take(DUE, Math.min(k >= 4 ? 2 : 1, slots - tn), "due");
+      const tf = take(FAM, slots - tn - td, "fam");
+      let left = slots - tn - td - tf;
+      if (left > 0) left -= take(FAM, left, "fam");
+      if (left > 0) left -= take(DUE, left, "due");
+      if (left > 0 && (!easy || std.length + forced.length === 0)) take(elig.filter((key) => curSet.has(key) && !facts[key]), left, "new");
+    }
+    const queue = [];
+    FAM.forEach((key) => { if (can(key)) queue.push({ key, cat: "fam" }); });
+    DUE.forEach((key) => { if (can(key)) queue.push({ key, cat: "due" }); });
+    NEW.forEach((key) => { if (can(key)) queue.push({ key, cat: "new" }); });
+    return { forced, std, queue, bossDemand };
+  }
+
+  function trySolve(A) {
+    const groups = A.forced.concat(A.std), nBoss = A.bossDemand ? b0 : 0;
+    const normal = groups.filter((g) => g.role !== "boss");
+    if (!normal.length && !nBoss) return null;
+    const counts = normal.length ? allocate(normal, n - nBoss) : (n - nBoss === 0 ? {} : null);
+    if (!counts) return null;
+    const demands = normal.map((g) => ({ value: valueOf(g.key), kind: "normal", card: g.key }));
+    if (A.bossDemand) demands.push(A.bossDemand);
+    const sol = solveWave(layout, demands, { hand, fixed });
+    return sol ? { groups, counts, sol, nBoss } : null;
+  }
+
+  function finish(res, bossKey) {
+    const { groups, counts, sol } = res;
+    const norm = [];
+    groups.filter((g) => g.role !== "boss").forEach((g) => { for (let i = 0; i < counts[g.key]; i++) norm.push({ value: valueOf(g.key), kind: "normal", card: g.key }); });
+    const list = shuffled(norm, rng);
+    if (bossKey) {
+      const mk = () => ({ value: valueOf(bossKey), kind: "boss", card: bossKey });
+      list.splice(Math.min(list.length, Math.floor(0.6 * n)), 0, mk());
+      if (b0 > 1) list.push(mk());
+    }
+    let t = 0;
+    const enemies = list.map((e, idx) => {
+      if (e.kind === "boss" && idx > 0) t += 1500;
+      const at = t; t += gap;
+      const path = sol.paths[e.value + (e.kind === "boss" ? "b" : "")];
+      return { value: e.value, kind: e.kind, card: e.card, path: path == null ? 0 : path, spawnAt: at };
+    });
+    const catCount = { new: 0, due: 0, fam: 0 };
+    groups.forEach((g) => { catCount[g.cat] += g.role === "boss" ? (b0 > 1 ? 2 : 1) : counts[g.key]; });
+    return {
+      enemies, cards: groups.map((g) => g.key), solution: sol,
+      meta: { easy, newCount: catCount.new, dueCount: catCount.due, famCount: catCount.fam, n: enemies.length, k: groups.length, gap, seed, boss: bossKey, pinned: !!(pinPair && groups.some((g) => g.pin)) }
+    };
+  }
+
+  for (const pins of (pinPair ? [true, false] : [false])) {
+    for (const bossKey of bossCandidates()) {
+      if (pins && b0 && !bossKey) continue;                                   // босс важнее пары путаницы
+      const A = assemble(bossKey, pins);
+      if (pins && !A.std.some((g) => g.pin) && pinPair) continue;            // пару поставить не удалось: следующий проход без неё
+      let tries = 0;
+      for (;;) {
+        const res = trySolve(A);
+        if (res) return finish(res, bossKey);
+        let idx = -1;
+        for (let i = A.std.length - 1; i >= 0; i--) if (!A.std[i].pin) { idx = i; break; }
+        if (idx < 0) break;
+        if (tries < 30 && A.queue.length) {
+          tries++;
+          let nxt = null;
+          while (A.queue.length) { const c = A.queue.shift(); if (!A.std.some((g) => g.key === c.key || valueOf(g.key) === valueOf(c.key)) && !A.forced.some((g) => g.key === c.key || valueOf(g.key) === valueOf(c.key))) { nxt = c; break; } }
+          if (nxt) { A.std[idx] = nxt; continue; }
+        }
+        A.std.splice(idx, 1);
+        tries = 0;
+      }
+    }
+  }
+  // запасной ход: любая одна карточка, которая решается
+  for (const key of elig) {
+    const demands = [{ value: valueOf(key), kind: "normal", card: key }], sol = solveWave(layout, demands, { hand, fixed });
+    if (sol) return finish({ groups: [{ key, cat: catOf(key), role: "std" }], counts: { [key]: n }, sol }, null);
+  }
+  return { enemies: [], cards: [], solution: null, meta: { easy, newCount: 0, dueCount: 0, famCount: 0, n: 0, k: 0, gap, seed, boss: null, pinned: false } };
+}
+// Подсказка-путь: где по решению стоит первая часть разрезания босса
+function bossHintFor(layout, wave) {
+  const boss = wave.enemies.find((e) => e.kind === "boss");
+  if (!boss || !boss.card || !wave.solution) return null;
+  const bp = parseKey(boss.card), sp = splitHint(bp[0], bp[1]);
+  if (!sp) return null;
+  const p0 = sp.beamParts[0], prod = p0[0] * p0[1], path = boss.path || 0, pads = wave.solution.pads;
+  let best = null;
+  wave.solution.beams.forEach((bm) => {
+    if (pads[bm[0]] * pads[bm[1]] !== prod) return;
+    const link = layout.linkById[bm[0] + "-" + bm[1]] || layout.linkById[bm[1] + "-" + bm[0]];
+    const c = link && link.cross.find((x) => x.path === path);
+    if (c && (!best || c.t < best.t)) best = { link: link.id, from: link.a, to: link.b, path, t: c.t, prod, text: p0[0] + " × " + p0[1] };
+  });
+  return best;
+}
+
 const LAYOUTS = {};
 Object.keys(RAW_LAYOUTS).forEach((k) => { LAYOUTS[k] = prepareLayout(RAW_LAYOUTS[k]); });
 
@@ -376,6 +945,8 @@ function makeLevel(fx) {
   const g = {
     id: fx.id || "fixture", land: fx.land || 1, layout, hand: (fx.hand || DIGITS).slice(), fixed: Object.assign({}, fx.fixed || {}),
     maxHearts: fx.hearts == null ? 10 : fx.hearts, speed: fx.speed || SPEEDS[settings.speed], hold: !!fx.hold, track: !!fx.track, demo: !!fx.demo,
+    real: !!fx.real, def: fx.def || null, seed: fx.seed == null ? null : fx.seed, hint: null, log: null, prepStart: 0, lastBeamAt: 0, heartsAtWave: 0, waveHist: [],
+    levelLog: { kills: [], fail: {}, shaky: {}, boss: {} },
     waves: fx.waves && fx.waves.length ? fx.waves : [{ enemies: [], gap: 3000 }],
     waveIndex: 0, phase: "prep", paused: false, simTicks: 0, battleTicks: 0, endTicks: 0,
     towers: {}, beams: [], linkEdits: {}, plan: [], queue: 0, enemies: [], ribbon: [], nextId: 1,
@@ -393,15 +964,17 @@ function startLevel(fx) {
   return { ok: true };
 }
 // Подготовка волны: план появления врагов, лента, счётчики правок лучей
+function newWaveLog() { return { rows: [], conf: {}, times: {}, div: {}, bossWon: [], hintSeen: false }; }
 function loadWave(i) {
   G.waveIndex = i;
+  if (G.real && !G.waves[i]) G.waves[i] = buildRealWave(i);
   const w = G.waves[i], gap = w.gap || 3000;
   let t = 0;
   G.plan = (w.enemies || []).map((e, idx) => {
     const o = typeof e === "number" ? { value: e } : e, kind = o.kind || "normal";
-    if (kind === "boss" && idx > 0) t += TM.bossExtra;
-    const at = t;
-    t += gap;
+    if (o.spawnAt == null && kind === "boss" && idx > 0) t += TM.bossExtra;
+    const at = o.spawnAt != null ? o.spawnAt : t;
+    t = at + gap;
     const pr = pairsFor(o.value, G.hand)[0];
     return { value: o.value, kind, path: o.path || 0, card: o.card || (pr ? factKey(pr[0], pr[1]) : null), spawnAt: at, idx };
   });
@@ -410,6 +983,30 @@ function loadWave(i) {
   G.ribbon = G.plan.map((p) => ({ value: p.value, kind: p.kind, status: "wait", lamp: false }));
   G.linkEdits = {};
   G.beams.forEach((b) => { G.linkEdits[b.id] = 1; b.phase = "prep"; b.fk = null; });
+  G.log = newWaveLog(); G.prepStart = animNow(); G.lastBeamAt = 0; G.heartsAtWave = G.hearts;
+  setupHint();
+}
+// Подсказка-путь для босса: видна сама первые две встречи, потом прячется под «лампочку»; два дня победы без неё — исчезает совсем
+function setupHint() {
+  G.hint = null;
+  const w = G.waves[G.waveIndex], boss = G.plan.find((p) => p.kind === "boss");
+  if (!boss || !boss.card || !w.solution) return;
+  const info = bossHintFor(G.layout, { enemies: G.plan, solution: w.solution });
+  if (!info) return;
+  const fc = SAVE.facts[boss.card] || {};
+  if ((fc.noHintDays || []).length >= 2) return;
+  info.auto = (fc.bossSeen || 0) < 2; info.pressed = false; info.card = boss.card;
+  G.hint = info;
+  if (info.auto) G.log.hintSeen = true;
+  G.ribbon.forEach((r) => { r.lamp = r.kind === "boss" && !info.auto; });
+}
+function hintVisible() { return !!(G && G.hint && (G.hint.auto || G.hint.pressed)); }
+function showHint() {
+  if (!G || !G.hint) return fail("no-hint");
+  if (hintVisible()) return fail("already");
+  G.hint.pressed = true; G.log.hintSeen = true;
+  G.ribbon.forEach((r) => { r.lamp = false; });
+  return { ok: true };
 }
 function canEdit() { return !!G && (G.phase === "prep" || (G.phase === "battle" && G.paused)); }
 function findLink(a, b) { return G.layout.links.find((l) => (l.a === a && l.b === b) || (l.a === b && l.b === a)) || null; }
@@ -469,6 +1066,14 @@ function makeBeam(p1, p2) {
   if (beamsOf(p1).length >= MAX_BEAMS || beamsOf(p2).length >= MAX_BEAMS) return fail("full");
   G.beams.push({ id: link.id, from: p1, to: p2, phase: G.phase === "battle" ? "battle" : "prep", fk: null, f0: 0, fq: 1, born: animNow() });
   G.linkEdits[link.id] = (G.linkEdits[link.id] || 0) + 1;
+  if (G.track && G.phase === "prep") {                  // сколько строился нужный луч (только для взрослого)
+    const va = G.towers[p1].value, vb = G.towers[p2].value, prod = va * vb;
+    if (G.plan.some((p) => p.value === prod)) {
+      const now = animNow(), key = factKey(va, vb), o = G.log.times[key] || (G.log.times[key] = { ms: 0, n: 0 });
+      o.ms += Math.min(120000, Math.max(0, now - Math.max(G.prepStart, G.lastBeamAt))); o.n++;
+      G.lastBeamAt = now;
+    }
+  }
   return { ok: true, id: link.id };
 }
 function breakBeam(a, b) {
@@ -514,6 +1119,158 @@ function applySolution() {
   return { ok: true };
 }
 
+// ---- Настоящий уровень: карта, сборка волн, итоги карточек ----
+const hooks = {};                                        // интерфейс подписывается на события модели
+function profileNow() {
+  return { facts: SAVE.facts, confusions: SAVE.confusions, heavyStreak: SAVE.profile.heavyStreak, lightStreak: SAVE.profile.lightStreak };
+}
+function buildRealWave(i) {
+  const def = G.def;
+  const ctx = { land: def.land, levelId: def.id, waveIndex: i, layout: G.layout, hand: G.hand, fixed: G.fixed, wave: def.waves[i], unlocked: SAVE.unlocked.slice(), today: todayStr() };
+  const w = buildWave(profileNow(), ctx, hashSeed(G.seed + "|" + i));
+  w.gap = w.meta.gap;
+  return w;
+}
+function isLevelOpen(id) {
+  const def = LEVEL_BY_ID[id];
+  if (!def || SAVE.unlocked.indexOf(def.land) < 0) return false;
+  const idx = LEVELS.indexOf(def), prev = idx > 0 ? LEVELS[idx - 1] : null;
+  if (!prev || prev.land !== def.land) return true;
+  return !!(SAVE.levels[prev.id] && SAVE.levels[prev.id].plays > 0);
+}
+function limitReached() { rollDay(); return SAVE.today.levels >= settings.perDay; }
+// Следующий уровень после последнего сыгранного (если открыт), иначе тот же; без истории — первый открытый
+function nextLevelId() {
+  const last = SAVE.profile.lastLevel;
+  if (last && LEVEL_BY_ID[last]) {
+    const idx = LEVELS.findIndex((l) => l.id === last);
+    for (let i = idx + 1; i < LEVELS.length; i++) { if (isLevelOpen(LEVELS[i].id)) return LEVELS[i].id; break; }
+    if (isLevelOpen(last)) return last;
+  }
+  const first = LEVELS.find((l) => isLevelOpen(l.id) && !(SAVE.levels[l.id] && SAVE.levels[l.id].plays));
+  return first ? first.id : LEVELS[0].id;
+}
+function startReal(id, opts) {
+  const def = LEVEL_BY_ID[id];
+  if (!def) return fail("unknown");
+  if (limitReached()) return fail("limit");
+  if (!isLevelOpen(id)) return fail("closed");
+  opts = opts || {};
+  const seed = opts.seed != null ? Number(opts.seed) >>> 0 : (Math.random() * 4294967296) >>> 0;       // единственное место со случайностью: seed нового уровня
+  const g = makeLevel({ id, land: def.land, layout: def.layout, hand: LANDS[def.land - 1].hand, fixed: def.fixed, hearts: 10, track: true, real: true, def, seed, waves: Array.isArray(opts.waves) && opts.waves.length === 3 ? opts.waves : [null, null, null] });      // opts.waves — заготовленные волны для тестов
+  if (!g) return fail("no-layout");
+  G = g;
+  loadWave(0);
+  return { ok: true, id, seed };
+}
+function updateUnlocked() {
+  for (let l = 1; l <= 5; l++) if (landStudied(l, SAVE.facts) && SAVE.unlocked.indexOf(l + 1) < 0) SAVE.unlocked.push(l + 1);
+  SAVE.unlocked.sort((a, b) => a - b);
+}
+function beamGood(b) { return b.phase === "prep" && (G.linkEdits[b.id] || 0) <= 2; }
+function noteRow(row) {
+  G.log.rows.push(row);
+  const ll = G.levelLog;
+  if (row.res === "fail") ll.fail[row.card] = (ll.fail[row.card] || 0) + 1;
+  if (row.res === "ok" || row.res === "fail") ll.shaky[row.card] = 1;
+  if (row.kind === "boss") ll.boss[row.card] = 1;
+}
+function recordKill(e, b) {
+  if (!G.track) return;
+  const A = G.towers[b.from], B = G.towers[b.to], bc = factKey(A.value, B.value), good = beamGood(b);
+  if (e.kind === "boss") {
+    noteRow({ card: e.card, res: good && e.contrib.every(Boolean) ? "good" : "ok", kind: "boss" });
+    G.log.bossWon.push(e.card);
+  } else {
+    noteRow({ card: bc, res: good ? "good" : "ok", kind: "normal" });
+    if (e.card && e.card !== bc) noteRow({ card: e.card, res: "none", kind: "normal" });
+    if (A.fixed || B.fixed) G.log.div[bc] = true;
+    G.levelLog.kills.push({ value: e.start, pair: [Math.min(A.value, B.value), Math.max(A.value, B.value)] });
+  }
+}
+function recordGate(e) {
+  if (!G.track || !e.card) return;
+  noteRow({ card: e.card, res: "fail", kind: e.kind });
+}
+// Путаница: враг прошёл чужой луч, нужного на его дорожке нет, и число луча — не число другого врага волны
+function recordPass(e, prod) {
+  if (!G.track || e.kind !== "normal") return;
+  const L = G.layout, v = e.start;
+  if (G.beams.some((b) => L.linkById[b.id].cross.some((c) => c.path === e.path) && beamProduct(b) === v)) return;
+  if (G.plan.some((p) => p.value === prod)) return;
+  G.log.conf[confusionKey(v, prod)] = true;
+}
+function pushDay(arr, day) { if (arr.indexOf(day) < 0) arr.push(day); while (arr.length > 5) arr.shift(); }
+// Конец волны: коробки Лейтнера, статистика, время лучей, путаницы, боссы, волны «тяжело/легко»
+function trackWave() {
+  const L = G.log, t = todayStr(), facts = SAVE.facts, outcome = waveOutcome(L.rows);
+  const card = (key) => facts[key] || (facts[key] = newCard(t));
+  Object.keys(outcome).forEach((key) => {
+    const c = card(key), o = outcome[key];
+    c.seen++;
+    if (o === "good") c.good++; else if (o === "ok") c.ok++; else if (o === "fail") c.fail++;
+    Object.assign(c, leitnerUpdate(c, o, t));
+  });
+  Object.keys(L.times).forEach((key) => { const c = card(key); c.msSum += Math.round(L.times[key].ms); c.msN += L.times[key].n; });
+  Object.keys(L.div).forEach((key) => pushDay(card(key).divDays, t));
+  const bossCards = Array.from(new Set(G.plan.filter((p) => p.kind === "boss" && p.card).map((p) => p.card)));
+  bossCards.forEach((key) => { card(key).bossSeen++; });
+  L.bossWon.forEach((key) => {
+    const c = card(key);
+    pushDay(c.bossDays, t);
+    if (!L.hintSeen) pushDay(c.noHintDays, t);
+  });
+  Object.keys(L.conf).forEach((key) => { const c = SAVE.confusions[key] || (SAVE.confusions[key] = { n: 0, last: t }); c.n++; c.last = t; });
+  const total = G.ribbon.length, won = G.ribbon.filter((r) => r.status === "won").length, lost = G.heartsAtWave - G.hearts, P = SAVE.profile;
+  const heavy = total > 0 && (won / total < 0.7 || lost >= 3);
+  const light = total > 0 && won === total && L.rows.every((r) => r.res !== "ok" && r.res !== "fail");
+  const meta = G.waves[G.waveIndex] && G.waves[G.waveIndex].meta;
+  P.heavyStreak = heavy ? P.heavyStreak + 1 : 0;
+  P.lightStreak = light ? P.lightStreak + 1 : 0;
+  if (meta && meta.easy) P.heavyStreak = 0;
+  updateUnlocked();
+  persist();
+}
+// Строка «можно было ещё» для каждого числа, побеждённого на уровне
+function altLines(kills, hand, limit) {
+  const used = {}, order = [];
+  kills.forEach((k) => { if (!used[k.value]) { used[k.value] = []; order.push(k.value); } used[k.value].push(k.pair); });
+  const out = [];
+  order.forEach((v) => {
+    const line = altPairLine(v, used[v][0], hand);
+    if (!line) return;
+    const alt = line.split("лучом ")[1].split(" × ").map(Number);
+    if (used[v].some((p) => p[0] === alt[0] && p[1] === alt[1])) return;
+    out.push(line);
+  });
+  return out.slice(0, limit);
+}
+function tipForCard(key, bossHint) {
+  const p = parseKey(key);
+  return tipFor(p[0], p[1], { boss: !!bossHint });
+}
+function finishLevel() {
+  const t = todayStr(), r = G.result, ll = G.levelLog;
+  rollDay();
+  const rec = SAVE.levels[G.id] || (SAVE.levels[G.id] = { stars: 0, plays: 0 });
+  rec.stars = Math.max(rec.stars, r.stars); rec.plays++;
+  SAVE.today.levels++; SAVE.today.session++;
+  SAVE.profile.lastLevel = G.id;
+  r.alts = altLines(ll.kills, G.hand, 2);
+  altLines(ll.kills, G.hand, 9).forEach((line) => { if (SAVE.day.alts.indexOf(line) < 0) SAVE.day.alts.push(line); });
+  const earned = rewardsEarned(SAVE.facts);
+  r.newRewards = earned.filter((id) => SAVE.seenRewards.indexOf(id) < 0);
+  r.newRewards.forEach((id) => SAVE.seenRewards.push(id));
+  const worst = Object.keys(ll.fail).sort((a, b) => ll.fail[b] - ll.fail[a] || (SAVE.facts[a] ? SAVE.facts[a].box : 0) - (SAVE.facts[b] ? SAVE.facts[b].box : 0))[0] ||
+    Object.keys(ll.shaky).sort((a, b) => (SAVE.facts[a] ? SAVE.facts[a].box : 0) - (SAVE.facts[b] ? SAVE.facts[b].box : 0))[0];
+  r.tip = worst ? { card: worst, text: tipForCard(worst, !!ll.boss[worst]) } : null;
+  updateUnlocked();
+  SAVE.history.push({ d: t, lvl: G.id, stars: r.stars, hearts: r.hearts, waves: G.waveHist.map((w) => w.slice()) });
+  while (SAVE.history.length > 300) SAVE.history.shift();
+  persist();
+  if (hooks.levelEnd) hooks.levelEnd();
+}
+
 /* ======================================================================
    5. SIM — один шаг симуляции (16,667 мс): появление, ход, лучи, крепость
    ====================================================================== */
@@ -524,7 +1281,7 @@ function placeEnemy(e) {
 function spawnEnemy(value, kind, pathIdx, t, idx, card) {
   if (!G.layout.paths[pathIdx]) pathIdx = 0;
   const pr = pairsFor(value, G.hand)[0];
-  const e = { id: G.nextId++, idx: idx == null ? -1 : idx, value, start: value, kind: kind || "normal", path: pathIdx, t: t || 0, x: 0, y: 0, cracks: 0,
+  const e = { id: G.nextId++, idx: idx == null ? -1 : idx, value, start: value, kind: kind || "normal", path: pathIdx, t: t || 0, x: 0, y: 0, cracks: 0, contrib: [],
     card: card === undefined ? (pr ? factKey(pr[0], pr[1]) : null) : card };
   placeEnemy(e);
   G.enemies.push(e);
@@ -564,6 +1321,7 @@ function moveEnemy(e) {
     const off = e.kind === "boss" ? 130 : 104, rad = e.kind === "boss" ? BOSS_R : ENEMY_R, dir = dirAt(path, e.t);
     if (r.kind === "kill") {
       pushEvent("kill", e, prod, h.b.id);
+      recordKill(e, h.b);
       h.b.fk = "win"; h.b.f0 = G.simTicks; h.b.fq = 1;
       cue("kill");
       G.fx.push({ type: "spark", x: e.x, y: e.y, t0: G.simTicks, dur: TM.spark });
@@ -574,6 +1332,7 @@ function moveEnemy(e) {
     }
     if (r.kind === "reduce") {
       e.value = r.newValue; e.cracks++;
+      e.contrib.push(beamGood(h.b));
       pushEvent("reduce", e, prod, h.b.id);
       h.b.fk = "hit"; h.b.f0 = G.simTicks; h.b.fq = 1;
       cue("reduce");
@@ -581,6 +1340,7 @@ function moveEnemy(e) {
     } else {
       // Проход «мимо». Если впереди есть луч с нужным произведением, это обычная часть боя: текст бледнее, вспышка луча слабее, звука нет
       const quiet = goodBeamAhead(e, h.t);
+      recordPass(e, prod);
       pushEvent("pass", e, prod, h.b.id, quiet ? { quiet: true } : null);
       h.b.fk = "grey"; h.b.f0 = G.simTicks; h.b.fq = quiet ? 0.35 : 1;
       if (!quiet) cue("pass");
@@ -597,6 +1357,7 @@ function reachGate(e) {
   const pr = e.card ? parseKey(e.card) : null;
   const text = pr ? e.start + " = " + pr[0] + " × " + pr[1] : String(e.start);
   pushEvent("gate", e, null, null);
+  recordGate(e);
   cue("gate");
   addText(text, G.layout.fortress[0], G.layout.fortress[1], TM.gate, { dy: 105 });
   G.fx.push({ type: "knock", x: e.x, y: e.y, t0: G.simTicks, dur: TM.knock, value: e.start, kind: e.kind, path: e.path });
@@ -614,14 +1375,17 @@ function stepTexts() {
 function finishWave() {
   const total = G.ribbon.length, won = G.ribbon.filter((r) => r.status === "won").length;
   G.waveStat = { won, total };
+  G.waveHist.push([total, won]);
   G.toast = won === total ? "Волна отбита!" : "Волна позади: " + won + " из " + total;
   G.phase = "waveEnd"; G.endTicks = 0; G.paused = false; G.endAt = performance.now();
   cue(won === total ? "fanfare" : "chime");
+  if (G.track) trackWave();
 }
 function afterWaveEnd() {
   if (G.waveIndex + 1 < G.waves.length) { loadWave(G.waveIndex + 1); return; }
   G.phase = "levelEnd"; G.fx = []; G.texts = [];            // на итоговом экране не остаётся замёрзших вспышек и надписей
-  G.result = { won: G.waveStat.won, total: G.waveStat.total, hearts: G.hearts, stars: starsFor(G.hearts), text: G.toast, alts: [], newRewards: [] };
+  G.result = { won: G.waveStat.won, total: G.waveStat.total, hearts: G.hearts, stars: starsFor(G.hearts), text: G.toast, alts: [], newRewards: [], tip: null };
+  if (G.real) finishLevel();
 }
 function tick() {
   if (G.phase === "waveEnd") {
@@ -670,8 +1434,153 @@ function endWave() {
 }
 
 /* ======================================================================
-   6. STORE — этап 1 ничего не сохраняет (localStorage и db появятся в этапе 2)
+   6. STORE — сохранение: localStorage (oborona-save), дублирование в db, миграция, «сегодня»
    ====================================================================== */
+const SAVE_KEY = "oborona-save", BAD_KEY = "oborona-save-bad", TEST_DATE_KEY = "oborona-testDate";
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+function localDate(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+// Сегодня: подмена для тестов (OBORONA_TODAY, затем ключ oborona-testDate), иначе локальная дата
+function todayStr() {
+  try {
+    const o = window.OBORONA_TODAY;
+    if (typeof o === "string" && DATE_RE.test(o)) return o;
+    const k = localStorage.getItem(TEST_DATE_KEY);
+    if (k && DATE_RE.test(k)) return k;
+  } catch (e) { /* хранилище недоступно */ }
+  return localDate(new Date());
+}
+function defaultSave() {
+  return {
+    v: 1, updatedAt: 0, facts: {}, confusions: {}, unlocked: [1], levels: {},
+    profile: { heavyStreak: 0, lightStreak: 0, lastLevel: null },
+    settings: { speed: "normal", perDay: 5, sound: true, bigFont: false },
+    today: { date: "", levels: 0, session: 0 }, day: { date: "", alts: [] }, seenRewards: [], history: []
+  };
+}
+const isObj = (x) => !!x && typeof x === "object" && !Array.isArray(x);
+const num = (x, def, lo, hi) => (typeof x === "number" && isFinite(x) ? Math.max(lo == null ? -Infinity : lo, Math.min(hi == null ? Infinity : hi, x)) : def);
+const int = (x, def, lo, hi) => Math.round(num(x, def, lo, hi));
+const str = (x, def) => (typeof x === "string" ? x : def);
+const strArr = (x, max) => (Array.isArray(x) ? x.filter((y) => typeof y === "string").slice(-(max || 100)) : []);
+// Приведение к схеме: пустое или не того типа поле — умолчание, лишнее не трогаем
+function sanitizeCard(c) {
+  const d = newCard(DATE_RE.test(str(c && c.due, "")) ? c.due : "1970-01-01");
+  if (!isObj(c)) return d;
+  const o = Object.assign({}, c);
+  o.box = int(c.box, 1, 1, 5); o.due = DATE_RE.test(str(c.due, "")) ? c.due : d.due;
+  ["seen", "good", "ok", "fail", "msSum", "msN", "bossSeen"].forEach((k) => { o[k] = int(c[k], 0, 0); });
+  o.lastDay = str(c.lastDay, ""); o.masteredOn = str(c.masteredOn, "");
+  ["bossDays", "noHintDays", "divDays"].forEach((k) => { o[k] = strArr(c[k], 5); });
+  return o;
+}
+// Миграция: сохранение без версии или старой версии дополняется умолчаниями; будущие версии читаются как есть
+function migrate(raw) {
+  const d = defaultSave();
+  if (!isObj(raw)) return d;
+  const o = JSON.parse(JSON.stringify(raw));
+  const out = Object.assign({}, o);
+  out.v = int(o.v, 1, 1);
+  out.updatedAt = num(o.updatedAt, 0, 0);
+  out.facts = {};
+  if (isObj(o.facts)) Object.keys(o.facts).forEach((k) => { if (/^\d+x\d+$/.test(k)) out.facts[k] = sanitizeCard(o.facts[k]); });
+  out.confusions = {};
+  if (isObj(o.confusions)) Object.keys(o.confusions).forEach((k) => { const c = o.confusions[k]; if (/^\d+\|\d+$/.test(k) && isObj(c)) out.confusions[k] = { n: int(c.n, 1, 1), last: str(c.last, "") }; });
+  const un = Array.isArray(o.unlocked) ? o.unlocked.filter((x) => Number.isInteger(x) && x >= 1 && x <= 6) : [];
+  out.unlocked = Array.from(new Set([1].concat(un))).sort((a, b) => a - b);
+  out.levels = {};
+  if (isObj(o.levels)) Object.keys(o.levels).forEach((k) => { const l = o.levels[k]; if (LEVEL_BY_ID[k] && isObj(l)) out.levels[k] = { stars: int(l.stars, 0, 0, 3), plays: int(l.plays, 0, 0) }; });
+  const p = isObj(o.profile) ? o.profile : {};
+  out.profile = { heavyStreak: int(p.heavyStreak, 0, 0), lightStreak: int(p.lightStreak, 0, 0), lastLevel: typeof p.lastLevel === "string" && LEVEL_BY_ID[p.lastLevel] ? p.lastLevel : null };
+  const st = isObj(o.settings) ? o.settings : {};
+  out.settings = { speed: SPEEDS[st.speed] ? st.speed : "normal", perDay: int(st.perDay, 5, 1, 10), sound: typeof st.sound === "boolean" ? st.sound : true, bigFont: typeof st.bigFont === "boolean" ? st.bigFont : false };
+  const td = isObj(o.today) ? o.today : {};
+  out.today = { date: str(td.date, ""), levels: int(td.levels, 0, 0), session: int(td.session, 0, 0) };
+  const dy = isObj(o.day) ? o.day : {};
+  out.day = { date: str(dy.date, ""), alts: strArr(dy.alts, 30) };
+  out.seenRewards = strArr(o.seenRewards, 20).filter((id) => REWARDS.some((r) => r.id === id));
+  out.history = (Array.isArray(o.history) ? o.history : []).filter(isObj).slice(-300);
+  return out;
+}
+let SAVE = null;
+function adoptSave(obj) {
+  Object.assign(settings, obj.settings);
+  obj.settings = settings;                                // настройки игры и сохранения — один объект
+  SAVE = obj;
+}
+function loadSave() {
+  let txt = null;
+  try { txt = localStorage.getItem(SAVE_KEY); } catch (e) { /* недоступно */ }
+  if (txt == null) return defaultSave();
+  try {
+    const o = JSON.parse(txt);
+    if (!isObj(o)) throw new Error("не объект");
+    return migrate(o);
+  } catch (e) {
+    try { localStorage.setItem(BAD_KEY, txt); } catch (e2) { /* ничего */ }       // битую строку не стираем, а откладываем
+    return defaultSave();
+  }
+}
+function rollDay() {
+  const t = todayStr();
+  if (SAVE.today.date !== t) SAVE.today = { date: t, levels: 0, session: 0 };
+  if (SAVE.day.date !== t) SAVE.day = { date: t, alts: [] };
+}
+// db: по образцу арены — запись с задержкой 700 мс, очередь, onSnapshot, режим readonly при отказе
+const dbs = { mode: "local", ref: null, timer: null, writing: false, again: false };
+function dbFlush() {
+  if (!dbs.ref || dbs.mode !== "db") return;
+  if (dbs.writing) { dbs.again = true; return; }
+  dbs.writing = true;
+  let res;
+  try { res = Promise.resolve(dbs.ref.set(JSON.parse(JSON.stringify(SAVE)))); } catch (e) { res = Promise.reject(e); }
+  res.then(() => { dbs.writing = false; if (dbs.again) { dbs.again = false; dbFlush(); } }, (e) => {
+    dbs.writing = false;
+    if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) dbs.mode = "readonly";
+    else if (e && e.code === "unavailable") setTimeout(dbFlush, 900 + (Math.random() * 900));
+  });
+}
+function dbSchedule() {
+  if (dbs.mode !== "db" || !dbs.ref) return;
+  clearTimeout(dbs.timer);
+  dbs.timer = setTimeout(() => { dbs.timer = null; dbFlush(); }, 700);
+}
+function persist() {
+  SAVE.updatedAt = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch (e) { /* не критично */ }
+  dbSchedule();
+}
+function initDb() {
+  try {
+    if (!(window.claude && typeof window.claude.use === "function")) return;
+    Promise.resolve(window.claude.use("db")).then((db) => {
+      if (!db) return;
+      dbs.mode = "db"; dbs.ref = db.doc("oborona/save");
+      try {
+        dbs.ref.onSnapshot((snap) => {
+          if (dbs.timer || dbs.writing) return;
+          if (!snap || !snap.exists) { dbSchedule(); return; }
+          const inc = migrate(typeof snap.data === "function" ? snap.data() : snap.data);
+          if (inc.updatedAt > SAVE.updatedAt) {                // выигрывает более свежее; посреди уровня экран не трогаем
+            adoptSave(inc);
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch (e) { /* не критично */ }
+            if (hooks.saveChanged) hooks.saveChanged();
+          }
+        }, () => { dbs.mode = "readonly"; });
+      } catch (e) { /* снимков нет — пишем без них */ }
+      dbSchedule();
+    }, () => { /* без db играем из localStorage */ });
+  } catch (e) { /* то же */ }
+}
+function resetProgress(all) {
+  const keep = all ? null : JSON.parse(JSON.stringify(settings));
+  const d = defaultSave();
+  if (keep) d.settings = keep;
+  adoptSave(d);
+  rollDay();
+  persist();
+}
+adoptSave(loadSave());
+rollDay();
 
 /* ======================================================================
    7. RENDER — рисование поля на canvas, журнал кадра frame, перевод координат
@@ -851,6 +1760,7 @@ function drawFortress(now) {
   const L = G.layout, fx = L.fortress[0], fy = L.fortress[1], last = L.paths[0].pts[L.paths[0].pts.length - 1], face = last[0] < fx ? -1 : 1;
   let wob = 0;
   if (!reducedMotion()) G.fx.forEach((f) => { if (f.type === "knock") { const p = Math.min(1, (G.simTicks - f.t0) * DT / f.dur); wob += Math.sin(p * 24) * 6 * (1 - p); } });
+  drawFortressExtras(fx, fy, face, 0, "back");
   shapeFill(fx - 75, fy - 60, 150, 120, 10, COLORS.stone, COLORS.ink, 4);
   for (let i = 0; i < 5; i++) shapeFill(fx - 75 + 6 + i * 31, fy - 60 - 18, 20, 20, 3, COLORS.stone, COLORS.ink, 4);
   [-1, 1].forEach((sd) => {
@@ -863,6 +1773,7 @@ function drawFortress(now) {
   rrect(gx - 20, fy - 26, 40, 66, 18); ctx.fillStyle = COLORS.wood; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = COLORS.ink; ctx.stroke();
   ctx.beginPath(); ctx.moveTo(gx - 14, fy + 4); ctx.lineTo(gx + 14, fy + 4); ctx.moveTo(gx - 14, fy + 22); ctx.lineTo(gx + 14, fy + 22);
   ctx.lineWidth = 3; ctx.strokeStyle = "rgba(29,43,58,.4)"; ctx.stroke();
+  drawFortressExtras(fx, fy, face, gx, "front");
   if (celebrating() && G.waveStat.total > 0 && G.waveStat.won === G.waveStat.total) drawFlags(L, now);
 }
 
@@ -921,6 +1832,112 @@ function drawCrystal(ang, col, glow) {                    // кристалл-т
   ctx.beginPath(); ctx.moveTo(43, -6); ctx.lineTo(51, -2); ctx.lineTo(44, 0); ctx.closePath(); ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.fill();
   ctx.restore();
 }
+// Виды башен за освоенные ряды (только внешний вид): цифра всегда написана поверх
+function towerSkin(v) { return SAVE && SAVE.seenRewards.indexOf("x" + v) >= 0 ? "x" + v : null; }
+function polyPath(n, R, rot, cy) {
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) { const a = rot + i * TAU / n, px = Math.cos(a) * R, py = Math.sin(a) * R + cy; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
+  ctx.closePath();
+}
+function inkStroke(lw) { ctx.lineWidth = lw || 4; ctx.strokeStyle = COLORS.ink; ctx.lineJoin = "round"; ctx.stroke(); }
+function drawTop(skin, col) {
+  const ink = COLORS.ink, light = mixHex(col, "#ffffff", 0.35);
+  if (skin === "x2") { circ(-17, -4, 22, col, ink, 4); circ(17, -4, 22, light, ink, 4); }
+  else if (skin === "x3") { [[0, -30], [-26, 12], [26, 12]].forEach((q) => circ(q[0], q[1], 17, light, ink, 4)); circ(0, -4, 24, col, ink, 4); }
+  else if (skin === "x4") {
+    ctx.beginPath(); [[-30, 26], [-30, -36], [-18, -36], [-18, -26], [-6, -26], [-6, -36], [6, -36], [6, -26], [18, -26], [18, -36], [30, -36], [30, 26]].forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])));
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill(); inkStroke(4);
+  }
+  else if (skin === "x5") { starPath(0, -2, 40, 20, 0); ctx.fillStyle = col; ctx.fill(); inkStroke(4); }
+  else if (skin === "x6") { polyPath(6, 34, Math.PI / 6, -4); ctx.fillStyle = col; ctx.fill(); inkStroke(4); polyPath(6, 20, Math.PI / 6, -4); ctx.strokeStyle = "rgba(255,255,255,.45)"; ctx.lineWidth = 3; ctx.stroke(); }
+  else if (skin === "x7") {
+    ctx.beginPath(); ctx.moveTo(-24, 28); ctx.lineTo(24, 28); ctx.lineTo(16, -26); ctx.lineTo(-16, -26); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill();
+    ctx.save(); ctx.clip(); ctx.fillStyle = "#fffbe6"; ctx.fillRect(-30, -14, 60, 12); ctx.fillRect(-30, 12, 60, 12); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(-24, 28); ctx.lineTo(24, 28); ctx.lineTo(16, -26); ctx.lineTo(-16, -26); ctx.closePath(); inkStroke(4);
+    ctx.globalAlpha *= 0.3; circ(0, -36, 26, "#ffe680"); ctx.globalAlpha /= 0.3;
+    circ(0, -36, 11, "#ffd54f", ink, 4);
+  }
+  else if (skin === "x8") { polyPath(8, 35, Math.PI / 8, -4); ctx.fillStyle = col; ctx.fill(); inkStroke(4); }
+  else if (skin === "x9") {
+    ctx.beginPath(); ctx.moveTo(0, -44); ctx.lineTo(27, -8); ctx.lineTo(0, 32); ctx.lineTo(-27, -8); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); inkStroke(4);
+    ctx.beginPath(); ctx.moveTo(0, -44); ctx.lineTo(-12, -8); ctx.lineTo(0, 32); ctx.moveTo(-27, -8); ctx.lineTo(27, -8);
+    ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.lineWidth = 3; ctx.stroke();
+  }
+  else if (skin === "x10") {
+    circ(0, -4, 32, col, ink, 4); circ(0, -4, 24, "#fffbe6", null);
+    ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.beginPath();
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.moveTo(Math.cos(a) * 20, Math.sin(a) * 20 - 4); ctx.lineTo(Math.cos(a) * 24, Math.sin(a) * 24 - 4); }
+    ctx.stroke();
+  }
+  else circ(0, -4, 30, col, ink, 4);
+}
+// Части крепости за награды: пушка, весы, вторая башня
+function drawCannon(x, y, dir) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1);
+  rrect(2, -9, 38, 18, 5); ctx.fillStyle = "#3b4553"; ctx.fill(); inkStroke(3.5);
+  circ(0, 0, 17, "#4a5565", COLORS.ink, 4); circ(0, 0, 6, "#262d38");
+  ctx.restore();
+}
+function drawScales(x, y) {
+  ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = COLORS.ink; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x, y - 14); ctx.moveTo(x - 22, y - 12); ctx.lineTo(x + 22, y - 12); ctx.stroke();
+  [-1, 1].forEach((sd) => {
+    ctx.beginPath(); ctx.moveTo(x + sd * 22, y - 12); ctx.lineTo(x + sd * 22 - 9, y + 4); ctx.moveTo(x + sd * 22, y - 12); ctx.lineTo(x + sd * 22 + 9, y + 4); ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + sd * 22 - 11, y + 4); ctx.lineTo(x + sd * 22 + 11, y + 4); ctx.quadraticCurveTo(x + sd * 22, y + 16, x + sd * 22 - 11, y + 4); ctx.closePath();
+    ctx.fillStyle = COLORS.gold; ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
+  });
+  circ(x, y - 16, 5, COLORS.gold, COLORS.ink, 3);
+}
+function drawKeep(x, y) {
+  rrect(x - 34, y - 80, 68, 90, 8); ctx.fillStyle = COLORS.stone; ctx.fill(); inkStroke(4);
+  ctx.beginPath(); ctx.moveTo(x - 42, y - 78); ctx.lineTo(x + 42, y - 78); ctx.lineTo(x, y - 140); ctx.closePath(); ctx.fillStyle = COLORS.roof; ctx.fill(); inkStroke(4);
+  rrect(x - 8, y - 56, 16, 28, 8); ctx.fillStyle = "#3d3550"; ctx.fill(); inkStroke(3);
+}
+function drawFortressExtras(fx, fy, face, gx, phase) {
+  const has = (id) => SAVE.seenRewards.indexOf(id) >= 0;
+  if (phase === "back" && has("two")) drawKeep(fx, fy - 40);
+  if (phase === "front") {
+    if (has("hard")) { drawCannon(fx - 75, fy + 38, -1); drawCannon(fx + 75, fy + 38, 1); }
+    if (has("div")) drawScales(gx, fy - 56);
+  }
+}
+function drawRewardIcon(cv, id, on) {
+  const c = cv.getContext("2d"), saved = ctx, r = REWARDS.find((x) => x.id === id);
+  if (!r) return;
+  ctx = c;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
+  const sc = cv.width / 100;
+  c.setTransform(sc, 0, 0, sc, cv.width / 2, cv.height * 0.6);
+  if (r.row) drawTower(0, 4, r.row, false, 1, { skin: id });
+  else if (id === "hard") { c.scale(1.5, 1.5); drawCannon(-14, 6, 1); }
+  else if (id === "div") { c.scale(1.7, 1.7); drawScales(0, 4); }
+  else drawKeep(0, 50);
+  if (!on) { c.globalCompositeOperation = "source-atop"; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "rgba(70,98,112,.88)"; c.fillRect(0, 0, cv.width, cv.height); c.globalCompositeOperation = "source-over"; }
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  ctx = saved;
+}
+// Подсказка-путь босса: пунктир по дорожке до связи, кольца на её площадках и призрачная плашка первой части
+function drawHint() {
+  frame.hint = null;
+  if (!hintVisible() || !(G.phase === "prep" || G.phase === "battle")) return;
+  const h = G.hint, L = G.layout, path = L.paths[h.path], link = L.linkById[h.link];
+  if (G.beams.some((b) => b.id === h.link && beamProduct(b) === h.prod)) return;        // нужный луч уже построен
+  const dist = h.t * path.len;
+  ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(path.pts[0][0], path.pts[0][1]);
+  for (let i = 0; i < path.seg.length; i++) {
+    if (path.cum[i + 1] < dist) ctx.lineTo(path.pts[i + 1][0], path.pts[i + 1][1]);
+    else { const u = (dist - path.cum[i]) / (path.seg[i] || 1); ctx.lineTo(path.pts[i][0] + (path.pts[i + 1][0] - path.pts[i][0]) * u, path.pts[i][1] + (path.pts[i + 1][1] - path.pts[i][1]) * u); break; }
+  }
+  ctx.setLineDash([18, 12]);
+  ctx.strokeStyle = "rgba(29,43,58,.28)"; ctx.lineWidth = 10; ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 6; ctx.stroke();
+  ctx.restore();
+  [link.a, link.b].forEach((id) => { const p = L.padById[id]; ring(p.x, p.y, 54, "rgba(255,255,255,.9)", 5, [10, 8]); });
+  plate(h.text, link.labelAt.x, link.labelAt.y, labelFontSize(), { alpha: 0.62 });
+  frame.hint = { link: h.link, text: h.text, x: Math.round(link.labelAt.x), y: Math.round(link.labelAt.y) };
+}
 function drawTower(x, y, value, fixed, alpha, o) {
   o = o || {};
   const dy = o.dy || 0, sq = o.sq || 1, k = o.pop || 1, col = DIGIT_COLORS[value] || "#42a5f5", hgt = clamp01(-dy / 80);
@@ -933,7 +1950,7 @@ function drawTower(x, y, value, fixed, alpha, o) {
     [[0.2, 0.38], [0.42, 0.58], [0.62, 0.8]].forEach((a) => { ctx.beginPath(); ctx.arc(0, 0, 34, a[0] * Math.PI, a[1] * Math.PI); ctx.stroke(); });
   }
   if (o.aim != null) drawCrystal(o.aim, col, o.glow || 0);
-  circ(0, -4, 30, col, COLORS.ink, 4);
+  drawTop(o.skin, col);
   outlinedText(String(value), 0, -3, value >= 10 ? 36 : 44, "#ffffff", COLORS.ink, 6);
   ctx.restore(); ctx.globalAlpha = 1;
 }
@@ -980,7 +1997,7 @@ function drawTowers(now, dt) {
       if (Math.abs(d) > 0.02) needMore = true;
     }
     const bs = beamsOf(p.id), glow = !bs.length ? 0 : bs.some((b) => flashOf(b)) ? 1 : (ambientStill() ? 0.5 : 0.5 + 0.4 * Math.sin(now / 260 + p.x));
-    drawTower(p.x, p.y, t.value, t.fixed, SEL.dragFrom === p.id ? 0.35 : 1, { dy: ld.dy, sq: ld.sq, pop: ld.pop, aim: t.aim, glow });
+    drawTower(p.x, p.y, t.value, t.fixed, SEL.dragFrom === p.id ? 0.35 : 1, { dy: ld.dy, sq: ld.sq, pop: ld.pop, aim: t.aim, glow, skin: towerSkin(t.value) });
   });
   if (SEL.tower && G.towers[SEL.tower]) {
     const sp = L.padById[SEL.tower], pul = still ? 0 : Math.sin(now / 230);          // пульсирующее кольцо выбора
@@ -1262,7 +2279,7 @@ function render() {
   ctx.drawImage(bgCanvas, 0, 0);
   const sc = VIEW.s * VIEW.dpr;
   ctx.setTransform(sc, 0, 0, sc, VIEW.ox * VIEW.dpr, VIEW.oy * VIEW.dpr);
-  drawFortress(now); drawBeams(now); drawTowers(now, dt); drawEnemies(); drawFx(now);
+  drawFortress(now); drawHint(); drawBeams(now); drawTowers(now, dt); drawEnemies(); drawFx(now);
   layoutLabels();
   if (celebrating()) { layoutBanner(); drawConfetti(now); drawBanner(now); }
   drawTexts();
@@ -1317,7 +2334,7 @@ function beamAtClient(cx, cy) {
 const $ = (id) => document.getElementById(id);
 const els = {
   heartNum: $("hearts").querySelector("b"), heartIcon: $("hearts").querySelector("svg"), waveNo: $("waveNo"), ribbon: $("ribbon"),
-  rtitle: $("ribbon").querySelector(".rtitle"), pauseNote: $("pauseNote"), cards: $("ribbon").querySelector(".cards"), pauseBtn: $("pauseBtn"), soundBtn: $("soundBtn"),
+  rtitle: $("ribbon").querySelector(".rtitle"), pauseNote: $("pauseNote"), cards: $("ribbon").querySelector(".cards"), pauseBtn: $("pauseBtn"), soundBtn: $("soundBtn"), mapBtn: $("mapBtn"),
   hand: $("hand"), tiles: $("tiles"), fightBtn: $("fightBtn"),
   endCard: $("endCard"), endTitle: $("endTitle"), endSub: $("endSub"), retryBtn: $("retryBtn"), toast: $("toast"), ghost: $("ghost")
 };
@@ -1381,20 +2398,23 @@ function layoutRibbon() {                                  // карточки 3
 }
 function showToast(text, ms) { tmpToast = { text, until: performance.now() + (ms || 2500) }; }
 function playNewEvents() { while (G.cues.length) AudioFX.play(G.cues.shift()); }
-// Лента: карточки не пересоздаются без нужды, классы обновляются по статусу врага
+// Лента: карточки не пересоздаются без нужды, классы обновляются по статусу врага; на карточке босса с подсказкой — лампочка
+const LAMP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a6.5 6.5 0 0 0-3.6 11.9c.6.5 1 1.2 1 2V17h5.2v-.6c0-.8.4-1.5 1-2A6.5 6.5 0 0 0 12 2.5z" fill="#ffd54f" stroke="#1d2b3a" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.6 20h4.8M10.4 22h3.2" stroke="#f2f6ee" stroke-width="2" stroke-linecap="round"/></svg>';
 function syncCards() {
   const cs = els.cards.children, rb = G.ribbon;
   let same = cs.length === rb.length;
-  for (let i = 0; same && i < rb.length; i++) if (cs[i].dataset.v !== String(rb[i].value) || cs[i].dataset.k !== rb[i].kind) same = false;
+  for (let i = 0; same && i < rb.length; i++) if (cs[i].dataset.v !== String(rb[i].value) || cs[i].dataset.k !== rb[i].kind || cs[i].dataset.l !== (rb[i].lamp ? "1" : "0")) same = false;
   if (!same) {
     els.cards.textContent = "";
     rb.forEach((r) => {
       const c = document.createElement("div");
-      c.dataset.v = String(r.value); c.dataset.k = r.kind; c.textContent = String(r.value);
+      c.dataset.v = String(r.value); c.dataset.k = r.kind; c.dataset.l = r.lamp ? "1" : "0";
+      c.textContent = String(r.value);
+      if (r.lamp) { const b = document.createElement("button"); b.type = "button"; b.className = "lamp"; b.setAttribute("aria-label", "Подсказка"); b.innerHTML = LAMP_SVG; c.appendChild(b); }
       els.cards.appendChild(c);
     });
   }
-  rb.forEach((r, i) => { cs[i].className = "card " + (r.kind === "boss" ? "boss " : "") + r.status + (cs[i].classList.contains("pop") ? " pop" : ""); });
+  rb.forEach((r, i) => { cs[i].className = "card " + (r.kind === "boss" ? "boss " : "") + (r.lamp ? "haslamp " : "") + r.status + (cs[i].classList.contains("pop") ? " pop" : ""); });
 }
 function portrait() { return window.innerHeight > window.innerWidth; }
 function syncUI() {
@@ -1406,7 +2426,7 @@ function syncUI() {
     if (SEL.beam && !G.beams.some((b) => b.id === SEL.beam)) SEL.beam = null;
   }
   const tmp = tmpToast && performance.now() < tmpToast.until ? tmpToast.text : "";
-  const key = [G.id, phase, G.paused, G.hearts, G.waveIndex, G.waves.length, G.ribbon.map((r) => r.status).join(","), SEL.tile, settings.sound, tmp, VIEW.W, VIEW.H].join("|");
+  const key = [G.id, phase, G.paused, G.hearts, G.waveIndex, G.waves.length, G.ribbon.map((r) => r.status + (r.lamp ? "L" : "")).join(","), SEL.tile, settings.sound, tmp, VIEW.W, VIEW.H, G.real, hintVisible(), SCREEN].join("|");
   if (key === uiSig) return;
   uiSig = key; dirty = true;
   els.heartNum.textContent = G.hearts;
@@ -1421,7 +2441,8 @@ function syncUI() {
   els.fightBtn.classList.toggle("gone", phase !== "prep");
   els.hand.classList.toggle("off", !edit);
   Array.prototype.forEach.call(els.tiles.children, (t) => t.classList.toggle("sel", SEL.tile != null && Number(t.dataset.v) === SEL.tile));
-  els.endCard.classList.toggle("gone", phase !== "levelEnd");
+  els.endCard.classList.toggle("gone", phase !== "levelEnd" || G.real);
+  els.mapBtn.hidden = !(G.real && (phase === "prep" || (phase === "battle" && G.paused)));
   if (phase === "levelEnd" && G.result) {
     els.endTitle.textContent = G.result.text;
     els.endSub.textContent = "Сохранено " + word(G.result.hearts, "heart") + " из " + G.maxHearts;
@@ -1432,6 +2453,229 @@ function syncUI() {
   $("soundOff").style.display = settings.sound ? "none" : "";
   $("soundWaves").style.display = settings.sound ? "" : "none";
 }
+
+/* ---- Экраны: карта мира, итоги уровня, ночь, экран взрослого ---- */
+let SCREEN = "map";
+const screensSeen = ["map"];
+const SCR = { map: $("scrMap"), levelEnd: $("scrLevelEnd"), night: $("scrNight"), adult: $("scrAdult") };
+const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cardTitle = (key) => { const p = parseKey(key); return p[0] + " × " + p[1]; };
+const cardFull = (key) => { const p = parseKey(key); return p[0] + " × " + p[1] + " = " + p[0] * p[1]; };
+function starSvg(on, size) {
+  return '<svg class="st' + (on ? " on" : "") + '" viewBox="0 0 20 20" width="' + size + '" height="' + size + '" aria-hidden="true"><path d="M10 1.4l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L10 15.2l-5.4 3 1.1-6.1L1.2 7.8l6.1-.8z"/></svg>';
+}
+const LAND_ICONS = {
+  1: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="35" cy="13" r="7" fill="#ffd54f" stroke="#1d2b3a" stroke-width="2.5"/><path d="M1 42C9 24 22 22 31 33c5-5 11-5 16 1v12H1z" fill="#7bd16b" stroke="#1d2b3a" stroke-width="2.5" stroke-linejoin="round"/></svg>',
+  2: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M1 44C3 28 16 22 25 31c6-9 17-8 22 4v9z" fill="#e9c46a" stroke="#1d2b3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M1 44C5 36 14 34 20 40" fill="none" stroke="#1d2b3a" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  3: '<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#1d2b3a" stroke-width="2.5" stroke-linejoin="round"><path d="M14 9l9 15H5z" fill="#2fb59a"/><path d="M14 18l11 17H3z" fill="#2fb59a"/><path d="M34 14l10 17H24z" fill="#26a69a"/><path d="M34 24l12 18H22z" fill="#26a69a"/></g><path d="M14 35v8M34 42v4" stroke="#1d2b3a" stroke-width="3"/></svg>',
+  4: '<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#1d2b3a" stroke-width="2.5" stroke-linejoin="round"><path d="M2 43L18 10l16 33z" fill="#9aa8b5"/><path d="M22 43l12-22 12 22z" fill="#8e98a6"/><path d="M12.5 21.5L18 10l5.5 11.5L18 19z" fill="#fff"/></g></svg>',
+  5: '<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#1d2b3a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8v32M14 42h20M8 14l16-4 16 4" fill="none"/><path d="M8 14l-5 12h10zM40 14l-5 12h10z" fill="#ffd54f"/></g></svg>',
+  6: '<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#1d2b3a" stroke-width="2.5" stroke-linejoin="round"><path d="M6 44V16h6v4h6v-4h4v-4h4v4h4v4h6v-4h6v28z" fill="#8e98a6"/><path d="M19 44V32a5 5 0 0 1 10 0v12z" fill="#b57a4c"/><path d="M6 16l3-8 3 8zM36 16l3-8 3 8z" fill="#e76f51"/></g></svg>'
+};
+function showScreen(name) {
+  SCREEN = name;
+  if (screensSeen.indexOf(name) < 0) screensSeen.push(name);
+  Object.keys(SCR).forEach((k) => { SCR[k].hidden = k !== name; });
+  if (name === "map") renderMap();
+  else if (name === "levelEnd") renderLevelEnd();
+  else if (name === "night") renderNight();
+  else if (name === "adult") renderAdult();
+  document.body.classList.toggle("onscreen", name !== "level");
+  dirty = true; uiSig = "";
+  if (name === "level" && G) { layoutHand(); syncUI(); render(); }
+}
+function applySettingsUI() {
+  document.body.classList.toggle("big", !!settings.bigFont);
+  dirty = true; uiSig = "";
+}
+function applySetting(key, value) {
+  if (key === "speed") { if (!SPEEDS[value]) return fail("bad-value"); settings.speed = value; if (G) G.speed = SPEEDS[value]; }
+  else if (key === "sound" || key === "bigFont") settings[key] = !!value;
+  else if (key === "perDay") { const n = Math.round(Number(value)); settings.perDay = isFinite(n) ? Math.max(1, Math.min(10, n)) : 5; }
+  else return fail("unknown");
+  applySettingsUI();
+  persist();
+  if (SCREEN === "map") renderMap();
+  return { ok: true };
+}
+
+// Карта мира
+function rewardCanvasDraw(root) {
+  Array.prototype.forEach.call(root.querySelectorAll("canvas[data-r]"), (cv) => drawRewardIcon(cv, cv.dataset.r, cv.dataset.on === "1"));
+}
+function landHtml(L, rest) {
+  const open = SAVE.unlocked.indexOf(L.id) >= 0, pr = landProgress(L.id, SAVE.facts), pct = Math.min(100, Math.round(100 * pr.done / pr.need));
+  const lvls = LEVELS.filter((l) => l.land === L.id).map((l, i) => {
+    const rec = SAVE.levels[l.id], can = isLevelOpen(l.id) && !rest, stars = rec ? rec.stars : 0;
+    const label = "Уровень " + (i + 1) + ", " + L.name + (rec ? ", звёзд: " + stars : "");
+    return '<button class="lvl ' + (rec ? "done" : can ? "open" : "") + '" data-id="' + l.id + '" ' + (can ? "" : "disabled") + ' aria-label="' + esc(label) + '"><span class="ln">' + (i + 1) + '</span><span class="lst">' +
+      [0, 1, 2].map((k) => starSvg(k < stars, 14)).join("") + "</span></button>";
+  }).join("");
+  const sub = open ? '<div class="lsub">Изучено ' + pr.done + " из " + pr.need + '</div><div class="lbar"><i style="width:' + pct + '%"></i></div>' : '<div class="lsub">Откроется, когда изучишь примеры прошлой земли</div>';
+  return '<section class="land ' + (open ? "open" : "closed") + (landStudied(L.id, SAVE.facts) ? " done" : "") + '" data-land="' + L.id + '" style="--lc:' + LAND_COLORS[L.id - 1] + '"><div class="lico">' + (open ? LAND_ICONS[L.id] : '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="11" y="21" width="26" height="21" rx="4" fill="#6c7787" stroke="#1d2b3a" stroke-width="2.5"/><path d="M16 21v-6a8 8 0 0 1 16 0v6" fill="none" stroke="#1d2b3a" stroke-width="3.5"/></svg>') +
+    '</div><div class="linfo"><div class="lname">' + esc(L.name) + "</div>" + sub + '</div><div class="lvls">' + lvls + "</div></section>";
+}
+const LAND_COLORS = ["#7bd16b", "#e9c46a", "#2fb59a", "#9aa8b5", "#a98be8", "#ee7b5d"];
+function renderMap() {
+  rollDay();
+  const rest = SAVE.today.levels >= settings.perDay;
+  const rw = REWARDS.map((r) => {
+    const on = SAVE.seenRewards.indexOf(r.id) >= 0;
+    return '<div class="rw ' + (on ? "on" : "off") + '"><canvas width="96" height="96" data-r="' + r.id + '" data-on="' + (on ? 1 : 0) + '"></canvas><b>' + esc(r.name) + "</b><span>" + esc(r.cond) + "</span></div>";
+  }).join("");
+  SCR.map.innerHTML = '<div class="mapwrap"><header class="maphead"><h1>Оборона таблицы</h1>' + (rest ? '<div class="rest" id="mapRest">Крепость отдыхает до завтра</div>' : "") + '</header><div class="mapbody"><div class="lands">' +
+    LANDS.map((L) => landHtml(L, rest)).join("") + '</div><aside class="rewards"><h2>Награды</h2><div class="rgrid">' + rw + '</div></aside></div><footer class="mapfoot"><button id="adultBtn" class="btn ghost holdbtn" aria-label="Для взрослых: удерживай две секунды">' +
+    '<svg class="hring" viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true"><rect x="2" y="2" width="196" height="52" rx="26" pathLength="100" /></svg><svg class="hico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/></svg><span>Для взрослых</span></button></footer></div>';
+  rewardCanvasDraw(SCR.map);
+}
+SCR.map.addEventListener("click", (e) => {
+  const b = e.target.closest(".lvl");
+  if (b && !b.disabled) { AudioFX.unlock(); startLevelUI(b.dataset.id); }
+});
+// «Для взрослых»: удержание 2 секунды, вокруг кнопки заполняется кольцо
+let hold = null;
+function holdStart(id) {
+  const btn = $("adultBtn");
+  if (hold || !btn) return;
+  const ring = btn.querySelector(".hring rect");
+  hold = { id, t0: performance.now(), raf: 0, timer: setTimeout(() => holdEnd(true), 2000) };
+  const f = () => { if (!hold) return; ring.style.strokeDashoffset = String(100 * (1 - clamp01((performance.now() - hold.t0) / 2000))); hold.raf = requestAnimationFrame(f); };
+  f();
+}
+function holdEnd(done) {
+  if (!hold) return;
+  clearTimeout(hold.timer); cancelAnimationFrame(hold.raf); hold = null;
+  const ring = document.querySelector("#adultBtn .hring rect");
+  if (ring) ring.style.strokeDashoffset = "100";
+  if (done) openAdult();
+}
+SCR.map.addEventListener("pointerdown", (e) => {
+  if (!e.target.closest("#adultBtn") || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+  e.preventDefault();
+  holdStart(e.pointerId);
+});
+window.addEventListener("pointerup", (e) => { if (hold && e.pointerId === hold.id) holdEnd(false); });
+window.addEventListener("pointercancel", (e) => { if (hold && e.pointerId === hold.id) holdEnd(false); });
+SCR.map.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("#adultBtn") && !e.repeat) { e.preventDefault(); holdStart(-1); } });
+SCR.map.addEventListener("keyup", (e) => { if ((e.key === "Enter" || e.key === " ") && hold && hold.id === -1) holdEnd(false); });
+SCR.map.addEventListener("click", (e) => { if (e.target.closest("#adultBtn")) e.preventDefault(); });
+
+// Итоги уровня
+function rewardLine(id) {
+  const r = REWARDS.find((x) => x.id === id);
+  return (r.row ? "Новая башня: " : "Новая награда: ") + r.name.toLowerCase();
+}
+function heartsRow(n, max) {
+  let h = "";
+  for (let i = 0; i < max; i++) h += '<svg class="hrt' + (i < n ? "" : " off") + '" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 28.5C4 20 1 13.5 1 8.8 1 4.4 4.4 1.5 8.4 1.5c3.4 0 6.1 1.9 7.6 5 1.5-3.1 4.2-5 7.6-5 4 0 7.4 2.9 7.4 7.3 0 4.7-3 11.2-15 19.7z"/></svg>';
+  return h;
+}
+function renderLevelEnd() {
+  const r = G.result;
+  if (!r) { SCR.levelEnd.innerHTML = ""; return; }
+  SCR.levelEnd.innerHTML = '<div class="endbox"><h1>Уровень пройден!</h1><div class="bigstars">' + [0, 1, 2].map((i) => starSvg(i < r.stars, 84)).join("") + '</div><div class="hrow">' + heartsRow(r.hearts, G.maxHearts) +
+    '</div><p class="hline">Сохранено ' + word(r.hearts, "heart") + " из " + G.maxHearts + "</p>" +
+    r.alts.map((a) => '<p class="alt">' + esc(a) + "</p>").join("") +
+    (r.tip ? '<p class="tip"><b>Приём:</b> ' + esc(r.tip.text) + "</p>" : "") +
+    r.newRewards.map((id) => '<p class="newrw"><canvas width="96" height="96" data-r="' + id + '" data-on="1"></canvas><span>' + esc(rewardLine(id)) + "</span></p>").join("") +
+    '<button id="lvDone" class="btn gold big">Дальше</button></div>';
+  rewardCanvasDraw(SCR.levelEnd);
+}
+SCR.levelEnd.addEventListener("click", (e) => { if (e.target.closest("#lvDone")) levelEndNext(); });
+function levelEndNext() {
+  rollDay();
+  if (SAVE.today.session >= 3 || SAVE.today.levels >= settings.perDay) { showScreen("night"); SAVE.today.session = 0; persist(); }
+  else showScreen("map");
+  return { ok: true, screen: SCREEN };
+}
+function exitToMap() { showScreen("map"); return { ok: true }; }
+
+// Ночь: что освоено, что вернётся завтра, приём
+function hardestToday(t) {
+  const keys = Object.keys(SAVE.facts).filter((k) => SAVE.facts[k].lastDay === t);
+  keys.sort((a, b) => SAVE.facts[a].box - SAVE.facts[b].box || SAVE.facts[b].fail - SAVE.facts[a].fail || (a < b ? -1 : 1));
+  return keys[0] || null;
+}
+function renderNight() {
+  rollDay();
+  const t = todayStr(), tm = addDays(t, 1), F = SAVE.facts, keys = Object.keys(F);
+  const mastered = keys.filter((k) => F[k].masteredOn === t).sort((a, b) => parseKey(a)[0] * parseKey(a)[1] - parseKey(b)[0] * parseKey(b)[1]);
+  const back = keys.filter((k) => F[k].lastDay === t && F[k].due <= tm).sort((a, b) => F[a].box - F[b].box || (a < b ? -1 : 1)).slice(0, 8);
+  const alts = SAVE.day.alts.slice(0, 3), hard = hardestToday(t), rest = SAVE.today.levels >= settings.perDay;
+  const bossHint = hard && F[hard].bossSeen > 0 && (HARD15.indexOf(hard) >= 0 || LANDS[5].facts.indexOf(hard) >= 0);
+  SCR.night.innerHTML = '<div class="nightbox"><svg class="moon" viewBox="0 0 64 64" aria-hidden="true"><path d="M44 8a26 26 0 1 0 12 40A22 22 0 0 1 44 8z" fill="#ffd54f" stroke="#1d2b3a" stroke-width="3" stroke-linejoin="round"/><circle cx="14" cy="14" r="2.5" fill="#fffbe6"/><circle cx="52" cy="52" r="2" fill="#fffbe6"/></svg>' +
+    "<h1>Крепость закрывается на ночь</h1>" +
+    '<div class="nrow"><b>Освоено сегодня:</b> <span>' + (mastered.length ? mastered.map((k) => esc(cardTitle(k))).join(", ") : "Пример становится освоенным, когда побеждаешь его в два разных дня") + "</span></div>" +
+    '<div class="nrow"><b>Завтра вернутся:</b> <span>' + (back.length ? back.map((k) => esc(cardTitle(k))).join(", ") : "—") + "</span></div>" +
+    (alts.length ? '<div class="nrow"><b>Можно было ещё:</b>' + alts.map((a) => "<span>" + esc(a) + "</span>").join("") + "</div>" : "") +
+    (hard ? '<div class="nrow"><b>Приём:</b> <span>' + esc(tipForCard(hard, bossHint)) + "</span></div>" : "") +
+    '<div class="nbtns">' + (rest ? '<div class="resttext">Крепость отдыхает до завтра</div>' : '<button id="nightMore" class="btn gold big">Ещё один уровень</button>') + '<button id="nightMap" class="btn ghost big">На карту</button></div></div>';
+}
+SCR.night.addEventListener("click", (e) => {
+  if (e.target.closest("#nightMore")) nightMore();
+  else if (e.target.closest("#nightMap")) showScreen("map");
+});
+function nightMore() {
+  if (limitReached()) return fail("limit");
+  return startLevelUI(nextLevelId());
+}
+
+// Экран взрослого
+let adultSel = null, resetAsk = false;
+const pctText = (c) => { const tot = c.good + c.ok + c.fail; return tot ? "верно " + (c.good + c.ok) + " из " + tot + " (" + Math.round(100 * (c.good + c.ok) / tot) + " %)" : ""; };
+function cellInfo(a, b) {
+  const key = factKey(a, b), c = SAVE.facts[key], head = a + " × " + b + " = " + a * b;
+  if (!c) return head + " · ещё не встречался";
+  const parts = [head, "коробка " + c.box], pc = pctText(c);
+  if (pc) parts.push(pc);
+  if (c.msN > 0) parts.push("луч в среднем " + (c.msSum / c.msN / 1000).toFixed(1).replace(".", ",") + " с");
+  if (c.bossDays.length) parts.push("босс побеждён в " + word(c.bossDays.length, "day"));
+  return parts.join(" · ");
+}
+function renderAdult() {
+  const F = SAVE.facts;
+  let grid = '<div class="agrid" role="grid"><span class="ah"></span>';
+  for (let b = 2; b <= 9; b++) grid += '<span class="ah">' + b + "</span>";
+  for (let a = 2; a <= 9; a++) {
+    grid += '<span class="ah">' + a + "</span>";
+    for (let b = 2; b <= 9; b++) {
+      const box = F[factKey(a, b)] ? F[factKey(a, b)].box : 0;
+      grid += '<button class="gc b' + box + (adultSel === factKey(a, b) ? " sel" : "") + '" data-a="' + a + '" data-b="' + b + '" aria-label="' + a + " × " + b + '">' + a * b + "</button>";
+    }
+  }
+  grid += "</div>";
+  const info = adultSel ? cellInfo.apply(null, parseKey(adultSel)) : "Нажми на клетку — увидишь точность и время";
+  const hardKeys = Object.keys(F).filter((k) => F[k].seen >= 1).sort((p, q) => (F[q].fail * 2 + (5 - F[q].box)) - (F[p].fail * 2 + (5 - F[p].box)) || (p < q ? -1 : 1)).slice(0, 5);
+  const confKeys = Object.keys(SAVE.confusions).sort((p, q) => SAVE.confusions[q].n - SAVE.confusions[p].n || (p < q ? -1 : 1)).slice(0, 5);
+  const seg = (act, cur, items) => items.map((it) => '<button class="btn ghost seg' + (cur === it[0] ? " on" : "") + '" data-act="' + act + '" data-v="' + it[0] + '" aria-pressed="' + (cur === it[0]) + '">' + it[1] + "</button>").join("");
+  SCR.adult.innerHTML = '<div class="adultwrap"><header class="adhead"><h1>Для взрослых</h1><button class="btn gold" data-act="close">Закрыть</button></header><div class="adbody"><section class="adcol"><h2>Карта таблицы</h2>' + grid +
+    '<div class="legend"><span>Не было</span>' + [1, 2, 3, 4, 5].map((n) => '<span class="b' + n + '">' + n + "</span>").join("") + '</div><p class="adinfo" id="adInfo">' + esc(info) + '</p></section><section class="adcol"><h2>Самые трудные</h2>' +
+    (hardKeys.length ? "<ul>" + hardKeys.map((k) => "<li>" + esc(cardFull(k)) + " — коробка " + F[k].box + ", ошибок " + F[k].fail + "</li>").join("") + "</ul>" : '<p class="muted">Пока нет данных</p>') +
+    "<h2>Частые путаницы</h2>" + (confKeys.length ? "<ul>" + confKeys.map((k) => { const p = k.split("|").map(Number); return "<li>" + p[1] + " ↔ " + p[0] + " — " + word(SAVE.confusions[k].n, "time") + "</li>"; }).join("") + "</ul>" : '<p class="muted">Пока нет данных</p>') +
+    "<h2>Сегодня</h2><p>Сыграно уровней: " + SAVE.today.levels + " из " + settings.perDay + '</p></section><section class="adcol"><h2>Настройки</h2>' +
+    '<div class="srow"><b>Скорость врагов</b><div class="segs">' + seg("speed", settings.speed, [["slow", "Медленно"], ["normal", "Обычно"], ["fast", "Быстрее"]]) + "</div></div>" +
+    '<div class="srow"><b>Уровней в день</b><div class="segs"><button class="btn ghost seg" data-act="perDay" data-v="-1" aria-label="Меньше">−</button><span class="perday" id="perDayVal">' + settings.perDay + '</span><button class="btn ghost seg" data-act="perDay" data-v="1" aria-label="Больше">+</button></div></div>' +
+    '<div class="srow"><b>Звук</b><div class="segs">' + seg("sound", settings.sound, [[true, "Вкл."], [false, "Выкл."]]) + "</div></div>" +
+    '<div class="srow"><b>Крупный шрифт</b><div class="segs">' + seg("bigFont", settings.bigFont, [[true, "Вкл."], [false, "Выкл."]]) + "</div></div>" +
+    (resetAsk ? '<div class="resetbox"><p>Точно сбросить? Это нельзя отменить</p><div class="segs"><button class="btn gold" data-act="reset2">Да, сбросить</button><button class="btn ghost" data-act="reset0">Отмена</button></div></div>' : '<button class="btn ghost danger" data-act="reset1">Сбросить прогресс</button>') +
+    "</section></div></div>";
+}
+SCR.adult.addEventListener("click", (e) => {
+  const gc = e.target.closest(".gc");
+  if (gc) { adultSel = factKey(Number(gc.dataset.a), Number(gc.dataset.b)); renderAdult(); return; }
+  const b = e.target.closest("[data-act]");
+  if (!b) return;
+  const act = b.dataset.act, v = b.dataset.v;
+  if (act === "close") { resetAsk = false; showScreen("map"); return; }
+  if (act === "speed") applySetting("speed", v);
+  else if (act === "perDay") applySetting("perDay", settings.perDay + Number(v));
+  else if (act === "sound" || act === "bigFont") applySetting(act, v === "true");
+  else if (act === "reset1") resetAsk = true;
+  else if (act === "reset0") resetAsk = false;
+  else if (act === "reset2") { resetAsk = false; adultSel = null; resetProgress(false); showScreen("map"); return; }
+  renderAdult();
+});
+function openAdult() { adultSel = null; resetAsk = false; showScreen("adult"); return { ok: true }; }
 
 /* ======================================================================
    9. INPUT — Pointer Events: перетаскивание плиток и башен, выбор, лучи
@@ -1580,10 +2824,12 @@ function togglePause() {
 els.fightBtn.addEventListener("click", () => { AudioFX.unlock(); doFight(); syncUI(); });
 els.pauseBtn.addEventListener("click", () => { AudioFX.unlock(); togglePause(); syncUI(); });         // «Пауза» на своём месте превращается в «Дальше»
 els.retryBtn.addEventListener("click", () => { if (retry().ok) { SEL.tower = SEL.beam = SEL.tile = null; } syncUI(); });
-els.soundBtn.addEventListener("click", () => { AudioFX.unlock(); settings.sound = !settings.sound; syncUI(); });
+els.soundBtn.addEventListener("click", () => { AudioFX.unlock(); applySetting("sound", !settings.sound); syncUI(); });
+els.mapBtn.addEventListener("click", () => { if (G.real && canEdit()) exitToMap(); });
+els.cards.addEventListener("click", (e) => { if (e.target.closest(".lamp") && showHint().ok) { uiSig = ""; markDirty(); syncUI(); } });
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape" || e.key === " " || e.code === "Space") {
-    if (G.phase === "battle") { e.preventDefault(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); togglePause(); syncUI(); }
+    if (SCREEN === "level" && G.phase === "battle") { e.preventDefault(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); togglePause(); syncUI(); }
   }
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden && G && G.phase === "battle" && !G.paused) { pause(); markDirty(); } });
@@ -1595,7 +2841,7 @@ let lastNow = 0, acc = 0, manualMode = false;
 function loop(now) {
   const dt = Math.min(250, now - (lastNow || now));
   lastNow = now;
-  if (G) {
+  if (G && SCREEN === "level") {
     if (!manualMode && simRunning()) {
       acc += dt;
       for (let n = 0; acc >= DT && n < 30; n++) { tick(); acc -= DT; }
@@ -1615,30 +2861,45 @@ function onResize() {
     if (portrait() && G.phase === "battle" && !G.paused) pause();              // планшет повернули вертикально: бой встаёт на паузу
     syncUI(); render();
   }
+  if (SCREEN === "map") rewardCanvasDraw(SCR.map);
 }
 window.addEventListener("resize", onResize);
 window.addEventListener("orientationchange", onResize);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bgKey = ""; dirty = true; });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bgKey = ""; dirty = true; if (SCREEN === "map") rewardCanvasDraw(SCR.map); });
 
 /* ======================================================================
    11. EXPORT — window.OBORONA: logic, layouts, state(), api, render()
    ====================================================================== */
-function loadFixture(fx) {
-  const r = startLevel(fx);
-  if (!r.ok) return r;
+// Общая часть входа в уровень: сброс выбора, рука, поле, экран «level»
+function enterLevel(silent) {
   SEL.tower = SEL.beam = SEL.tile = SEL.hover = SEL.dragFrom = null;
   endPress();
   tmpToast = null; bgKey = ""; dirty = true;
   buildTiles();
+  if (!silent) showScreen("level");
+}
+function loadFixture(fx, silent) {
+  const r = startLevel(fx);
+  if (!r.ok) return r;
+  enterLevel(silent);
   return { ok: true };
 }
+function startLevelUI(id, opts) {
+  const r = startReal(id, opts);
+  if (!r.ok) return r;
+  enterLevel();
+  return r;
+}
+hooks.levelEnd = () => { showScreen("levelEnd"); };
+hooks.saveChanged = () => { applySettingsUI(); if (SCREEN === "map") renderMap(); };
 function snapshot() {
   const flash = (b) => { const f = flashOf(b); return f ? f.type : null; };
+  const w = G.waves[G.waveIndex] || {};
   const out = {
-    version: VERSION, screen: "level", screensSeen: ["level"],
+    version: VERSION, screen: SCREEN, screensSeen: screensSeen.slice(),
     view: { s: VIEW.s, ox: VIEW.ox, oy: VIEW.oy, barH: VIEW.barH, handH: VIEW.handH, W: VIEW.W, H: VIEW.H },
-    phase: G.phase, paused: G.paused, today: null,
-    level: { id: G.id, land: G.land, layout: G.layout.id, hand: G.hand.slice(), fixed: Object.assign({}, G.fixed), waveIndex: G.waveIndex, waveCount: G.waves.length, practice: !G.demo },
+    phase: G.phase, paused: G.paused, today: todayStr(), rest: SAVE.today.date === todayStr() && SAVE.today.levels >= settings.perDay,
+    level: { id: G.id, land: G.land, layout: G.layout.id, hand: G.hand.slice(), fixed: Object.assign({}, G.fixed), waveIndex: G.waveIndex, waveCount: G.waves.length, practice: !G.real, seed: G.seed },
     hearts: G.hearts, battleMs: Math.round(G.battleTicks * DT), queue: G.plan.length - G.queue,
     towers: Object.keys(G.towers).map((pad) => ({ pad, value: G.towers[pad].value, fixed: G.towers[pad].fixed, beams: beamsOf(pad).length })),
     beams: G.beams.map((b) => {
@@ -1650,17 +2911,28 @@ function snapshot() {
     texts: G.texts.concat(G.uiTexts).map((t) => ({ text: t.text, x: Math.round(t.x + (t.slot ? t.slot.dx : 0)), y: Math.round(t.y + (t.slot ? t.slot.dy : t.dy)), ttl: Math.round(t.ttl), quiet: !!t.quiet })),
     textLog: G.textLog.slice(), sounds: G.soundLog.slice(), renders: renderCount,
     events: G.events.map((e) => Object.assign({}, e)),
-    hint: null,
-    wave: { cards: Array.from(new Set(G.plan.map((p) => p.card).filter(Boolean))), meta: { demo: G.demo, n: G.plan.length, gap: G.waves[G.waveIndex].gap || 3000 }, solution: waveSolution() },
-    frame: { labels: frame.labels.map((l) => Object.assign({}, l)), enemies: frame.enemies.map((e) => Object.assign({}, e)), cross: frame.cross ? Object.assign({}, frame.cross) : null, texts: frame.texts.map((x) => Object.assign({}, x)), banner: frame.banner ? Object.assign({}, frame.banner) : null, sel: Object.assign({}, frame.sel) },
-    toast: G.toast, result: G.result ? Object.assign({}, G.result) : null, save: null
+    hint: G.hint ? { visible: hintVisible(), link: G.hint.link, text: G.hint.text } : null,
+    wave: { cards: w.cards ? w.cards.slice() : Array.from(new Set(G.plan.map((p) => p.card).filter(Boolean))), meta: Object.assign({ demo: G.demo, n: G.plan.length, gap: w.gap || 3000 }, w.meta || {}), solution: waveSolution() },
+    frame: { labels: frame.labels.map((l) => Object.assign({}, l)), enemies: frame.enemies.map((e) => Object.assign({}, e)), cross: frame.cross ? Object.assign({}, frame.cross) : null, texts: frame.texts.map((x) => Object.assign({}, x)), banner: frame.banner ? Object.assign({}, frame.banner) : null, hint: frame.hint ? Object.assign({}, frame.hint) : null, sel: Object.assign({}, frame.sel) },
+    toast: G.toast, result: G.result ? JSON.parse(JSON.stringify(G.result)) : null, save: JSON.parse(JSON.stringify(SAVE))
   };
   return JSON.parse(JSON.stringify(out));
 }
 const api = {
   manual(on) { manualMode = !!on; acc = 0; return { ok: true, manual: manualMode }; },
-  reset() { return loadFixture(DEMO); },
+  demo() { return loadFixture(DEMO); },
+  reset(all) { resetProgress(!!all); applySettingsUI(); showScreen("map"); return { ok: true }; },
   loadLevel(fx) { return loadFixture(fx || {}); },
+  startLevel(id, o) { return startLevelUI(id, o); },
+  importSave(obj) { adoptSave(migrate(obj)); rollDay(); persist(); applySettingsUI(); if (SCREEN === "map") renderMap(); return { ok: true }; },
+  exportSave() { return JSON.parse(JSON.stringify(SAVE)); },
+  setToday(date) {
+    try { if (date) localStorage.setItem(TEST_DATE_KEY, date); else localStorage.removeItem(TEST_DATE_KEY); } catch (e) { /* не критично */ }
+    window.OBORONA_TODAY = date || undefined;
+    rollDay();
+    if (SCREEN === "map") renderMap();
+    return { ok: true, today: todayStr() };
+  },
   placeTower(pad, value) { return placeTower(pad, value); },
   removeTower(pad) { return removeTower(pad); },
   moveTower(from, to) { return moveTower(from, to); },
@@ -1676,22 +2948,29 @@ const api = {
   endWave() { return endWave(); },
   solution() { const s = waveSolution(); return s ? JSON.parse(JSON.stringify(s)) : null; },
   applySolution() { return applySolution(); },
-  setSetting(key, value) {
-    if (key === "speed" && SPEEDS[value]) { settings.speed = value; if (G) G.speed = SPEEDS[value]; return { ok: true }; }
-    if (key === "sound" || key === "bigFont") { settings[key] = !!value; return { ok: true }; }
-    if (key === "perDay") { settings.perDay = Math.max(1, Math.min(10, Number(value) || 5)); return { ok: true }; }
-    return fail("unknown");
-  }
+  showHint() { const r = showHint(); if (r.ok) uiSig = ""; return r; },
+  levelEndNext() { return levelEndNext(); },
+  nightMore() { return nightMore(); },
+  toMap() { return exitToMap(); },
+  openAdult() { return openAdult(); },
+  setSetting(key, value) { return applySetting(key, value); }
 };
 
 computeView();
-loadFixture(DEMO);
+applySettingsUI();
+loadFixture(DEMO, true);                                  // уровень в памяти нужен снимкам и тестам; ребёнок видит карту
+showScreen("map");
 window.OBORONA = {
   version: VERSION, ready: false,
-  logic: { plural, word, factKey, parseKey, beamLabel, pairsFor, products, canFinish, hitResult, segmentIntersection, prepareLayout, validateLayout, pointAt, starsFor, confusionKey, enemyShape, DIGITS, RAW_LAYOUTS },
+  logic: {
+    plural, word, factKey, parseKey, beamLabel, pairsFor, products, canFinish, hitResult, segmentIntersection, prepareLayout, validateLayout, pointAt, starsFor, confusionKey, enemyShape, DIGITS, RAW_LAYOUTS,
+    addDays, leitnerUpdate, dueCards, waveOutcome, landStudied, landProgress, rewardsEarned, altPairLine, splitHint, tipFor, mulberry32, hashSeed, solveWave, buildWave, migrate, defaultSave,
+    LANDS, LEVELS, REWARDS, HARD15, INTERVALS
+  },
   layouts: LAYOUTS, state: snapshot, api, render: () => { syncUI(); render(); }
 };
 Object.keys(api).forEach((k) => { const fn = api[k]; api[k] = function () { markDirty(); return fn.apply(api, arguments); }; });      // любое действие через api — повод перерисовать
+initDb();
 render();
 syncUI();
 requestAnimationFrame(loop);
