@@ -65,7 +65,8 @@ button { font: inherit; color: inherit; }
 .pnote b { font-family: var(--f-display); font-weight: 400; font-size: 22px; line-height: 1.05; color: var(--gold); }
 .pnote span { font-weight: 700; font-size: 14px; line-height: 1.1; color: var(--ink); }
 #pauseBtn { flex: none; min-width: 150px; }
-.cards { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; padding: 4px 2px; }
+@media (max-width: 1100px) { #pauseBtn { min-width: 124px; padding: 0 18px; } #bar { gap: 10px; } }
+.cards { display: flex; align-items: center; gap: var(--cgap, 6px); min-width: 0; overflow: hidden; padding: 4px 2px; }
 .card { position: relative; flex: none; width: var(--card); height: var(--card); display: grid; place-items: center; border-radius: 12px; background: var(--panel-2); border: 3px solid var(--line); font-family: var(--f-display); font-size: calc(var(--card) * .42); line-height: 1; transition: opacity .3s; }
 .card.boss { border: 6px double var(--armor); }
 .card.boss::before { content: ""; position: absolute; left: 50%; top: -11px; width: 24px; height: 12px; margin-left: -12px; background: var(--armor); border: 2px solid var(--ink-dark); border-bottom: 0; border-radius: 12px 12px 0 0; }
@@ -108,6 +109,8 @@ button { font: inherit; color: inherit; }
 /* Лампочка на карточке босса */
 .card.haslamp { min-width: 48px; min-height: 48px; width: max(var(--card), 48px); height: max(var(--card), 48px); }
 .card .lamp { position: absolute; inset: -6px; width: auto; height: auto; padding: 0; border: 0; border-radius: 14px; background: transparent; cursor: pointer; touch-action: manipulation; }
+.card .dmark { position: absolute; left: 50%; bottom: 3px; width: 60%; height: 8px; margin-left: -30%; pointer-events: none; }
+.card .dmark svg { display: block; width: 100%; height: 100%; }
 .card .lamp svg { position: absolute; right: -2px; top: -12px; width: 26px; height: 26px; filter: drop-shadow(0 1px 0 rgba(0,0,0,.4)); }
 
 /* Экраны: карта, итоги уровня, ночь, взрослый */
@@ -117,12 +120,12 @@ button { font: inherit; color: inherit; }
 .screen h2 { margin: 0 0 8px; font-family: var(--f-display); font-weight: 400; font-size: 22px; }
 .btn.big { min-height: 72px; font-size: 26px; padding: 0 40px; }
 body.big .screen { font-size: 20px; }
-body.big .lsub, body.big .rw span { font-size: 16px; }
+body.big .lsub, body.big .rcap span { font-size: 16px; }
 .st { fill: #2a4d5d; stroke: #4a6b7a; stroke-width: 1.4; stroke-linejoin: round; }
 .st.on { fill: var(--gold); stroke: var(--ink-dark); stroke-width: 1.6; }
 
 .mapwrap { max-width: 1320px; min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
-.maphead { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; }
+.maphead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; min-height: 52px; }
 .maphead h1 { font-size: 32px; }
 .rest { padding: 8px 20px; border-radius: 18px; background: var(--panel-2); border: 3px solid var(--gold); font-family: var(--f-display); font-size: 24px; color: var(--gold); text-align: center; }
 .mapbody { display: flex; gap: 14px; flex: 1 1 auto; min-height: 0; }
@@ -135,8 +138,12 @@ body.big .lsub, body.big .rw span { font-size: 16px; }
 .linfo { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
 .lname { font-family: var(--f-display); font-size: 19px; line-height: 1.1; }
 .lsub { font-weight: 700; font-size: 15px; line-height: 1.15; color: var(--muted); }
-.lbar { height: 8px; border-radius: 5px; background: var(--b0); overflow: hidden; }
-.lbar i { display: block; height: 100%; border-radius: 5px; background: var(--lc, var(--good)); }
+.lbar { position: relative; height: 8px; border-radius: 5px; background: var(--b0); overflow: hidden; }
+.lbar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--lc, var(--good)); }
+.lbar i.met { opacity: .38; }
+.lockhint { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 800; font-size: 16px; line-height: 1.2; color: var(--muted); }
+.lockhint svg { flex: none; width: 22px; height: 22px; }
+.land.closed .lname { color: var(--muted); }
 .lvls { flex: none; display: flex; gap: 6px; }
 .lvl { width: 56px; height: 64px; padding: 4px 0; border-radius: 14px; border: 3px solid var(--line); background: var(--panel-2); color: var(--ink); font-family: var(--f-display); font-size: 24px; line-height: 1; display: grid; grid-template-rows: 1fr auto; place-items: center; cursor: pointer; }
 .lvl.open { border-color: var(--gold); }
@@ -145,21 +152,33 @@ body.big .lsub, body.big .rw span { font-size: 16px; }
 .lvl:not(:disabled):active { transform: translateY(2px); }
 .lst { display: flex; gap: 1px; }
 .lst .st { width: 14px; height: 14px; }
-.rewards { flex: none; width: 340px; padding: 10px 12px 12px; border-radius: 18px; background: var(--panel); border: 3px solid var(--line); align-self: stretch; }
-.rgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.rw { display: grid; justify-items: center; align-content: start; text-align: center; gap: 2px; padding: 6px 4px 7px; border-radius: 12px; background: var(--panel-2); }
-.rw canvas { width: 52px; height: 52px; }
-.rw b { font-size: 13px; line-height: 1.1; overflow-wrap: anywhere; }
-.rw span { font-size: 12.5px; line-height: 1.12; color: var(--muted); font-weight: 700; overflow-wrap: anywhere; }
-.rw.off b { color: var(--muted); }
+.rewards { flex: none; width: 340px; padding: 10px 12px 12px; border-radius: 18px; background: var(--panel); border: 3px solid var(--line); align-self: stretch; display: flex; flex-direction: column; gap: 10px; }
+.rewards h2 { margin: 0; }
+.rgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.rw { position: relative; display: grid; place-items: center; aspect-ratio: 1; min-height: 56px; padding: 0; border-radius: 14px; background: var(--panel-2); border: 3px solid transparent; cursor: pointer; touch-action: manipulation; }
+.rw canvas { width: 52px; height: 52px; pointer-events: none; }
+.rw.on { border-color: rgba(255, 200, 61, .45); }
+.rw.sel { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.rcap { flex: none; min-height: 76px; padding: 8px 12px; border-radius: 12px; background: var(--panel-2); display: grid; gap: 3px; align-content: center; }
+.rcap b { font-size: 17px; line-height: 1.15; }
+.rcap span { font-size: 15px; line-height: 1.2; color: var(--muted); font-weight: 700; }
+.rcap.hint span { color: var(--ink); }
 .mapfoot { display: flex; align-items: center; min-height: 52px; }
 .holdbtn { position: relative; min-height: 52px; height: 52px; padding: 0 22px 0 16px; font-family: var(--f-body); font-weight: 800; font-size: 17px; border-radius: 26px; }
 .holdbtn .hico { width: 22px; height: 22px; }
 .holdbtn .hring { position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); pointer-events: none; overflow: visible; }
 .holdbtn .hring rect { fill: none; stroke: var(--gold); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; vector-effect: non-scaling-stroke; }
 
-.endbox, .nightbox { max-width: 760px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.endbox { max-width: 760px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
 .endbox h1, .nightbox h1 { font-size: 40px; line-height: 1.1; }
+/* Ночь: кнопки закреплены внизу первого экрана, содержимое прокручивается */
+#scrNight { overflow: hidden; }
+.nightbox { max-width: 760px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.nbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 2px; }
+.nbody > * { flex: none; }
+.nbody > :first-child { margin-top: auto; }
+.nbody > :last-child { margin-bottom: auto; }
 .bigstars { display: flex; gap: 10px; }
 .bigstars .st { filter: drop-shadow(0 4px 0 rgba(0,0,0,.25)); }
 .hrow { display: flex; gap: 4px; }
@@ -173,7 +192,10 @@ body.big .lsub, body.big .rw span { font-size: 16px; }
 .moon { width: 84px; height: 84px; }
 .nrow { width: 100%; padding: 10px 18px; border-radius: 16px; background: var(--panel); border: 2px solid var(--line); text-align: left; font-size: 20px; line-height: 1.3; font-weight: 700; display: grid; gap: 3px; }
 .nrow b { font-family: var(--f-display); font-weight: 400; color: var(--gold); font-size: 20px; }
-.nbtns { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 20px; background: var(--b0); border: 2px solid rgba(0, 0, 0, .35); font-family: var(--f-display); font-size: 20px; line-height: 1; white-space: nowrap; }
+.chip.b1 { background: var(--b1); color: #2a0d08; } .chip.b2 { background: var(--b2); color: #2a1600; } .chip.b3 { background: var(--b3); color: #2a2200; } .chip.b4 { background: var(--b4); color: #11300a; } .chip.b5 { background: var(--b5); color: #06280f; }
+.nbtns { flex: none; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; padding-top: 4px; }
 .resttext { padding: 14px 26px; border-radius: 20px; border: 3px solid var(--gold); background: var(--panel-2); font-family: var(--f-display); font-size: 30px; color: var(--gold); }
 
 .adultwrap { max-width: 1300px; margin: 0 auto; }
@@ -206,13 +228,10 @@ body.big .lsub, body.big .rw span { font-size: 16px; }
 @media (max-width: 1180px) {
   .adbody { grid-template-columns: 488px minmax(0, 1fr); }
   .adbody .adcol:first-child { grid-row: span 2; }
-  .rewards { width: 300px; padding: 8px 10px 10px; }
-  .rewards h2 { margin-bottom: 6px; font-size: 20px; }
-  .rgrid { grid-template-columns: 1fr; gap: 3px; }
-  .rw { grid-template-columns: 38px minmax(0, 1fr); justify-items: start; align-content: center; align-items: center; text-align: left; column-gap: 8px; row-gap: 0; padding: 1px 8px; }
-  .rw canvas { grid-row: span 2; width: 38px; height: 38px; }
-  .rw b { font-size: 14px; }
-  .rw span { font-size: 12.5px; }
+  .rewards { width: 300px; padding: 8px 10px 10px; gap: 8px; }
+  .rewards h2 { font-size: 20px; }
+  .rgrid { gap: 6px; }
+  .rw canvas { width: 46px; height: 46px; }
   .lname { font-size: 17px; }
   .lvl { width: 50px; height: 60px; font-size: 22px; }
   .lvls { gap: 5px; }
@@ -220,7 +239,7 @@ body.big .lsub, body.big .rw span { font-size: 16px; }
   .lico { width: 44px; height: 44px; }
   .lico svg { width: 36px; height: 36px; }
 }
-@media (max-height: 700px) { .screen { padding: 10px 14px 12px; } .lands { grid-auto-rows: minmax(70px, 1fr); } .lico { width: 46px; height: 46px; } }
+@media (max-height: 700px) { .screen { padding: 10px 14px 12px; } .lands { grid-auto-rows: minmax(70px, 1fr); } .lico { width: 46px; height: 46px; } .lvl { height: 54px; padding: 3px 0; font-size: 21px; } .land { padding: 4px 12px 4px 10px; } .maphead { min-height: 44px; } .maphead h1 { font-size: 28px; } .mapwrap { gap: 8px; } .moon { width: 40px; height: 40px; } .nightbox h1 { font-size: 28px; } .nbody { gap: 7px; } .nrow { padding: 5px 14px; font-size: 18px; gap: 1px; } .nrow b { font-size: 18px; } .chip { min-height: 36px; font-size: 18px; } .rcap { min-height: 64px; } }
 </style>
 <div id="app">
   <canvas id="field"></canvas>
@@ -263,6 +282,7 @@ const LABEL_BAND = 85, LABEL_FONT = 40, PLATE_PAD_X = 14, FORT_R = 70, MAX_BEAMS
 const CATCH_PX = 40, TOWER_TOUCH_PX = 16, DRAG_PX = 12;   // радиусы касания в px
 const SPEEDS = { slow: 35, normal: 50, fast: 65 };         // ед./с
 const INTERVALS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14 };       // дни до повтора по коробкам Лейтнера
+const MAX_SAME = 3, MAX_ENT = 2, MAX_RUN = 2, PIN_DAYS = 14; // в волне одно число не больше 3 раз (части разрезания — не больше 2), подряд не больше 2; путаница держится 14 дней
 const TM = { spark: 650, fly: 800, pass: 1000, reduce: 1500, gate: 2000, knock: 600, grey: 600, hit: 400, win: 300, waveEnd: 1500, bossExtra: 1500, refuse: 1000 };
 const COLORS = {
   grass1: "#8fd16f", grass2: "#7cc160", bush: "#6aae52", rock: "#b9b2a3",
@@ -349,7 +369,7 @@ const REWARDS = [
   { id: "x10", name: "Часовая башня", row: 10, cond: "Все примеры на 10" }, { id: "hard", name: "Крепостная пушка", land: 4, cond: "Изучи горы «Трудные пятнадцать»" },
   { id: "div", name: "Весы на воротах", land: 5, cond: "Изучи землю деления" }, { id: "two", name: "Двойная крепость", land: 6, cond: "Изучи крепость двузначных" }
 ];
-const TIP_ORDER = [9, 6, 4, 8, 3, 5, 2, 10];            // какой ряд подсказывать первым
+const TIP_ORDER = [10, 5, 2, 9, 6, 4, 8, 3];            // какой ряд подсказывать первым: если один множитель 10, 5 или 2 — его простой приём, иначе трудный ряд
 
 /* ======================================================================
    3. LOGIC — чистые функции без DOM, Date.now() и Math.random()
@@ -529,20 +549,23 @@ function addDays(date, n) {
   return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") + "-" + String(d.getUTCDate()).padStart(2, "0");
 }
 function newCard(today) {
-  return { box: 1, due: today, seen: 0, good: 0, ok: 0, fail: 0, lastDay: "", masteredOn: "", msSum: 0, msN: 0, bossSeen: 0, bossDays: [], noHintDays: [], divDays: [] };
+  return { box: 1, due: today, seen: 0, good: 0, ok: 0, fail: 0, lastDay: "", masteredOn: "", everMastered: false, shownDay: "", shownN: 0, msSum: 0, msN: 0, bossSeen: 0, bossDays: [], noHintDays: [], divDays: [] };
 }
 // outcome: "good" | "ok" | "fail" | "none". Повышение — только если карточка «пора повторить» (раз в день); вход не меняется
 function leitnerUpdate(card, outcome, today) {
   const c = Object.assign(newCard(today), card ? JSON.parse(JSON.stringify(card)) : {});
   if (outcome === "good" && c.due <= today) { c.box = Math.min(5, c.box + 1); c.due = addDays(today, INTERVALS[c.box]); }
-  else if (outcome === "fail") { c.box = 1; c.due = today; }
+  else if (outcome === "fail") { c.box = 1; c.due = today; c.masteredOn = ""; }       // откат: «освоено сегодня» начнётся заново, а everMastered останется
   c.lastDay = today;
-  if (c.box >= 3 && !c.masteredOn) c.masteredOn = today;
+  if (c.box >= 3) { c.everMastered = true; if (!c.masteredOn) c.masteredOn = today; }
   return c;
 }
+function shownToday(c, today) { return c.shownDay === today ? c.shownN || 0 : 0; }
+// «Пора повторить»: сначала самые давние и слабые; при равенстве вперёд та, что сегодня попадала в волны реже (и вообще реже), потом по имени
 function dueCards(facts, today) {
   return Object.keys(facts).filter((k) => facts[k].box >= 1 && facts[k].due <= today)
-    .sort((p, q) => (facts[p].due < facts[q].due ? -1 : facts[p].due > facts[q].due ? 1 : facts[p].box - facts[q].box || (p < q ? -1 : 1)));
+    .sort((p, q) => (facts[p].due < facts[q].due ? -1 : facts[p].due > facts[q].due ? 1 : facts[p].box - facts[q].box ||
+      shownToday(facts[p], today) - shownToday(facts[q], today) || (facts[p].seen || 0) - (facts[q].seen || 0) || (p < q ? -1 : 1)));
 }
 // Итог карточки за волну: есть fail — fail; иначе есть good — good; иначе ok; только «none» — none
 function waveOutcome(results) {
@@ -553,17 +576,20 @@ function waveOutcome(results) {
   });
   return out;
 }
+// «Освоена»: была в коробке 3 хотя бы раз (позже ошибка не отнимает освоенное: повторять её будет Лейтнер)
+function mastered(c) { return !!c && (c.box >= 3 || !!c.everMastered); }
 function cardStudied(landId, c) {
-  return !!c && c.box >= 3 && (landId !== 4 || (c.bossDays || []).length >= 1) && (landId !== 5 || (c.divDays || []).length >= 1);
+  return mastered(c) && (landId !== 4 || (c.bossDays || []).length >= 1) && (landId !== 5 || (c.divDays || []).length >= 1);
 }
 function landProgress(land, facts) {
   const L = LANDS[land - 1];
   const done = L.facts.filter((k) => cardStudied(land, facts[k])).length;
-  return { done, total: L.facts.length, need: land === 5 ? LAND5_NEED : L.facts.length };
+  const met = L.facts.filter((k) => facts[k] && ((facts[k].seen || 0) > 0 || mastered(facts[k]))).length;
+  return { done, met, total: L.facts.length, need: land === 5 ? LAND5_NEED : L.facts.length };
 }
 function landStudied(land, facts) { const p = landProgress(land, facts); return p.done >= p.need; }
 function rewardsEarned(facts) {
-  const ok = (k) => !!facts[k] && facts[k].box >= 3, out = [];
+  const ok = (k) => mastered(facts[k]), out = [];
   REWARDS.forEach((r) => {
     let yes;
     if (r.row) { yes = true; for (let a = 2; a <= 9; a++) if (!ok(factKey(a, r.row))) yes = false; }
@@ -638,6 +664,25 @@ function shuffled(arr, rng) {
   return a;
 }
 
+// Порядок появления: случайный, но одно и то же число подряд не больше MAX_RUN раз (если это вообще возможно)
+function spreadOut(items, rng) {
+  const pool = shuffled(items, rng), out = [];
+  while (pool.length) {
+    const a = out.length > 1 ? out[out.length - 1].value : null, bad = a != null && out[out.length - 2].value === a ? a : null;
+    const cnt = {};
+    pool.forEach((e) => { cnt[e.value] = (cnt[e.value] || 0) + 1; });
+    const okIdx = [];
+    pool.forEach((e, i) => { if (e.value !== bad) okIdx.push(i); });
+    const from = okIdx.length ? okIdx : pool.map((e, i) => i);
+    let total = 0;
+    from.forEach((i) => { total += cnt[pool[i].value] * cnt[pool[i].value]; });       // чаще берём число, которого осталось больше: так серии не копятся к концу
+    let r = rng() * total, pick = from[from.length - 1];
+    for (const i of from) { r -= cnt[pool[i].value] * cnt[pool[i].value]; if (r < 0) { pick = i; break; } }
+    out.push(pool.splice(pick, 1)[0]);
+  }
+  return out;
+}
+
 // ---- Решатель волны: какие башни и лучи побеждают всех врагов ----
 // demands: [{value, kind: "normal"|"boss", parts?: [[x,y],[x,y]]}]. Результат {pads, beams, paths} или null
 function solveWave(layout, demands, o) {
@@ -649,6 +694,13 @@ function solveWave(layout, demands, o) {
   const crossT = (l, p) => { for (let i = 0; i < l.cross.length; i++) if (l.cross[i].path === p) return l.cross[i].t; return null; };
   const pairCache = {};
   const prs = (v) => pairCache[v] || (pairCache[v] = pairsFor(v, hand));
+  // сначала пара задуманной карточки врага (4 × 6 для карточки 4x6), потом остальные пары того же числа
+  const prsFor = (d) => {
+    const all = prs(d.value);
+    if (!d.card) return all;
+    const c = parseKey(d.card), i = all.findIndex((q) => q[0] === c[0] && q[1] === c[1]);
+    return i > 0 ? [all[i]].concat(all.slice(0, i), all.slice(i + 1)) : all;
+  };
   const orients = (pr) => (pr[0] === pr[1] ? [[pr[0], pr[1]]] : [[pr[0], pr[1]], [pr[1], pr[0]]]);
   const bosses = demands.filter((d) => d.kind === "boss"), normals = demands.filter((d) => d.kind !== "boss");
   normals.sort((p, q) => prs(p.value).length - prs(q.value).length);
@@ -698,7 +750,7 @@ function solveWave(layout, demands, o) {
     for (let p = 0; p < layout.paths.length; p++) {
       for (const l of layout.links) {
         if (used[l.id] || crossT(l, p) == null) continue;
-        for (const pr of prs(d.value)) for (const og of orients(pr)) {
+        for (const pr of prsFor(d)) for (const og of orients(pr)) {
           const u = put(l, og[0], og[1]);
           if (!u) continue;
           if (step(i, p, [u])) return true;
@@ -764,46 +816,68 @@ function buildWave(profile, ctx, seed) {
   const dueAll = dueCards(facts, today).filter((key) => eligSet.has(key)), dueSet = new Set(dueAll);
   const DUE = dueAll.filter((key) => rankCur(key) === 0).concat(dueAll.filter((key) => rankCur(key) === 1));
   const NEW = easy ? [] : elig.filter((key) => curSet.has(key) && !facts[key]);
+  // знакомые: сначала текущей земли; на земле деления вперёд те, у кого ещё нет победы с неподвижной башней; слабые коробки раньше; при равенстве вперёд те, что сегодня показывали реже
+  const divEmpty = (key) => (land === 5 && !(facts[key].divDays || []).length ? 0 : 1);
   const FAM = shuffled(elig.filter((key) => facts[key] && facts[key].box >= 1 && !dueSet.has(key)).sort(), rng)
-    .map((key, i) => ({ key, i })).sort((p, q) => rankCur(p.key) - rankCur(q.key) || facts[p.key].box - facts[q.key].box || p.i - q.i).map((x) => x.key);
+    .map((key, i) => ({ key, i })).sort((p, q) => rankCur(p.key) - rankCur(q.key) || divEmpty(p.key) - divEmpty(q.key) || facts[p.key].box - facts[q.key].box ||
+      shownToday(facts[p.key], today) - shownToday(facts[q.key], today) || p.i - q.i).map((x) => x.key);
   const catOf = (key) => (dueSet.has(key) ? "due" : facts[key] ? "fam" : "new");
   // путаницы: пара чисел с n ≥ 2, у обеих есть знакомые карточки — ставим вместе (не больше одной пары на волну)
   let pinPair = null;
   Object.keys(profile.confusions || {}).filter((ck) => profile.confusions[ck].n >= 2).sort((p, q) => profile.confusions[q].n - profile.confusions[p].n || (p < q ? -1 : 1)).some((ck) => {
-    const vs = ck.split("|").map(Number);
+    const vs = ck.split("|").map(Number), last = profile.confusions[ck].last;
+    if (last && last < addDays(today, -PIN_DAYS)) return false;                 // давняя путаница уже не держит места в волнах
     const ks = vs.map((v) => elig.find((key) => facts[key] && valueOf(key) === v));
     if (ks[0] && ks[1] && ks[0] !== ks[1]) { pinPair = ks; return true; }
     return false;
   });
 
+  if (pinPair && rng() >= 0.5) pinPair = null;                                // пара встречается чаще обычного, но не в каждой волне
+
   function bossCandidates() {
     if (!b0) return [null];
     const bossOk = (key) => { const bp = parseKey(key), sp = splitHint(bp[0], bp[1]); return sp ? sp.beamParts.every((q) => hand.indexOf(q[0]) >= 0 && hand.indexOf(q[1]) >= 0) : inHand(key); };
     const list = (land === 4 ? HARD15 : land === 6 ? LANDS[5].facts : []).filter(bossOk);
-    const tier = (key) => { const c = facts[key]; if (c && c.box >= 1 && c.due <= today) return 0; if (!c) return 1; if (land === 4 && !(c.bossDays || []).length) return 1; return 2; };
-    const arr = list.map((key, i) => { const c = facts[key]; return { key, i, t: tier(key), seen: c ? c.bossSeen || 0 : 0, box: c ? c.box : 0, due: c ? c.due : "" }; });
-    arr.sort((p, q) => p.t - q.t || (p.t === 0 ? (p.due < q.due ? -1 : p.due > q.due ? 1 : 0) || p.box - q.box : p.t === 1 ? p.seen - q.seen || p.box - q.box : p.box - q.box || p.seen - q.seen) || p.i - q.i);
+    // боссовые волны чередуются: нечётная по счёту берёт босса, которого ещё не побеждали, чётная — карточку «пора повторить»;
+    // если в нужной группе пусто, берётся любая из другой
+    const fresh = (profile.bossWaves || 0) % 2 === 0;
+    const noWin = (c) => !c || !(c.bossDays || []).length, isDue = (c) => !!c && c.box >= 1 && c.due <= today;
+    const tier = (key) => { const c = facts[key]; return fresh ? (noWin(c) ? 0 : isDue(c) ? 1 : 2) : (isDue(c) ? 0 : noWin(c) ? 1 : 2); };
+    const arr = list.map((key, i) => { const c = facts[key]; return { key, i, t: tier(key), seen: c ? c.bossSeen || 0 : 0, box: c ? c.box : 0, due: c ? c.due : "", dueNow: isDue(c) }; });
+    arr.sort((p, q) => {
+      if (p.t !== q.t) return p.t - q.t;
+      const byDue = (p.due < q.due ? -1 : p.due > q.due ? 1 : 0) || p.box - q.box, byNew = p.seen - q.seen || p.box - q.box;
+      return (p.t === (fresh ? 1 : 0) ? byDue : p.t === (fresh ? 0 : 1) ? byNew : p.box - q.box || p.seen - q.seen) || p.i - q.i;
+    });
     return arr.map((x) => x.key).slice(0, 8).concat([null]);       // в конце — волна без босса, если ничего не решается
   }
 
+  // Сколько врагов на каждую карточку: каждой не меньше одного, одному числу не больше MAX_SAME (частям разрезания — MAX_ENT);
+  // остальное по долям 10 / 20 / 70 % (новые / повторяемые / знакомые). Если карточек мало и потолка не хватает, потолок поднимается
   function allocate(groups, nNorm) {
-    const by = (c) => groups.filter((g) => g.cat === c);
-    const newG = by("new"), dueG = by("due"), famG = by("fam");
-    let tn = newG.length ? Math.max(1, Math.round(0.1 * n)) : 0, td = dueG.length ? Math.max(1, Math.round(0.2 * n)) : 0;
-    tn = Math.max(tn, newG.length); td = Math.max(td, dueG.length);
-    let tf = nNorm - tn - td;
-    if (!famG.length) { if (dueG.length) td += tf; else tn += tf; tf = 0; }
-    if (tf < famG.length) {
-      let need = famG.length - tf;
-      const fromD = Math.min(need, td - dueG.length); td -= fromD; need -= fromD;
-      const fromN = Math.min(need, tn - newG.length); tn -= fromN; need -= fromN;
-      tf = famG.length - need;
-      if (need > 0) return null;
+    if (nNorm < groups.length) return null;
+    const cap = groups.map((g) => (g.role === "ent" ? MAX_ENT : MAX_SAME));
+    const hasStd = groups.some((g) => g.role !== "ent");
+    for (let guard = 0; cap.reduce((a, c) => a + c, 0) < nNorm && guard < 50; guard++) for (let i = 0; i < cap.length; i++) if (groups[i].role !== "ent" || !hasStd) cap[i]++;       // потолок поднимаем у обычных карточек, а частей разрезания — в последнюю очередь
+    const share = { new: 0.1, due: 0.2, fam: 0.7 }, cnt = {};
+    groups.forEach((g) => { cnt[g.cat] = (cnt[g.cat] || 0) + 1; });
+    const present = Object.keys(cnt).reduce((a, c) => a + share[c], 0);
+    const target = groups.map((g) => nNorm * (share[g.cat] / present) / cnt[g.cat]);
+    const prio = { fam: 0, due: 1, new: 2 }, out = groups.map(() => 1);
+    for (let left = nNorm - groups.length; left > 0; left--) {
+      let bi = -1;
+      groups.forEach((g, i) => {
+        if (out[i] >= cap[i]) return;
+        if (bi < 0) { bi = i; return; }
+        const d = target[i] - out[i], bd = target[bi] - out[bi];
+        if (d > bd + 1e-9 || (Math.abs(d - bd) <= 1e-9 && prio[g.cat] < prio[groups[bi].cat])) bi = i;
+      });
+      if (bi < 0) return null;
+      out[bi]++;
     }
-    if (tn + td + tf !== nNorm) return null;
-    const out = {};
-    [[newG, tn], [dueG, td], [famG, tf]].forEach((p) => p[0].forEach((g, i) => { out[g.key] = Math.floor(p[1] / p[0].length) + (i < p[1] % p[0].length ? 1 : 0); }));
-    return out;
+    const res = {};
+    groups.forEach((g, i) => { res[g.key] = out[i]; });
+    return res;
   }
 
   function assemble(bossKey, pins) {
@@ -817,13 +891,15 @@ function buildWave(profile, ctx, seed) {
         const seen = new Set([bossKey]);
         split.beamParts.forEach((p) => { const key = factKey(p[0], p[1]); if (!seen.has(key) && valueOf(key) !== valueOf(bossKey)) { seen.add(key); forced.push({ key, cat: "fam", role: "ent" }); } });
       }
-      bossDemand = { value: valueOf(bossKey), kind: "boss", parts: split ? split.beamParts : null };
+      bossDemand = { value: valueOf(bossKey), kind: "boss", card: bossKey, parts: split ? split.beamParts : null };
     }
     const takenK = new Set(forced.map((g) => g.key)), takenV = new Set(forced.map((g) => valueOf(g.key)));
     const can = (key) => !takenK.has(key) && !takenV.has(valueOf(key));
     const claim = (key) => { takenK.add(key); takenV.add(valueOf(key)); };
     const std = [];
-    const kRest = Math.max(0, k - forced.length);
+    // чтобы ни одно число не шло больше MAX_SAME раз (а части разрезания — MAX_ENT), разных карточек должно быть не меньше ceil(остаток / MAX_SAME)
+    const entCap = forced.filter((g) => g.role === "ent").length * MAX_ENT, nNormal = n - (bossKey ? b0 : 0);
+    const kRest = Math.max(0, k - forced.length, Math.ceil(Math.max(0, nNormal - entCap) / MAX_SAME));
     if (pins && pinPair && kRest >= 2 && can(pinPair[0]) && can(pinPair[1]) && valueOf(pinPair[0]) !== valueOf(pinPair[1])) {
       pinPair.forEach((key) => { claim(key); std.push({ key, cat: catOf(key), pin: true }); });
     }
@@ -831,12 +907,13 @@ function buildWave(profile, ctx, seed) {
     let slots = kRest - std.length;
     if (slots > 0) {
       const tn = take(NEW, Math.min(1, slots), "new");
-      const td = take(DUE, Math.min(k >= 4 ? 2 : 1, slots - tn), "due");
+      // повторяемых карточек от одной до трёх: чем больше накопилось «пора повторить», тем больше их в волне (у каждой хотя бы один враг), но одна знакомая остаётся
+      const dueWant = DUE.length >= 6 ? 3 : DUE.length >= 2 ? 2 : 1, td = take(DUE, Math.min(dueWant, slots - tn - (slots - tn >= 3 ? 1 : 0)), "due");
       const tf = take(FAM, slots - tn - td, "fam");
       let left = slots - tn - td - tf;
       if (left > 0) left -= take(FAM, left, "fam");
       if (left > 0) left -= take(DUE, left, "due");
-      if (left > 0 && (!easy || std.length + forced.length === 0)) take(elig.filter((key) => curSet.has(key) && !facts[key]), left, "new");
+      if (left > 0 && (!easy || std.length + forced.length === 0 || !FAM.length + !DUE.length === 2)) take(elig.filter((key) => curSet.has(key) && !facts[key]), left, "new");
     }
     const queue = [];
     FAM.forEach((key) => { if (can(key)) queue.push({ key, cat: "fam" }); });
@@ -861,7 +938,7 @@ function buildWave(profile, ctx, seed) {
     const { groups, counts, sol } = res;
     const norm = [];
     groups.filter((g) => g.role !== "boss").forEach((g) => { for (let i = 0; i < counts[g.key]; i++) norm.push({ value: valueOf(g.key), kind: "normal", card: g.key }); });
-    const list = shuffled(norm, rng);
+    const list = spreadOut(norm, rng);
     if (bossKey) {
       const mk = () => ({ value: valueOf(bossKey), kind: "boss", card: bossKey });
       list.splice(Math.min(list.length, Math.floor(0.6 * n)), 0, mk());
@@ -887,22 +964,20 @@ function buildWave(profile, ctx, seed) {
       if (pins && b0 && !bossKey) continue;                                   // босс важнее пары путаницы
       const A = assemble(bossKey, pins);
       if (pins && !A.std.some((g) => g.pin) && pinPair) continue;            // пару поставить не удалось: следующий проход без неё
-      let tries = 0;
-      for (;;) {
-        const res = trySolve(A);
-        if (res) return finish(res, bossKey);
-        let idx = -1;
-        for (let i = A.std.length - 1; i >= 0; i--) if (!A.std[i].pin) { idx = i; break; }
-        if (idx < 0) break;
-        if (tries < 30 && A.queue.length) {
-          tries++;
-          let nxt = null;
-          while (A.queue.length) { const c = A.queue.shift(); if (!A.std.some((g) => g.key === c.key || valueOf(g.key) === valueOf(c.key)) && !A.forced.some((g) => g.key === c.key || valueOf(g.key) === valueOf(c.key))) { nxt = c; break; } }
-          if (nxt) { A.std[idx] = nxt; continue; }
+      let res = trySolve(A);
+      if (!res) {
+        // не решается целиком: набираем карточки по одной в порядке важности (новые, повторяемые, знакомые), оставляя только те, с которыми волна ещё решается
+        const keep = A.std.filter((g) => g.pin), usedK = new Set(), usedV = new Set();
+        A.forced.concat(keep).forEach((g) => { usedK.add(g.key); usedV.add(valueOf(g.key)); });
+        const want = A.std.length, cur = keep.slice();
+        for (const c of A.std.filter((g) => !g.pin).concat(A.queue)) {
+          if (cur.length >= want) break;
+          if (usedK.has(c.key) || usedV.has(valueOf(c.key))) continue;
+          if (trySolve({ forced: A.forced, std: cur.concat([c]), bossDemand: A.bossDemand })) { cur.push(c); usedK.add(c.key); usedV.add(valueOf(c.key)); }
         }
-        A.std.splice(idx, 1);
-        tries = 0;
+        res = trySolve({ forced: A.forced, std: cur, bossDemand: A.bossDemand });
       }
+      if (res) return finish(res, bossKey);
     }
   }
   // запасной ход: любая одна карточка, которая решается
@@ -980,7 +1055,7 @@ function loadWave(i) {
   });
   G.queue = 0; G.enemies = []; G.fx = []; G.texts = []; G.uiTexts = [];
   G.battleTicks = 0; G.endTicks = 0; G.paused = false; G.phase = "prep"; G.result = null; G.toast = ""; G.endAt = 0;
-  G.ribbon = G.plan.map((p) => ({ value: p.value, kind: p.kind, status: "wait", lamp: false }));
+  G.ribbon = G.plan.map((p) => ({ value: p.value, kind: p.kind, status: "wait", lamp: false, mark: false }));
   G.linkEdits = {};
   G.beams.forEach((b) => { G.linkEdits[b.id] = 1; b.phase = "prep"; b.fk = null; });
   G.log = newWaveLog(); G.prepStart = animNow(); G.lastBeamAt = 0; G.heartsAtWave = G.hearts;
@@ -998,7 +1073,7 @@ function setupHint() {
   info.auto = (fc.bossSeen || 0) < 2; info.pressed = false; info.card = boss.card;
   G.hint = info;
   if (info.auto) G.log.hintSeen = true;
-  G.ribbon.forEach((r) => { r.lamp = r.kind === "boss" && !info.auto; });
+  G.ribbon.forEach((r) => { r.lamp = r.kind === "boss" && !info.auto; r.mark = r.kind === "boss"; });      // значок пунктира: у этого босса есть подсказка-путь
 }
 function hintVisible() { return !!(G && G.hint && (G.hint.auto || G.hint.pressed)); }
 function showHint() {
@@ -1122,7 +1197,7 @@ function applySolution() {
 // ---- Настоящий уровень: карта, сборка волн, итоги карточек ----
 const hooks = {};                                        // интерфейс подписывается на события модели
 function profileNow() {
-  return { facts: SAVE.facts, confusions: SAVE.confusions, heavyStreak: SAVE.profile.heavyStreak, lightStreak: SAVE.profile.lightStreak };
+  return { facts: SAVE.facts, confusions: SAVE.confusions, heavyStreak: SAVE.profile.heavyStreak, lightStreak: SAVE.profile.lightStreak, bossWaves: SAVE.profile.bossWaves || 0 };
 }
 function buildRealWave(i) {
   const def = G.def;
@@ -1160,6 +1235,8 @@ function startReal(id, opts) {
   const g = makeLevel({ id, land: def.land, layout: def.layout, hand: LANDS[def.land - 1].hand, fixed: def.fixed, hearts: 10, track: true, real: true, def, seed, waves: Array.isArray(opts.waves) && opts.waves.length === 3 ? opts.waves : [null, null, null] });      // opts.waves — заготовленные волны для тестов
   if (!g) return fail("no-layout");
   G = g;
+  SAVE.today.levels++; SAVE.today.session++;              // уровень засчитан при старте: уйти на карту и вернуться нельзя
+  persist();
   loadWave(0);
   return { ok: true, id, seed };
 }
@@ -1182,9 +1259,9 @@ function recordKill(e, b) {
     noteRow({ card: e.card, res: good && e.contrib.every(Boolean) ? "good" : "ok", kind: "boss" });
     G.log.bossWon.push(e.card);
   } else {
-    noteRow({ card: bc, res: good ? "good" : "ok", kind: "normal" });
-    if (e.card && e.card !== bc) noteRow({ card: e.card, res: "none", kind: "normal" });
-    if (A.fixed || B.fixed) G.log.div[bc] = true;
+    const key = e.card || bc;                         // годится любая пара числа: зачёт карточке, которую волна задумала для этого врага
+    noteRow({ card: key, res: good ? "good" : "ok", kind: "normal" });
+    if (A.fixed || B.fixed) G.log.div[key] = true;
     G.levelLog.kills.push({ value: e.start, pair: [Math.min(A.value, B.value), Math.max(A.value, B.value)] });
   }
 }
@@ -1192,12 +1269,11 @@ function recordGate(e) {
   if (!G.track || !e.card) return;
   noteRow({ card: e.card, res: "fail", kind: e.kind });
 }
-// Путаница: враг прошёл чужой луч, нужного на его дорожке нет, и число луча — не число другого врага волны
+// Путаница: враг прошёл чужой луч, а нужного на его дорожке нет (даже если число луча совпало с числом другого врага волны)
 function recordPass(e, prod) {
   if (!G.track || e.kind !== "normal") return;
   const L = G.layout, v = e.start;
   if (G.beams.some((b) => L.linkById[b.id].cross.some((c) => c.path === e.path) && beamProduct(b) === v)) return;
-  if (G.plan.some((p) => p.value === prod)) return;
   G.log.conf[confusionKey(v, prod)] = true;
 }
 function pushDay(arr, day) { if (arr.indexOf(day) < 0) arr.push(day); while (arr.length > 5) arr.shift(); }
@@ -1208,6 +1284,8 @@ function trackWave() {
   Object.keys(outcome).forEach((key) => {
     const c = card(key), o = outcome[key];
     c.seen++;
+    if (c.shownDay !== t) { c.shownDay = t; c.shownN = 0; }
+    c.shownN++;
     if (o === "good") c.good++; else if (o === "ok") c.ok++; else if (o === "fail") c.fail++;
     Object.assign(c, leitnerUpdate(c, o, t));
   });
@@ -1215,6 +1293,7 @@ function trackWave() {
   Object.keys(L.div).forEach((key) => pushDay(card(key).divDays, t));
   const bossCards = Array.from(new Set(G.plan.filter((p) => p.kind === "boss" && p.card).map((p) => p.card)));
   bossCards.forEach((key) => { card(key).bossSeen++; });
+  if (bossCards.length) SAVE.profile.bossWaves = (SAVE.profile.bossWaves || 0) + 1;
   L.bossWon.forEach((key) => {
     const c = card(key);
     pushDay(c.bossDays, t);
@@ -1245,6 +1324,24 @@ function altLines(kills, hand, limit) {
   });
   return out.slice(0, limit);
 }
+// Для ночи: одна строка на число, «20 = 4 × 5 = 2 × 10» (сначала пара, которой побеждали). Хранится как «20=4x5=2x10»
+function altMerged(kills, hand) {
+  const used = {}, order = [];
+  kills.forEach((k) => { if (!used[k.value]) { used[k.value] = []; order.push(k.value); } used[k.value].push(k.pair); });
+  const out = [];
+  order.forEach((v) => {
+    const ps = pairsFor(v, hand);
+    if (ps.length < 2) return;
+    if (ps.every((q) => used[v].some((p) => p[0] === q[0] && p[1] === q[1]))) return;       // победили всеми способами — подсказывать нечего
+    const u = used[v][0], first = ps.find((q) => q[0] === u[0] && q[1] === u[1]) || ps[0];
+    out.push(v + "=" + [first].concat(ps.filter((q) => q !== first)).map((q) => q[0] + "x" + q[1]).join("="));
+  });
+  return out;
+}
+function altShow(code) {
+  const m = /^(\d+)((=\d+x\d+)+)$/.exec(code);
+  return m ? m[1] + m[2].split("=").slice(1).map((x) => " = " + x.replace("x", " × ")).join("") : code;
+}
 function tipForCard(key, bossHint) {
   const p = parseKey(key);
   return tipFor(p[0], p[1], { boss: !!bossHint });
@@ -1254,18 +1351,18 @@ function finishLevel() {
   rollDay();
   const rec = SAVE.levels[G.id] || (SAVE.levels[G.id] = { stars: 0, plays: 0 });
   rec.stars = Math.max(rec.stars, r.stars); rec.plays++;
-  SAVE.today.levels++; SAVE.today.session++;
   SAVE.profile.lastLevel = G.id;
   r.alts = altLines(ll.kills, G.hand, 2);
-  altLines(ll.kills, G.hand, 9).forEach((line) => { if (SAVE.day.alts.indexOf(line) < 0) SAVE.day.alts.push(line); });
+  altMerged(ll.kills, G.hand).forEach((code) => { if (!SAVE.day.alts.some((x) => x.split("=")[0] === code.split("=")[0])) SAVE.day.alts.push(code); });
   const earned = rewardsEarned(SAVE.facts);
   r.newRewards = earned.filter((id) => SAVE.seenRewards.indexOf(id) < 0);
   r.newRewards.forEach((id) => SAVE.seenRewards.push(id));
   const worst = Object.keys(ll.fail).sort((a, b) => ll.fail[b] - ll.fail[a] || (SAVE.facts[a] ? SAVE.facts[a].box : 0) - (SAVE.facts[b] ? SAVE.facts[b].box : 0))[0] ||
     Object.keys(ll.shaky).sort((a, b) => (SAVE.facts[a] ? SAVE.facts[a].box : 0) - (SAVE.facts[b] ? SAVE.facts[b].box : 0))[0];
-  r.tip = worst ? { card: worst, text: tipForCard(worst, !!ll.boss[worst]) } : null;
+  const clean = r.stars === 3 && !Object.keys(ll.fail).length;       // три звезды и ни один враг не дошёл — приём не нужен
+  r.tip = worst && !clean ? { card: worst, text: tipForCard(worst, !!ll.boss[worst]) } : null;
   updateUnlocked();
-  SAVE.history.push({ d: t, lvl: G.id, stars: r.stars, hearts: r.hearts, waves: G.waveHist.map((w) => w.slice()) });
+  SAVE.history.push({ d: t, lvl: G.id, seed: G.seed, stars: r.stars, hearts: r.hearts, waves: G.waveHist.map((w) => w.slice()) });
   while (SAVE.history.length > 300) SAVE.history.shift();
   persist();
   if (hooks.levelEnd) hooks.levelEnd();
@@ -1452,7 +1549,7 @@ function todayStr() {
 function defaultSave() {
   return {
     v: 1, updatedAt: 0, facts: {}, confusions: {}, unlocked: [1], levels: {},
-    profile: { heavyStreak: 0, lightStreak: 0, lastLevel: null },
+    profile: { heavyStreak: 0, lightStreak: 0, lastLevel: null, bossWaves: 0 },
     settings: { speed: "normal", perDay: 5, sound: true, bigFont: false },
     today: { date: "", levels: 0, session: 0 }, day: { date: "", alts: [] }, seenRewards: [], history: []
   };
@@ -1470,6 +1567,8 @@ function sanitizeCard(c) {
   o.box = int(c.box, 1, 1, 5); o.due = DATE_RE.test(str(c.due, "")) ? c.due : d.due;
   ["seen", "good", "ok", "fail", "msSum", "msN", "bossSeen"].forEach((k) => { o[k] = int(c[k], 0, 0); });
   o.lastDay = str(c.lastDay, ""); o.masteredOn = str(c.masteredOn, "");
+  o.everMastered = c.everMastered === true || o.box >= 3 || o.masteredOn !== "";       // в старых сохранениях «освоена» читается по коробке и дате
+  o.shownDay = str(c.shownDay, ""); o.shownN = int(c.shownN, 0, 0);
   ["bossDays", "noHintDays", "divDays"].forEach((k) => { o[k] = strArr(c[k], 5); });
   return o;
 }
@@ -1490,7 +1589,7 @@ function migrate(raw) {
   out.levels = {};
   if (isObj(o.levels)) Object.keys(o.levels).forEach((k) => { const l = o.levels[k]; if (LEVEL_BY_ID[k] && isObj(l)) out.levels[k] = { stars: int(l.stars, 0, 0, 3), plays: int(l.plays, 0, 0) }; });
   const p = isObj(o.profile) ? o.profile : {};
-  out.profile = { heavyStreak: int(p.heavyStreak, 0, 0), lightStreak: int(p.lightStreak, 0, 0), lastLevel: typeof p.lastLevel === "string" && LEVEL_BY_ID[p.lastLevel] ? p.lastLevel : null };
+  out.profile = { heavyStreak: int(p.heavyStreak, 0, 0), lightStreak: int(p.lightStreak, 0, 0), lastLevel: typeof p.lastLevel === "string" && LEVEL_BY_ID[p.lastLevel] ? p.lastLevel : null, bossWaves: int(p.bossWaves, 0, 0) };
   const st = isObj(o.settings) ? o.settings : {};
   out.settings = { speed: SPEEDS[st.speed] ? st.speed : "normal", perDay: int(st.perDay, 5, 1, 10), sound: typeof st.sound === "boolean" ? st.sound : true, bigFont: typeof st.bigFont === "boolean" ? st.bigFont : false };
   const td = isObj(o.today) ? o.today : {};
@@ -1917,13 +2016,18 @@ function drawRewardIcon(cv, id, on) {
   c.setTransform(1, 0, 0, 1, 0, 0);
   ctx = saved;
 }
-// Подсказка-путь босса: пунктир по дорожке до связи, кольца на её площадках и призрачная плашка первой части
-function drawHint() {
-  frame.hint = null;
-  if (!hintVisible() || !(G.phase === "prep" || G.phase === "battle")) return;
-  const h = G.hint, L = G.layout, path = L.paths[h.path], link = L.linkById[h.link];
-  if (G.beams.some((b) => b.id === h.link && beamProduct(b) === h.prod)) return;        // нужный луч уже построен
-  const dist = h.t * path.len;
+// Подсказка-путь босса: пунктир по дорожке до связи и кольца на её площадках рисуются поверх лучей и башен,
+// а призрачная плашка первой части — после подписей лучей, на свободном месте рядом (не закрывая чужую подпись)
+function hintActive() {
+  if (!hintVisible() || !(G.phase === "prep" || G.phase === "battle")) return null;
+  const h = G.hint;
+  if (G.beams.some((b) => b.id === h.link && beamProduct(b) === h.prod)) return null;        // нужный луч уже построен
+  return h;
+}
+function drawHintPath() {
+  const h = hintActive();
+  if (!h) return;
+  const L = G.layout, path = L.paths[h.path], link = L.linkById[h.link], dist = h.t * path.len;
   ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
   ctx.beginPath(); ctx.moveTo(path.pts[0][0], path.pts[0][1]);
   for (let i = 0; i < path.seg.length; i++) {
@@ -1931,12 +2035,38 @@ function drawHint() {
     else { const u = (dist - path.cum[i]) / (path.seg[i] || 1); ctx.lineTo(path.pts[i][0] + (path.pts[i + 1][0] - path.pts[i][0]) * u, path.pts[i][1] + (path.pts[i + 1][1] - path.pts[i][1]) * u); break; }
   }
   ctx.setLineDash([18, 12]);
-  ctx.strokeStyle = "rgba(29,43,58,.28)"; ctx.lineWidth = 10; ctx.stroke();
-  ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 6; ctx.stroke();
+  ctx.strokeStyle = "rgba(29,43,58,.55)"; ctx.lineWidth = 12; ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,.95)"; ctx.lineWidth = 6; ctx.stroke();
   ctx.restore();
-  [link.a, link.b].forEach((id) => { const p = L.padById[id]; ring(p.x, p.y, 54, "rgba(255,255,255,.9)", 5, [10, 8]); });
-  plate(h.text, link.labelAt.x, link.labelAt.y, labelFontSize(), { alpha: 0.62 });
-  frame.hint = { link: h.link, text: h.text, x: Math.round(link.labelAt.x), y: Math.round(link.labelAt.y) };
+  [link.a, link.b].forEach((id) => { const p = L.padById[id]; ring(p.x, p.y, 54, "rgba(29,43,58,.5)", 9, [10, 8]); ring(p.x, p.y, 54, "rgba(255,255,255,.95)", 5, [10, 8]); });
+}
+// Место плашки подсказки: как у подписи луча этой связи, а если там уже чужая подпись — сдвинуть вдоль связи или вбок, пока не освободится
+function layoutHintPlate() {
+  frame.hint = null;
+  const h = hintActive();
+  if (!h) return;
+  const L = G.layout, link = L.linkById[h.link], fs = labelFontSize();
+  ctx.font = fontStr(fs);
+  const w = Math.ceil(ctx.measureText(h.text).width) + 2 * PLATE_PAD_X, hh = Math.round(fs + 16), st = hh + 12;
+  const taken = frame.labels.map((l) => ({ x0: l.x - l.w / 2 - 6, x1: l.x + l.w / 2 + 6, y0: l.y - l.h / 2 - 6, y1: l.y + l.h / 2 + 6 }));
+  if (frame.cross) taken.push({ x0: frame.cross.x - frame.cross.r, x1: frame.cross.x + frame.cross.r, y0: frame.cross.y - frame.cross.r, y1: frame.cross.y + frame.cross.r });
+  const shifts = [[0, 0]];
+  for (let k = 1; k <= 3; k++) shifts.push([0, -k * st], [0, k * st]);
+  for (let k = 1; k <= 2; k++) shifts.push([-k * (w + 12), 0], [k * (w + 12), 0]);
+  const pads = L.pads.map((q) => ({ x0: q.x - 50, x1: q.x + 50, y0: q.y - 50, y1: q.y + 50 }));
+  let pos = null;
+  [taken.concat(pads), taken].some((avoid) => shifts.some((d) => {                  // сначала обходим и подписи, и башни, потом хотя бы подписи
+    const cx = link.labelAt.x + d[0], cy = link.labelAt.y + d[1], r = { x0: cx - w / 2, x1: cx + w / 2, y0: cy - hh / 2, y1: cy + hh / 2 };
+    if (r.x0 < 4 || r.x1 > FIELD_W - 4 || r.y0 < 4 || r.y1 > FIELD_H - 4 || avoid.some((o) => overlapArea(r, o) > 0)) return false;
+    pos = { x: cx, y: cy, moved: d[0] !== 0 || d[1] !== 0 };
+    return true;
+  }));
+  if (!pos) pos = { x: link.labelAt.x, y: link.labelAt.y + 2 * st, moved: true };
+  frame.hint = { link: h.link, text: h.text, x: Math.round(pos.x), y: Math.round(pos.y), w, h: hh, moved: pos.moved };
+}
+function paintHintPlate() {
+  const q = frame.hint;
+  if (q) plate(q.text, q.x, q.y, labelFontSize(), { alpha: 0.7 });
 }
 function drawTower(x, y, value, fixed, alpha, o) {
   o = o || {};
@@ -2245,6 +2375,7 @@ function drawTexts() {
   const fs = textFontSize(), still = reducedMotion(), L = G.layout, RISE = 18;
   const obst = frame.labels.map((l) => ({ x0: l.x - l.w / 2, x1: l.x + l.w / 2, y0: l.y - l.h / 2, y1: l.y + l.h / 2, k: 400 }))
     .concat(frame.cross ? [{ x0: frame.cross.x - frame.cross.r, x1: frame.cross.x + frame.cross.r, y0: frame.cross.y - frame.cross.r, y1: frame.cross.y + frame.cross.r, k: 400 }] : [])
+    .concat(frame.hint ? [{ x0: frame.hint.x - frame.hint.w / 2, x1: frame.hint.x + frame.hint.w / 2, y0: frame.hint.y - frame.hint.h / 2, y1: frame.hint.y + frame.hint.h / 2, k: 40 }] : [])
     .concat(frame.banner ? [{ x0: frame.banner.x - frame.banner.w / 2, x1: frame.banner.x + frame.banner.w / 2, y0: frame.banner.y - frame.banner.h / 2, y1: frame.banner.y + frame.banner.h / 2, k: 10 }] : [])
     .concat(L.pads.map((p) => ({ x0: p.x - 50, x1: p.x + 50, y0: p.y - 50, y1: p.y + 50, k: 4 })))
     .concat(G.enemies.map((e) => ({ x0: e.x - 45, x1: e.x + 45, y0: e.y - 45, y1: e.y + 45, k: 1 })))
@@ -2279,11 +2410,12 @@ function render() {
   ctx.drawImage(bgCanvas, 0, 0);
   const sc = VIEW.s * VIEW.dpr;
   ctx.setTransform(sc, 0, 0, sc, VIEW.ox * VIEW.dpr, VIEW.oy * VIEW.dpr);
-  drawFortress(now); drawHint(); drawBeams(now); drawTowers(now, dt); drawEnemies(); drawFx(now);
-  layoutLabels();
+  drawFortress(now); drawBeams(now); drawTowers(now, dt); drawHintPath(); drawEnemies(); drawFx(now);
+  layoutLabels(); layoutHintPlate();
   if (celebrating()) { layoutBanner(); drawConfetti(now); drawBanner(now); }
   drawTexts();
   paintLabels();
+  paintHintPlate();
 }
 // Нужен ли ещё кадр, пока ввод ничего не менял: идёт бой, анимации, всплывающие тексты, искры лучей, пульс выбора
 function animating() {
@@ -2387,29 +2519,32 @@ function layoutHand() {
   const size = Math.max(56, Math.min(76, Math.floor((VIEW.W - 240 - 6 * (n - 1)) / n), VIEW.handH - 10));   // 240 = «В бой!» 190 + отступы 32 + зазор 16
   document.documentElement.style.setProperty("--tile", size + "px");
 }
-function layoutRibbon() {                                  // карточки 34–72 px; если врагов много — сжимаются, заголовок уступает место
-  const n = Math.max(1, els.cards.children.length), prep = G.phase === "prep", pause = G.phase === "battle" && G.paused;
-  const fit = (titleW) => Math.floor((els.ribbon.clientWidth - (titleW ? titleW + 10 : 0) - 8 - (n - 1) * 6) / n);
+function layoutRibbon() {                                  // карточки 30–72 px; если врагов много — сжимаются, заголовок и пометка паузы уступают место
+  const n = Math.max(1, els.cards.children.length), prep = G.phase === "prep", pause = G.phase === "battle" && G.paused, gap = n > 9 ? 3 : 6;
+  const fit = (titleW) => Math.floor((els.ribbon.clientWidth - (titleW ? titleW + 10 : 0) - 8 - (n - 1) * gap) / n);
+  document.documentElement.style.setProperty("--cgap", gap + "px");
   els.rtitle.hidden = !prep;
   els.pauseNote.hidden = !pause;
   let size = fit(prep ? 82 : pause ? 138 : 0);
-  if (prep && size < 44) { els.rtitle.hidden = true; size = fit(0); }
-  document.documentElement.style.setProperty("--card", Math.max(34, Math.min(72, VIEW.barH - 12, size)) + "px");
+  if ((prep || pause) && size < 44) { els.rtitle.hidden = true; els.pauseNote.hidden = true; size = fit(0); }
+  document.documentElement.style.setProperty("--card", Math.max(30, Math.min(72, VIEW.barH - 12, size)) + "px");
 }
 function showToast(text, ms) { tmpToast = { text, until: performance.now() + (ms || 2500) }; }
 function playNewEvents() { while (G.cues.length) AudioFX.play(G.cues.shift()); }
 // Лента: карточки не пересоздаются без нужды, классы обновляются по статусу врага; на карточке босса с подсказкой — лампочка
 const LAMP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a6.5 6.5 0 0 0-3.6 11.9c.6.5 1 1.2 1 2V17h5.2v-.6c0-.8.4-1.5 1-2A6.5 6.5 0 0 0 12 2.5z" fill="#ffd54f" stroke="#1d2b3a" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.6 20h4.8M10.4 22h3.2" stroke="#f2f6ee" stroke-width="2" stroke-linecap="round"/></svg>';
+const DASH_SVG = '<svg viewBox="0 0 40 8" preserveAspectRatio="none" aria-hidden="true"><path d="M3 4h8M16 4h8M29 4h8" fill="none" stroke="#1d2b3a" stroke-width="7" stroke-linecap="round"/><path d="M3 4h8M16 4h8M29 4h8" fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linecap="round"/></svg>';
 function syncCards() {
   const cs = els.cards.children, rb = G.ribbon;
   let same = cs.length === rb.length;
-  for (let i = 0; same && i < rb.length; i++) if (cs[i].dataset.v !== String(rb[i].value) || cs[i].dataset.k !== rb[i].kind || cs[i].dataset.l !== (rb[i].lamp ? "1" : "0")) same = false;
+  for (let i = 0; same && i < rb.length; i++) if (cs[i].dataset.v !== String(rb[i].value) || cs[i].dataset.k !== rb[i].kind || cs[i].dataset.l !== (rb[i].lamp ? "1" : "0") || cs[i].dataset.m !== (rb[i].mark ? "1" : "0")) same = false;
   if (!same) {
     els.cards.textContent = "";
     rb.forEach((r) => {
       const c = document.createElement("div");
-      c.dataset.v = String(r.value); c.dataset.k = r.kind; c.dataset.l = r.lamp ? "1" : "0";
+      c.dataset.v = String(r.value); c.dataset.k = r.kind; c.dataset.l = r.lamp ? "1" : "0"; c.dataset.m = r.mark ? "1" : "0";
       c.textContent = String(r.value);
+      if (r.mark) { const m = document.createElement("i"); m.className = "dmark"; m.title = "Есть подсказка-путь"; m.innerHTML = DASH_SVG; c.appendChild(m); }
       if (r.lamp) { const b = document.createElement("button"); b.type = "button"; b.className = "lamp"; b.setAttribute("aria-label", "Подсказка"); b.innerHTML = LAMP_SVG; c.appendChild(b); }
       els.cards.appendChild(c);
     });
@@ -2426,7 +2561,7 @@ function syncUI() {
     if (SEL.beam && !G.beams.some((b) => b.id === SEL.beam)) SEL.beam = null;
   }
   const tmp = tmpToast && performance.now() < tmpToast.until ? tmpToast.text : "";
-  const key = [G.id, phase, G.paused, G.hearts, G.waveIndex, G.waves.length, G.ribbon.map((r) => r.status + (r.lamp ? "L" : "")).join(","), SEL.tile, settings.sound, tmp, VIEW.W, VIEW.H, G.real, hintVisible(), SCREEN].join("|");
+  const key = [G.id, phase, G.paused, G.hearts, G.waveIndex, G.waves.length, G.ribbon.map((r) => r.status + (r.lamp ? "L" : "") + (r.mark ? "M" : "")).join(","), SEL.tile, settings.sound, tmp, VIEW.W, VIEW.H, G.real, hintVisible(), SCREEN].join("|");
   if (key === uiSig) return;
   uiSig = key; dirty = true;
   els.heartNum.textContent = G.hearts;
@@ -2437,12 +2572,12 @@ function syncUI() {
   els.pauseBtn.textContent = G.paused ? "Дальше" : "Пауза";
   els.pauseBtn.classList.toggle("gold", G.paused);
   els.pauseBtn.classList.toggle("ghost", !G.paused);
+  els.mapBtn.hidden = !(G.real && (phase === "prep" || (phase === "battle" && G.paused)));        // до layoutRibbon: от видимых кнопок зависит ширина ленты
   layoutRibbon();
   els.fightBtn.classList.toggle("gone", phase !== "prep");
   els.hand.classList.toggle("off", !edit);
   Array.prototype.forEach.call(els.tiles.children, (t) => t.classList.toggle("sel", SEL.tile != null && Number(t.dataset.v) === SEL.tile));
   els.endCard.classList.toggle("gone", phase !== "levelEnd" || G.real);
-  els.mapBtn.hidden = !(G.real && (phase === "prep" || (phase === "battle" && G.paused)));
   if (phase === "levelEnd" && G.result) {
     els.endTitle.textContent = G.result.text;
     els.endSub.textContent = "Сохранено " + word(G.result.hearts, "heart") + " из " + G.maxHearts;
@@ -2504,14 +2639,15 @@ function rewardCanvasDraw(root) {
   Array.prototype.forEach.call(root.querySelectorAll("canvas[data-r]"), (cv) => drawRewardIcon(cv, cv.dataset.r, cv.dataset.on === "1"));
 }
 function landHtml(L, rest) {
-  const open = SAVE.unlocked.indexOf(L.id) >= 0, pr = landProgress(L.id, SAVE.facts), pct = Math.min(100, Math.round(100 * pr.done / pr.need));
+  const open = SAVE.unlocked.indexOf(L.id) >= 0, pr = landProgress(L.id, SAVE.facts), pct = Math.min(100, Math.round(100 * pr.done / pr.need)), pctMet = Math.min(100, Math.round(100 * pr.met / pr.total));
   const lvls = LEVELS.filter((l) => l.land === L.id).map((l, i) => {
     const rec = SAVE.levels[l.id], can = isLevelOpen(l.id) && !rest, stars = rec ? rec.stars : 0;
     const label = "Уровень " + (i + 1) + ", " + L.name + (rec ? ", звёзд: " + stars : "");
     return '<button class="lvl ' + (rec ? "done" : can ? "open" : "") + '" data-id="' + l.id + '" ' + (can ? "" : "disabled") + ' aria-label="' + esc(label) + '"><span class="ln">' + (i + 1) + '</span><span class="lst">' +
       [0, 1, 2].map((k) => starSvg(k < stars, 14)).join("") + "</span></button>";
   }).join("");
-  const sub = open ? '<div class="lsub">Изучено ' + pr.done + " из " + pr.need + '</div><div class="lbar"><i style="width:' + pct + '%"></i></div>' : '<div class="lsub">Откроется, когда изучишь примеры прошлой земли</div>';
+  // два шага: «встретил» (пример уже был в волне) и «изучил» (был в коробке 3 и выше); у закрытой земли — пустая полоса, пояснение один раз сверху карты
+  const sub = open ? '<div class="lsub">Встретил ' + pr.met + " из " + pr.total + " · Изучил " + pr.done + " из " + pr.need + '</div><div class="lbar"><i class="met" style="width:' + pctMet + '%"></i><i style="width:' + pct + '%"></i></div>' : '<div class="lbar"></div>';
   return '<section class="land ' + (open ? "open" : "closed") + (landStudied(L.id, SAVE.facts) ? " done" : "") + '" data-land="' + L.id + '" style="--lc:' + LAND_COLORS[L.id - 1] + '"><div class="lico">' + (open ? LAND_ICONS[L.id] : '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="11" y="21" width="26" height="21" rx="4" fill="#6c7787" stroke="#1d2b3a" stroke-width="2.5"/><path d="M16 21v-6a8 8 0 0 1 16 0v6" fill="none" stroke="#1d2b3a" stroke-width="3.5"/></svg>') +
     '</div><div class="linfo"><div class="lname">' + esc(L.name) + "</div>" + sub + '</div><div class="lvls">' + lvls + "</div></section>";
 }
@@ -2521,14 +2657,32 @@ function renderMap() {
   const rest = SAVE.today.levels >= settings.perDay;
   const rw = REWARDS.map((r) => {
     const on = SAVE.seenRewards.indexOf(r.id) >= 0;
-    return '<div class="rw ' + (on ? "on" : "off") + '"><canvas width="96" height="96" data-r="' + r.id + '" data-on="' + (on ? 1 : 0) + '"></canvas><b>' + esc(r.name) + "</b><span>" + esc(r.cond) + "</span></div>";
+    return '<button type="button" class="rw ' + (on ? "on" : "off") + (rewardSel === r.id ? " sel" : "") + '" data-id="' + r.id + '" aria-label="' + esc(r.name + ". " + r.cond + (on ? ". Получена" : "")) + '"><canvas width="96" height="96" data-r="' + r.id + '" data-on="' + (on ? 1 : 0) + '"></canvas><b class="vh">' + esc(r.name) + "</b></button>";
   }).join("");
-  SCR.map.innerHTML = '<div class="mapwrap"><header class="maphead"><h1>Оборона таблицы</h1>' + (rest ? '<div class="rest" id="mapRest">Крепость отдыхает до завтра</div>' : "") + '</header><div class="mapbody"><div class="lands">' +
-    LANDS.map((L) => landHtml(L, rest)).join("") + '</div><aside class="rewards"><h2>Награды</h2><div class="rgrid">' + rw + '</div></aside></div><footer class="mapfoot"><button id="adultBtn" class="btn ghost holdbtn" aria-label="Для взрослых: удерживай две секунды">' +
+  const anyClosed = LANDS.some((L) => SAVE.unlocked.indexOf(L.id) < 0);
+  SCR.map.innerHTML = '<div class="mapwrap"><header class="maphead"><h1>Оборона таблицы</h1>' + (rest ? '<div class="rest" id="mapRest">Крепость отдыхает до завтра</div>' : "") +
+    (anyClosed ? '<p class="lockhint" id="lockHint"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="11" y="21" width="26" height="21" rx="4" fill="#6c7787" stroke="#1d2b3a" stroke-width="2.5"/><path d="M16 21v-6a8 8 0 0 1 16 0v6" fill="none" stroke="#9db3bc" stroke-width="3.5"/></svg><span>Откроется, когда изучишь примеры прошлой земли</span></p>' : "") + '</header><div class="mapbody"><div class="lands">' +
+    LANDS.map((L) => landHtml(L, rest)).join("") + '</div><aside class="rewards"><h2>Награды</h2><div class="rgrid">' + rw + '</div><div class="rcap" id="rewardCap"></div></aside></div><footer class="mapfoot"><button id="adultBtn" class="btn ghost holdbtn" aria-label="Для взрослых: удерживай две секунды">' +
     '<svg class="hring" viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true"><rect x="2" y="2" width="196" height="52" rx="26" pathLength="100" /></svg><svg class="hico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/></svg><span>Для взрослых</span></button></footer></div>';
   rewardCanvasDraw(SCR.map);
+  showRewardCap();
+}
+// Подпись награды по касанию: название и за что она; без касания — подсказка
+let rewardSel = null;
+function showRewardCap() {
+  const box = $("rewardCap"), r = REWARDS.find((x) => x.id === rewardSel);
+  if (!box) return;
+  box.classList.toggle("hint", !r);
+  box.innerHTML = r ? "<b>" + esc(r.name) + "</b><span>" + esc(r.cond) + (SAVE.seenRewards.indexOf(r.id) >= 0 ? " — получена" : "") + "</span>" : "<span>Нажми на значок, чтобы узнать, за что награда</span>";
 }
 SCR.map.addEventListener("click", (e) => {
+  const rw = e.target.closest(".rw");
+  if (rw) {
+    rewardSel = rewardSel === rw.dataset.id ? null : rw.dataset.id;
+    Array.prototype.forEach.call(SCR.map.querySelectorAll(".rw"), (x) => x.classList.toggle("sel", x.dataset.id === rewardSel));
+    showRewardCap();
+    return;
+  }
   const b = e.target.closest(".lvl");
   if (b && !b.disabled) { AudioFX.unlock(); startLevelUI(b.dataset.id); }
 });
@@ -2603,13 +2757,14 @@ function renderNight() {
   const back = keys.filter((k) => F[k].lastDay === t && F[k].due <= tm).sort((a, b) => F[a].box - F[b].box || (a < b ? -1 : 1)).slice(0, 8);
   const alts = SAVE.day.alts.slice(0, 3), hard = hardestToday(t), rest = SAVE.today.levels >= settings.perDay;
   const bossHint = hard && F[hard].bossSeen > 0 && (HARD15.indexOf(hard) >= 0 || LANDS[5].facts.indexOf(hard) >= 0);
-  SCR.night.innerHTML = '<div class="nightbox"><svg class="moon" viewBox="0 0 64 64" aria-hidden="true"><path d="M44 8a26 26 0 1 0 12 40A22 22 0 0 1 44 8z" fill="#ffd54f" stroke="#1d2b3a" stroke-width="3" stroke-linejoin="round"/><circle cx="14" cy="14" r="2.5" fill="#fffbe6"/><circle cx="52" cy="52" r="2" fill="#fffbe6"/></svg>' +
+  const chip = (k) => '<span class="chip b' + Math.max(0, Math.min(5, F[k].box)) + '">' + esc(cardTitle(k)) + "</span>";
+  SCR.night.innerHTML = '<div class="nightbox"><div class="nbody"><svg class="moon" viewBox="0 0 64 64" aria-hidden="true"><path d="M44 8a26 26 0 1 0 12 40A22 22 0 0 1 44 8z" fill="#ffd54f" stroke="#1d2b3a" stroke-width="3" stroke-linejoin="round"/><circle cx="14" cy="14" r="2.5" fill="#fffbe6"/><circle cx="52" cy="52" r="2" fill="#fffbe6"/></svg>' +
     "<h1>Крепость закрывается на ночь</h1>" +
-    '<div class="nrow"><b>Освоено сегодня:</b> <span>' + (mastered.length ? mastered.map((k) => esc(cardTitle(k))).join(", ") : "Пример становится освоенным, когда побеждаешь его в два разных дня") + "</span></div>" +
-    '<div class="nrow"><b>Завтра вернутся:</b> <span>' + (back.length ? back.map((k) => esc(cardTitle(k))).join(", ") : "—") + "</span></div>" +
-    (alts.length ? '<div class="nrow"><b>Можно было ещё:</b>' + alts.map((a) => "<span>" + esc(a) + "</span>").join("") + "</div>" : "") +
+    '<div class="nrow"><b>Освоено сегодня:</b>' + (mastered.length ? '<div class="chips">' + mastered.map(chip).join("") + "</div>" : "<span>Пример становится освоенным, когда побеждаешь его в два разных дня</span>") + "</div>" +
+    '<div class="nrow"><b>Завтра вернутся:</b>' + (back.length ? '<div class="chips">' + back.map(chip).join("") + "</div>" : "<span>—</span>") + "</div>" +
+    (alts.length ? '<div class="nrow"><b>Можно было ещё:</b>' + alts.map((a) => "<span>" + esc(altShow(a)) + "</span>").join("") + "</div>" : "") +
     (hard ? '<div class="nrow"><b>Приём:</b> <span>' + esc(tipForCard(hard, bossHint)) + "</span></div>" : "") +
-    '<div class="nbtns">' + (rest ? '<div class="resttext">Крепость отдыхает до завтра</div>' : '<button id="nightMore" class="btn gold big">Ещё один уровень</button>') + '<button id="nightMap" class="btn ghost big">На карту</button></div></div>';
+    '</div><div class="nbtns">' + (rest ? '<div class="resttext">Крепость отдыхает до завтра</div>' : '<button id="nightMore" class="btn gold big">Ещё один уровень</button>') + '<button id="nightMap" class="btn ghost big">На карту</button></div></div>';
 }
 SCR.night.addEventListener("click", (e) => {
   if (e.target.closest("#nightMore")) nightMore();
@@ -2645,20 +2800,22 @@ function renderAdult() {
   }
   grid += "</div>";
   const info = adultSel ? cellInfo.apply(null, parseKey(adultSel)) : "Нажми на клетку — увидишь точность и время";
-  const hardKeys = Object.keys(F).filter((k) => F[k].seen >= 1).sort((p, q) => (F[q].fail * 2 + (5 - F[q].box)) - (F[p].fail * 2 + (5 - F[p].box)) || (p < q ? -1 : 1)).slice(0, 5);
+  const hardKeys = Object.keys(F).filter((k) => F[k].fail > 0).sort((p, q) => (F[q].fail * 2 + (5 - F[q].box)) - (F[p].fail * 2 + (5 - F[p].box)) || (p < q ? -1 : 1)).slice(0, 5);
   const confKeys = Object.keys(SAVE.confusions).sort((p, q) => SAVE.confusions[q].n - SAVE.confusions[p].n || (p < q ? -1 : 1)).slice(0, 5);
   const seg = (act, cur, items) => items.map((it) => '<button class="btn ghost seg' + (cur === it[0] ? " on" : "") + '" data-act="' + act + '" data-v="' + it[0] + '" aria-pressed="' + (cur === it[0]) + '">' + it[1] + "</button>").join("");
-  SCR.adult.innerHTML = '<div class="adultwrap"><header class="adhead"><h1>Для взрослых</h1><button class="btn gold" data-act="close">Закрыть</button></header><div class="adbody"><section class="adcol"><h2>Карта таблицы</h2>' + grid +
-    '<div class="legend"><span>Не было</span>' + [1, 2, 3, 4, 5].map((n) => '<span class="b' + n + '">' + n + "</span>").join("") + '</div><p class="adinfo" id="adInfo">' + esc(info) + '</p></section><section class="adcol"><h2>Самые трудные</h2>' +
-    (hardKeys.length ? "<ul>" + hardKeys.map((k) => "<li>" + esc(cardFull(k)) + " — коробка " + F[k].box + ", ошибок " + F[k].fail + "</li>").join("") + "</ul>" : '<p class="muted">Пока нет данных</p>') +
-    "<h2>Частые путаницы</h2>" + (confKeys.length ? "<ul>" + confKeys.map((k) => { const p = k.split("|").map(Number); return "<li>" + p[1] + " ↔ " + p[0] + " — " + word(SAVE.confusions[k].n, "time") + "</li>"; }).join("") + "</ul>" : '<p class="muted">Пока нет данных</p>') +
-    "<h2>Сегодня</h2><p>Сыграно уровней: " + SAVE.today.levels + " из " + settings.perDay + '</p></section><section class="adcol"><h2>Настройки</h2>' +
+  const setCol = '<section class="adcol"><h2>Настройки</h2>' +
     '<div class="srow"><b>Скорость врагов</b><div class="segs">' + seg("speed", settings.speed, [["slow", "Медленно"], ["normal", "Обычно"], ["fast", "Быстрее"]]) + "</div></div>" +
     '<div class="srow"><b>Уровней в день</b><div class="segs"><button class="btn ghost seg" data-act="perDay" data-v="-1" aria-label="Меньше">−</button><span class="perday" id="perDayVal">' + settings.perDay + '</span><button class="btn ghost seg" data-act="perDay" data-v="1" aria-label="Больше">+</button></div></div>' +
     '<div class="srow"><b>Звук</b><div class="segs">' + seg("sound", settings.sound, [[true, "Вкл."], [false, "Выкл."]]) + "</div></div>" +
     '<div class="srow"><b>Крупный шрифт</b><div class="segs">' + seg("bigFont", settings.bigFont, [[true, "Вкл."], [false, "Выкл."]]) + "</div></div>" +
     (resetAsk ? '<div class="resetbox"><p>Точно сбросить? Это нельзя отменить</p><div class="segs"><button class="btn gold" data-act="reset2">Да, сбросить</button><button class="btn ghost" data-act="reset0">Отмена</button></div></div>' : '<button class="btn ghost danger" data-act="reset1">Сбросить прогресс</button>') +
-    "</section></div></div>";
+    "</section>";
+  // порядок колонок: карта таблицы, настройки (кнопки сразу на первом экране), затем справочные списки
+  SCR.adult.innerHTML = '<div class="adultwrap"><header class="adhead"><h1>Для взрослых</h1><button class="btn gold" data-act="close">Закрыть</button></header><div class="adbody"><section class="adcol"><h2>Карта таблицы</h2>' + grid +
+    '<div class="legend"><span>Не было</span>' + [1, 2, 3, 4, 5].map((n) => '<span class="b' + n + '">' + n + "</span>").join("") + '</div><p class="adinfo" id="adInfo">' + esc(info) + "</p></section>" + setCol + '<section class="adcol"><h2>Самые трудные</h2>' +
+    (hardKeys.length ? "<ul>" + hardKeys.map((k) => "<li>" + esc(cardFull(k)) + " — коробка " + F[k].box + ", ошибок " + F[k].fail + "</li>").join("") + "</ul>" : '<p class="muted">Пока без ошибок</p>') +
+    "<h2>Частые путаницы</h2>" + (confKeys.length ? "<ul>" + confKeys.map((k) => { const p = k.split("|").map(Number); return "<li>" + p[1] + " ↔ " + p[0] + " — " + word(SAVE.confusions[k].n, "time") + "</li>"; }).join("") + "</ul>" : '<p class="muted">Пока нет данных</p>') +
+    "<h2>Сегодня</h2><p>Сыграно уровней: " + SAVE.today.levels + " из " + settings.perDay + "</p></section></div></div>";
 }
 SCR.adult.addEventListener("click", (e) => {
   const gc = e.target.closest(".gc");
@@ -2833,6 +2990,19 @@ window.addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden && G && G.phase === "battle" && !G.paused) { pause(); markDirty(); } });
+// Смена суток при открытой странице: карта и ночь обновляются, когда вернулись на вкладку, фокус вернулся и раз в минуту (это не игровой таймер)
+let dayShown = todayStr();
+function checkDay() {
+  const t = todayStr();
+  if (t === dayShown && SAVE.today.date === t) return;
+  dayShown = t;
+  rollDay();
+  if (SCREEN === "map") renderMap(); else if (SCREEN === "night") renderNight();
+  uiSig = ""; markDirty();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
+window.addEventListener("focus", checkDay);
+setInterval(checkDay, 60000);
 
 /* ======================================================================
    10. LOOP — requestAnimationFrame: накопитель времени, тики, рисование
@@ -2907,7 +3077,7 @@ function snapshot() {
       return { id: b.id, from: b.from, to: b.to, a, b: c, product: a * c, label: beamLabel(a, c), phase: b.phase, edits: G.linkEdits[b.id] || 0, flash: flash(b) };
     }),
     enemies: G.enemies.map((e) => ({ id: e.id, value: e.value, start: e.start, kind: e.kind, card: e.card, path: e.path, t: e.t, x: Math.round(e.x * 10) / 10, y: Math.round(e.y * 10) / 10, state: "walk" })),
-    ribbon: G.ribbon.map((r) => ({ value: r.value, kind: r.kind, status: r.status, lamp: r.lamp })),
+    ribbon: G.ribbon.map((r) => ({ value: r.value, kind: r.kind, status: r.status, lamp: r.lamp, mark: r.mark })),
     texts: G.texts.concat(G.uiTexts).map((t) => ({ text: t.text, x: Math.round(t.x + (t.slot ? t.slot.dx : 0)), y: Math.round(t.y + (t.slot ? t.slot.dy : t.dy)), ttl: Math.round(t.ttl), quiet: !!t.quiet })),
     textLog: G.textLog.slice(), sounds: G.soundLog.slice(), renders: renderCount,
     events: G.events.map((e) => Object.assign({}, e)),
@@ -2929,6 +3099,7 @@ const api = {
   setToday(date) {
     try { if (date) localStorage.setItem(TEST_DATE_KEY, date); else localStorage.removeItem(TEST_DATE_KEY); } catch (e) { /* не критично */ }
     window.OBORONA_TODAY = date || undefined;
+    dayShown = todayStr();
     rollDay();
     if (SCREEN === "map") renderMap();
     return { ok: true, today: todayStr() };
