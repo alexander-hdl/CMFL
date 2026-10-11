@@ -24,6 +24,7 @@ ARTIFACTS = {
     "NUnVhvzy88WsXPZpf4yvSm": "trenazhery.html",
     "LeApqezzcT228szk3Jidf2": "plan.html",
     "78TnnhbtiWef319zJ2SQM8": "komiksy.html",
+    "6DiGYA6FVP3AJzrWKQjhSw": "blokograd.html",
 }
 
 PAGES = [
@@ -31,6 +32,7 @@ PAGES = [
     ("trenazhery.html", "trenazhery.html", "Тренировочная арена", "Арена", "#0e1d27", "arena"),
     ("plan-9-let.html", "plan.html", "План: планшет и диктанты", "План", "#f6f7f3", "plan"),
     ("komiksy.html", "komiksy.html", "Студия комиксов", "Комиксы", "#eef0f4", "comics"),
+    ("blokograd.html", "blokograd.html", "Блокоград", "Блокоград", "#8fd3ff", "blok"),
     ("oborona-tablicy.html", "oborona-tablicy.html", "Оборона таблицы", "Оборона", "#17324a", "tower"),
 ]
 
@@ -48,7 +50,11 @@ REWORDS = {
 
 RESET = "body{margin:0}[hidden]{display:none!important}"
 SW_REGISTER = ('<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) '
-               'navigator.serviceWorker.register("sw.js").catch(function () {});</script>')
+               'navigator.serviceWorker.register("sw.js").then(function (reg) { '
+               'reg.update().catch(function () {}); '
+               'reg.addEventListener("updatefound", function () { var nw = reg.installing; if (!nw || !navigator.serviceWorker.controller) return; '
+               'nw.addEventListener("statechange", function () { if (nw.state === "activated") location.reload(); }); }); '
+               '}).catch(function () {});</script>')
 
 
 def relink(html):
@@ -131,11 +137,12 @@ footer a { color: var(--accent); }
 <body>
 <main>
   <h1>Учебный уголок</h1>
-  <p class="lead">Тренажёры и игра для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
+  <p class="lead">Тренажёры и две игры для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
   <div class="cards">
     <a class="card" href="trenazhery.html"><img src="icons/arena-192.png" alt=""><div><b>Тренировочная арена</b><span>Для сына: «Тренировка дня», счёт, чтение, слова, игры вместе</span></div></a>
     <a class="card" href="plan.html"><img src="icons/plan-192.png" alt=""><div><b>План для родителей</b><span>6 недель, распорядок, диктанты, планшет, дневник открытий</span></div></a>
     <a class="card" href="komiksy.html"><img src="icons/comics-192.png" alt=""><div><b>Студия комиксов</b><span>Для пера XP-PEN: рисовать и писать реплики</span></div></a>
+    <a class="card" href="blokograd.html"><img src="icons/blok-192.png" alt=""><div><b>Блокоград</b><span>Песочница: стройка — умножение, верстак — слова, торговля — деньги</span></div></a>
     <a class="card" href="oborona-tablicy.html"><img src="icons/tower-192.png" alt=""><div><b>Оборона таблицы</b><span>Для сына: защита крепости, где оружие — таблица умножения</span></div></a>
   </div>
   <div class="note">
@@ -154,7 +161,7 @@ footer a { color: var(--accent); }
   </div>
   <footer>Исходники и исследования: <a href="https://github.com/alexander-hdl/CMFL">github.com/alexander-hdl/CMFL</a></footer>
 </main>
-<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function () {});</script>
+__SW__
 </body>
 </html>
 """
@@ -188,7 +195,7 @@ self.addEventListener("fetch", (e) => {
 
 README = """# Автономная версия (GitHub Pages)
 
-Эта папка — готовый сайт: тренажёры, «Оборона таблицы», план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
+Эта папка — готовый сайт: тренажёры, «Блокоград», «Оборона таблицы», план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
 
 ## Как включить сайт
 
@@ -224,7 +231,7 @@ def main():
     for src, out, name, short, color, icon in PAGES:
         files[out] = page(src, out, name, color, icon)
         files[f"manifest-{icon}.webmanifest"] = manifest(name, short, out, color, icon)
-    files["index.html"] = INDEX
+    files["index.html"] = INDEX.replace("__SW__", SW_REGISTER)
     files["manifest-home.webmanifest"] = manifest("Учебный уголок", "Уголок", "index.html", "#f6f7f3", "plan")
     files["README.md"] = README
     files[".nojekyll"] = ""

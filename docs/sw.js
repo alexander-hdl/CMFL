@@ -1,6 +1,6 @@
 // Offline cache: stale-while-revalidate for this site and Google Fonts. CACHE changes with every build.
-const CACHE = "cmfl-b149ee86d2";
-const CORE = ["./", "index.html", "trenazhery.html", "plan.html", "komiksy.html", "oborona-tablicy.html", "manifest-arena.webmanifest", "manifest-plan.webmanifest", "manifest-comics.webmanifest", "manifest-tower.webmanifest", "manifest-home.webmanifest", "icons/arena-180.png", "icons/arena-192.png", "icons/arena-512.png", "icons/comics-180.png", "icons/comics-192.png", "icons/comics-512.png", "icons/plan-180.png", "icons/plan-192.png", "icons/plan-512.png", "icons/tower-180.png", "icons/tower-192.png", "icons/tower-512.png"];
+const CACHE = "cmfl-0d841d41b0";
+const CORE = ["./", "index.html", "trenazhery.html", "plan.html", "komiksy.html", "blokograd.html", "oborona-tablicy.html", "manifest-arena.webmanifest", "manifest-plan.webmanifest", "manifest-comics.webmanifest", "manifest-blok.webmanifest", "manifest-tower.webmanifest", "manifest-home.webmanifest", "icons/arena-180.png", "icons/arena-192.png", "icons/arena-512.png", "icons/blok-180.png", "icons/blok-192.png", "icons/blok-512.png", "icons/comics-180.png", "icons/comics-192.png", "icons/comics-512.png", "icons/plan-180.png", "icons/plan-192.png", "icons/plan-512.png", "icons/tower-180.png", "icons/tower-192.png", "icons/tower-512.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
