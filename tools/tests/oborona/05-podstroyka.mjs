@@ -83,6 +83,8 @@ export function register({ test, assert, eq }) {
       const a = OT.state().cards["m:2x6"], ev = OT.events().filter((e) => e.type === "card_changed" && e.key === "m:2x6");
       OT.step(3); K.wave([12]);
       const b = OT.state().cards["m:2x6"];
+      // Уровень, идущий через полночь, засчитан новому дню (ревью 3), а дальше тест начинает ещё 5 уровней: лимит поднят до 8.
+      OT.setSetting("perDay", 8);
       OT.setDate(K.day(1)); OT.loadLevel(1, 0); K.wave([12]);
       return { a, b, c: OT.state().cards["m:2x6"], ev, today };
     });

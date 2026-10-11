@@ -146,8 +146,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 /* Экран для взрослого. */
 #scr-parent { display: block; place-content: start stretch; justify-items: stretch; padding: 10px 22px; text-align: left; overflow: hidden; font-size: 24px; background: #1d3a50; }
 #scr-parent h2 { margin: 0; font: 400 44px/1.1 var(--f-num); color: var(--gold); }
-.pr-top { display: flex; justify-content: space-between; align-items: center; height: 70px; }
-.pr-top .btn { width: 230px; height: 64px; font-size: 32px; }
+.pr-top { display: flex; justify-content: space-between; align-items: center; height: 80px; }
+.pr-top .btn { width: 230px; height: 76px; font-size: 32px; }   /* 76 лп ≥ 48 CSS px уже на 1024×600 */
 .pr-body { display: grid; grid-template-columns: 640px 1fr; gap: 24px; }
 .pr-left h3, .pr-right h3 { margin: 0 0 4px; font: 800 24px/1.25 var(--f-body); color: #bfe8ff; }
 .pr-grid { display: grid; grid-template-columns: 52px repeat(8, 1fr); gap: 4px; margin-bottom: 10px; }
@@ -172,13 +172,13 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 .pr-set { display: grid; gap: 6px; padding: 8px 12px; background: rgba(0,0,0,.2); border-radius: 14px; margin-bottom: 8px; }
 .pr-set .rw2 { display: flex; gap: 8px; align-items: center; }
 .pr-set .rw2 > span { width: 190px; font-weight: 800; }
-.pr-set button { height: 46px; padding: 0 14px; white-space: nowrap; border-radius: 14px; background: #e9f0f4; color: var(--ink); font: 800 22px/1 var(--f-body); border: 3px solid transparent; }
+.pr-set button { height: 76px; padding: 0 14px; white-space: nowrap; border-radius: 14px; background: #e9f0f4; color: var(--ink); font: 800 22px/1 var(--f-body); border: 3px solid transparent; }
 .pr-set button.on { background: var(--gold); border-color: var(--ink); }
-.pr-set button.sq { width: 56px; padding: 0; font-size: 30px; }
+.pr-set button.sq { width: 76px; padding: 0; font-size: 30px; }
 .pr-set .val { min-width: 44px; text-align: center; font: 400 30px/1 var(--f-num); }
 #pr-today { margin: 4px 0 8px; font-size: 24px; }
 .pr-reset { display: flex; gap: 10px; align-items: center; }
-.pr-reset button { height: 52px; padding: 0 18px; border-radius: 14px; background: #f3d2cd; color: #5c1209; font: 800 24px/1 var(--f-body); }
+.pr-reset button { height: 76px; padding: 0 18px; border-radius: 14px; background: #f3d2cd; color: #5c1209; font: 800 24px/1 var(--f-body); }
 .pr-reset button.yes { background: var(--heart); color: #fff; }
 
 /* 6. Поверни планшет. */
@@ -542,6 +542,23 @@ const Store = {
     const obj = (x) => x && typeof x === "object" && !Array.isArray(x);
     if (k === "progress") {
       for (const f of ["cards", "hints", "conf"]) if (!obj(out[f])) out[f] = {};
+      // Записи по одной: без недостающих полей счётчики стали бы NaN, а hints без full/free роняли бы сборку волны с боссом.
+      const num = (x) => (isFinite(+x) && x !== null && x !== "" ? +x : 0), str = (x) => (typeof x === "string" ? x : "");
+      for (const key of Object.keys(out.cards)) {
+        const c = out.cards[key];
+        if (!obj(c)) { delete out.cards[key]; continue; }
+        out.cards[key] = Object.assign({}, c, { b: c.b >= 1 && c.b <= 5 ? Math.round(c.b) : 1, due: typeof c.due === "string" && /^\d{4}-\d\d-\d\d$/.test(c.due) ? c.due : Clock.today(),
+          seen: num(c.seen), ok: num(c.ok), miss: num(c.miss), tS: num(c.tS), tN: num(c.tN), pd: str(c.pd) });
+      }
+      for (const key of Object.keys(out.hints)) {
+        const h = out.hints[key];
+        out.hints[key] = { full: obj(h) && Array.isArray(h.full) ? h.full.filter((d) => typeof d === "string") : [], free: obj(h) && Array.isArray(h.free) ? h.free.filter((d) => typeof d === "string") : [] };
+      }
+      for (const key of Object.keys(out.conf)) {
+        const e = out.conf[key];
+        if (!obj(e) || !/^\d+-\d+$/.test(key)) { delete out.conf[key]; continue; }
+        out.conf[key] = { n: num(e.n), last: str(e.last) };
+      }
       out.lands = Object.assign({ unlocked: [1], stars: {} }, obj(doc.lands) ? doc.lands : {});
       if (!Array.isArray(out.lands.unlocked)) out.lands.unlocked = [1];
       if (!out.lands.unlocked.includes(1)) out.lands.unlocked.unshift(1);
@@ -1463,7 +1480,13 @@ const Game = {
   // День (раздел 8): сбрасывается, когда дата сменилась.
   rollDay() {
     const t = Clock.today();
-    if (Store.data.day.date !== t) { Store.data.day = Store.fresh("day"); Store.data.day.date = t; Store.save("day"); }
+    if (Store.data.day.date !== t) {
+      Store.data.day = Store.fresh("day"); Store.data.day.date = t;
+      // Уровень, который идёт через полночь, засчитан и новому дню: иначе «начато 0, сыграно 1» и лишний уровень сверх лимита.
+      const L = Game.level;
+      if (L && Game.screen === "game" && L.phase !== "levelEnd") Store.data.day.started = 1;
+      Store.save("day");
+    }
     return Store.data.day;
   },
   startLevel(land, idx, opts) {
