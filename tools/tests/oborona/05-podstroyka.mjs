@@ -355,8 +355,8 @@ export function register({ test, assert, eq }) {
     assert(await page.isVisible("#scr-night"), "после третьего — ночь");
     assert((await page.textContent("#scr-night")).includes("Крепость закрывается на ночь"), "заголовок ночи");
     assert(await page.isVisible("#btn-more") && !(await page.isVisible("#rest-msg")), "под лимитом (5) есть «Ещё один уровень»");
-    assert((await page.textContent("#nt-back")).includes("2 × 6"), "завтра вернётся 2 × 6: " + (await page.textContent("#nt-back")));
     assert((await page.textContent("#nt-done")).includes("2 × 6"), "освоено сегодня 2 × 6");
+    assert(!(await page.textContent("#nt-back")).includes("2 × 6"), "фишка не повторяется в «Вернутся завтра»: " + (await page.textContent("#nt-back")));
     eq(await run(page, () => OT.events().filter((e) => e.type === "session_end").length), 1, "session_end");
     await run(page, () => OT.setSetting("perDay", 3));
     assert(!(await page.isVisible("#btn-more")) && (await page.isVisible("#rest-msg")), "при perDay = 3 кнопки нет, виден #rest-msg");
