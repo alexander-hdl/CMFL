@@ -2,7 +2,7 @@
 // цикл «каждый босс побеждается по плану Solver», уровень из трёх волн, итоги, подсказка-путь, многодорожечные поля, скриншоты (--shot).
 // Как и раньше, общаются с игрой только через window.OT и DOM-id.
 
-const SETUP = ([land, idx]) => { OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(land, idx); };
+const SETUP = ([land, idx]) => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx); };
 const run = (page, fn, arg) => page.evaluate(fn, arg);
 
 // Помощники внутри страницы (window.H): построить волну по плану Solver и доиграть её или весь уровень.
@@ -59,12 +59,12 @@ export function register({ test, assert, eq }) {
   // ---------- карта мира, титул, руки ----------
 
   test("Карта: титул → карта мира, 6 земель × 5 уровней, все открыты, звёзды после уровня", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); });
+    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); });
     assert(await page.isVisible("#scr-title"), "нет титульного экрана");
     await page.click("#btn-play");
     assert(await page.isVisible("#scr-map") && !(await page.isVisible("#scr-title")), "после «Играть» нет карты");
     eq(await page.locator("#scr-map [data-level]").count(), 30, "кнопок уровней");
-    eq(await run(page, () => OT.state().unlocked), [1, 2, 3, 4, 5, 6], "DEV_UNLOCK_ALL: все земли открыты");
+    eq(await run(page, () => OT.state().unlocked), [1, 2, 3, 4, 5, 6], "newGame({ veteran }): все земли открыты (замки на карте проверяют Д4 и «Награды»)");
     const names = await run(page, () => [...document.querySelectorAll("#scr-map .land h3")].map((e) => e.textContent));
     eq(names.length, 6);
     for (let l = 1; l <= 6; l++) for (let i = 0; i < 5; i++) assert(await page.locator(`#scr-map [data-level="${l}-${i}"]`).count() === 1, `нет кнопки ${l}-${i}`);
@@ -100,7 +100,7 @@ export function register({ test, assert, eq }) {
     const info = await run(page, () => {
       const out = {};
       for (const [t, land, idx] of [["T1", 1, 0], ["T2", 1, 1], ["T3", 1, 2], ["T4", 1, 4], ["T5", 5, 0]]) {
-        OT.seed(1); OT.newGame(); OT.loadLevel(land, idx);
+        OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx);
         const s = OT.state(), adj = s.adj, pairs = [];
         for (const a of Object.keys(adj)) for (const b of adj[a]) if (a < b) pairs.push([a, b]);
         out[t] = { template: s.template, pads: s.pads.length, lanes: s.lanes.length, pairs, adj };
@@ -117,7 +117,7 @@ export function register({ test, assert, eq }) {
     const cross = await run(page, () => {
       const out = {};
       for (const [t, land, idx, pairs] of [["T3", 1, 2, [["A0", "B0"], ["C0", "C1"]]], ["T4", 1, 4, [["A0", "B0"], ["A1", "B1"], ["D0", "D1"], ["A0", "D0"], ["B0", "D1"]]]]) {
-        OT.seed(1); OT.newGame(); OT.loadLevel(land, idx);
+        OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx);
         for (const [a, b] of pairs) {
           OT.placeTower(a, 7); OT.placeTower(b, 8);
           const r = OT.link(a, b);
@@ -205,12 +205,12 @@ export function register({ test, assert, eq }) {
         const bosses = lands[land - 1].boss;
         for (const [idx, tpl] of levels) for (const card of bosses) {
           const n = (() => { const m = /(\d+)x(\d+)/.exec(card); return +m[1] * +m[2]; })();
-          OT.seed(1); OT.newGame(); OT.loadLevel(land, idx);
+          OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx);
           if (OT.state().template !== tpl) { out.fails.push(["шаблон", land, idx, OT.state().template]); continue; }
           const parts = OT.split(card) || [n];
           const lanesN = OT.state().lanes.length;
           for (let lane = 0; lane < (card === "b:7x8" || card === "m:4x23" ? lanesN : 1); lane++) {
-            if (lane) { OT.seed(1); OT.newGame(); OT.loadLevel(land, idx); }
+            if (lane) { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx); }
             const enemies = [{ number: n, armored: true, lane }];
             const sol = OT.solve({ land, idx, template: tpl, demands: parts.map((p) => ({ n: p, lanes: [lane], tag: card, part: true })), enemies });
             if (!sol.ok) { out.fails.push(["нет плана", land, tpl, card, lane]); continue; }
@@ -237,7 +237,7 @@ export function register({ test, assert, eq }) {
   // ---------- П4: босс 56 ----------
 
   test("П4: босс 56 — «56 − 35 = 21», затем 7 × 3 побеждает; луч сильнее остатка проходит без вреда", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(4, 0); });
+    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0); });
     // Цепочка B0=5 – A1=7 – B1=3 (общая башня 7): 5 × 7 = 35, потом 7 × 3 = 21.
     await run(page, () => {
       OT.setWave([56], { armored: [56] });
@@ -262,7 +262,7 @@ export function register({ test, assert, eq }) {
     eq(fin.hearts, 10);
     eq(ev.filter((e) => e.type === "boss_hit").length, 1);
     // Луч сильнее остатка: 35, потом 40 (босс 21 проходит, остаток не меняется, запись «21, а луч даёт 40» и возвращается «56 − 35 = 21»), потом 21 побеждает.
-    await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(4, 0); OT.setWave([56], { armored: [56] }); });
+    await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0); OT.setWave([56], { armored: [56] }); });
     await run(page, () => {
       OT.placeTower("A0", 7); OT.placeTower("B0", 5); OT.link("A0", "B0");             // x = 420: 35
       OT.placeTower("A1", 5); OT.placeTower("B1", 8); OT.link("A1", "B1");             // x = 720: 40 — больше остатка
@@ -280,13 +280,13 @@ export function register({ test, assert, eq }) {
     eq(fin2.hearts, 10);
     assert((await run(page, () => OT.events())).some((e) => e.type === "enemy_killed" && e.beam.product === 21), "босс не побеждён лучом 21");
     // Целый луч 7 × 8 бьёт босса 56 сразу (решение 2 раздела 16).
-    await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(4, 0); OT.setWave([56], { armored: [56] }); OT.placeTower("A0", 7); OT.placeTower("B0", 8); OT.link("A0", "B0"); OT.startWave(); OT.runWave(); });
+    await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0); OT.setWave([56], { armored: [56] }); OT.placeTower("A0", 7); OT.placeTower("B0", 8); OT.link("A0", "B0"); OT.startWave(); OT.runWave(); });
     const whole = await run(page, () => OT.events());
     assert(whole.some((e) => e.type === "enemy_killed" && e.beam.product === 56) && !whole.some((e) => e.type === "boss_hit"), "целый луч не побил босса");
   });
 
   test("Босс: железный вид, число на щите уменьшается, три знака помещаются", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(6, 0); });
+    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(6, 0); });
     // Рисунок: по пикселям — тёмный шлем и светлый квадратный щит у железного, фиолетовая клякса у обычного.
     await run(page, () => { OT.setWave([92, 21], { armored: [92] }); OT.startWave(); OT.step(18); });
     const px = await run(page, () => {
@@ -311,7 +311,7 @@ export function register({ test, assert, eq }) {
   test("П5: земля деления — стоит 7, идёт 56: подходит только напарник 8; свободные площадки не соседи", async ({ page }) => {
     const hand = [2, 3, 4, 5, 6, 7, 8, 9, 10];
     for (const d of hand) {
-      await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(5, 0); OT.setWave([56], { fixed: { A1: 7 } }); });
+      await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(5, 0); OT.setWave([56], { fixed: { A1: 7 } }); });
       if (d === hand[0]) {
         const r = await run(page, () => {
           const out = {};
@@ -343,7 +343,7 @@ export function register({ test, assert, eq }) {
   });
 
   test("Земля 5: перед каждой волной свободные башни и лучи снимаются, заранее стоящие получают новые цифры", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(2); OT.newGame(); OT.loadLevel(5, 1); });
+    await run(page, () => { OT.manual(true); OT.seed(2); OT.newGame({ veteran: true }); OT.loadLevel(5, 1); });
     await run(page, HELPERS);
     const r = await run(page, () => {
       const fixedOf = () => OT.state().pads.filter((p) => p.fixed).map((p) => p.id + p.digit).join(" ");
@@ -409,20 +409,27 @@ export function register({ test, assert, eq }) {
 
   test("WaveGen: первая волна новой игры — первые три карточки земли; новые карточки вводятся по порядку", async ({ page }) => {
     await run(page, () => OT.manual(true));
+    // Этап 3: волна считается от прогресса ребёнка, поэтому «новая игра» — это пустой набор карточек (cards: {}), а не синтетический прогресс по умолчанию.
     const r = await run(page, () => {
-      const first = OT.waveFor(1, 0, 0, 1).enemies.map((e) => e.card);
-      const seen = new Set();
-      for (let idx = 0; idx < 5; idx++) for (let w = 0; w < 3; w++) for (const e of OT.waveFor(1, idx, w, 1 + idx * 3 + w).enemies) seen.add(e.card);
-      return { first: [...new Set(first)].sort(), cards: seen.size, law: OT.lands()[0].cards.slice(0, 3).sort() };
+      const first = OT.waveFor(1, 0, 0, 1, { cards: {} }).enemies.map((e) => e.card);
+      const law = OT.lands()[0].cards, cards = {}, order = [];
+      for (let idx = 0; idx < 5; idx++) for (let w = 0; w < 3; w++) {
+        const fresh = [];
+        for (const e of OT.waveFor(1, idx, w, 1 + idx * 3 + w, { cards }).enemies) if (!cards[e.card] && !fresh.includes(e.card)) fresh.push(e.card);
+        fresh.sort((x, y) => law.indexOf(x) - law.indexOf(y));
+        for (const k of fresh) { cards[k] = { b: 2, due: "2099-01-01" }; order.push(k); }
+      }
+      return { first: [...new Set(first)].sort(), law3: law.slice(0, 3).sort(), order, law: law.slice(0, order.length) };
     });
-    eq(r.first, r.law, "первая волна");
-    assert(r.cards >= 15, "за 15 волн земли 1 должны встретиться почти все карточки, было " + r.cards);
+    eq(r.first, r.law3, "первая волна");
+    eq(r.order, r.law, "новые карточки вводятся строго по порядку таблицы");
+    assert(r.order.length >= 8, "за 15 волн должно быть введено не меньше 8 карточек, было " + r.order.length);
   });
 
   // ---------- уровень из трёх волн, итоги ----------
 
   test("Уровень: три волны, лента обновляется, «Следующая волна», плашка и итоги с задержкой 0,6 с, level_end один раз", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(3); OT.newGame(); OT.loadLevel(1, 2); });
+    await run(page, () => { OT.manual(true); OT.seed(3); OT.newGame({ veteran: true }); OT.loadLevel(1, 2); });
     await run(page, HELPERS);
     const ribbons = [];
     for (let w = 0; w < 3; w++) {
@@ -468,7 +475,7 @@ export function register({ test, assert, eq }) {
     await run(page, HELPERS);
     const tips = { 1: ["×5 — половина от ×10"], 2: ["×4 — это удвоить дважды"], 3: ["×9 = ×10 минус одно", "×6 = ×5 плюс одно"], 4: ["Трудный пример режь на лёгкие"], 5: ["Какое число вместе с 7 даёт 56"], 6: ["Режь по разрядам: 23 × 4 = 20 × 4 + 3 × 4"] };
     for (let land = 1; land <= 6; land++) {
-      await run(page, (land) => { OT.seed(1); OT.newGame(); OT.loadLevel(land, land === 5 ? 1 : 3); H.level(); }, land);
+      await run(page, (land) => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, land === 5 ? 1 : 3); H.level(); }, land);
       const text = await page.locator("#le-lines").innerText();
       for (const t of tips[land]) assert(text.includes(t), `земля ${land}: нет подсказки «${t}» в «${text}»`);
       const lines = await page.locator("#le-lines p").count();
@@ -477,7 +484,7 @@ export function register({ test, assert, eq }) {
     }
     // Конкретно: 24 побеждён лучом 3 × 8 → итоги пишут про 4 × 6; 12 лучом 3 × 4 → про 2 × 6; не больше трёх строк.
     await run(page, () => {
-      OT.seed(1); OT.newGame(); OT.loadLevel(2, 0);
+      OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(2, 0);
       const waves = [[[24], ["A0", 3, "B0", 8]], [[12], ["A0", 3, "B0", 4]], [[36, 16, 18, 40], null]];
       for (let w = 0; w < 3; w++) {
         OT.setWave(waves[w][0]);
@@ -496,7 +503,7 @@ export function register({ test, assert, eq }) {
   test("Итоги: цепочка босса «56 − 35 − 21 = 0» и цепочка двузначного", async ({ page }) => {
     await run(page, () => OT.manual(true));
     await run(page, HELPERS);
-    await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(4, 0); H.level(); });
+    await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0); H.level(); });
     const chains = await page.locator("#le-lines p.chain").allTextContents();
     assert(chains.length >= 1 && chains.length <= 2, "цепочки боссов: " + JSON.stringify(chains));
     for (const c of chains) assert(/^\d+( − \d+)+ = 0$/.test(c), "цепочка не по шаблону: " + c);
@@ -510,7 +517,7 @@ export function register({ test, assert, eq }) {
     const cases = [[10, 3], [9, 3], [8, 2], [6, 2], [5, 1], [0, 1]];
     for (const [hearts, stars] of cases) {
       const r = await run(page, (hearts) => {
-        OT.seed(1); OT.newGame(); OT.loadLevel(1, 0);
+        OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 0);
         const loss = hearts === 0 ? 12 : 10 - hearts, per = [Math.ceil(loss / 3), Math.ceil((loss - Math.ceil(loss / 3)) / 2), 0];
         per[2] = loss - per[0] - per[1];
         const waveEnds = [];
@@ -533,7 +540,7 @@ export function register({ test, assert, eq }) {
     }
     // Лучший результат хранится: сначала 1 звезда, потом 3, потом снова 1 — на карте остаётся 3.
     const best = await run(page, () => {
-      OT.seed(1); OT.newGame();
+      OT.seed(1); OT.newGame({ veteran: true });
       const out = [];
       for (const loss of [12, 0, 12]) {
         OT.loadLevel(1, 1);
@@ -548,7 +555,7 @@ export function register({ test, assert, eq }) {
   // ---------- подсказка-путь ----------
 
   test("Подсказка-путь: пунктир и призрак «7 × 5» у босса в подготовке и на паузе, исчезает после луча на паре", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(4, 0); OT.setWave([56, 24], { armored: [56] }); });
+    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0); OT.setWave([56, 24], { armored: [56] }); });
     const h = await run(page, () => ({ hints: OT.state().hints, drawn: OT.drawn().hints }));
     eq(h.hints.length, 1);
     eq([h.hints[0].card, h.hints[0].mode, h.hints[0].parts], ["b:7x8", "full", [35, 21]]);
@@ -570,7 +577,7 @@ export function register({ test, assert, eq }) {
     await run(page, () => { OT.pause(); OT.step(0.1); });
     eq((await run(page, () => OT.drawn().hints)).length, 1, "на паузе");
     // Обычные враги подсказки не получают; 3 × 3 — целый луч.
-    await run(page, () => { OT.resume(); OT.runWave(); OT.step(3); OT.seed(1); OT.newGame(); OT.loadLevel(4, 0); OT.setWave([24, 12]); });
+    await run(page, () => { OT.resume(); OT.runWave(); OT.step(3); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0); OT.setWave([24, 12]); });
     eq(await run(page, () => OT.drawn().hints), []);
     await run(page, () => OT.setWave([9, 9], { armored: [9], cards: { 9: "b:3x3" } }));
     const nine = await run(page, () => OT.state().hints);
@@ -584,10 +591,10 @@ export function register({ test, assert, eq }) {
     // T3: ствол A0–B0 (7 × 8) бьёт 56 на обеих дорожках; ветка C0–C1 — только на дорожке 0.
     const t3 = await run(page, () => {
       const out = {};
-      OT.seed(1); OT.newGame(); OT.loadLevel(1, 2); OT.setWave([56, 56], { lanes: [0, 1] });
+      OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 2); OT.setWave([56, 56], { lanes: [0, 1] });
       OT.placeTower("A0", 7); OT.placeTower("B0", 8); OT.link("A0", "B0"); OT.startWave(); OT.runWave();
       out.trunk = OT.events().filter((e) => e.type === "enemy_killed").map((e) => e.id).length;
-      OT.seed(1); OT.newGame(); OT.loadLevel(1, 2); OT.setWave([56, 56], { lanes: [0, 1] });
+      OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 2); OT.setWave([56, 56], { lanes: [0, 1] });
       OT.placeTower("C0", 7); OT.placeTower("C1", 8); OT.link("C0", "C1"); OT.startWave(); const st = OT.runWave();
       out.branch = OT.events().filter((e) => e.type === "enemy_killed").map((e) => e.id);
       out.branchHearts = st.hearts;
@@ -598,10 +605,10 @@ export function register({ test, assert, eq }) {
     // T4: D0–D1 пересекает только среднюю дорожку; A1–B1 на стволе бьёт все три.
     const t4 = await run(page, () => {
       const out = {};
-      OT.seed(1); OT.newGame(); OT.loadLevel(1, 4); OT.setWave([56, 56, 56], { lanes: [0, 1, 2] });
+      OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 4); OT.setWave([56, 56, 56], { lanes: [0, 1, 2] });
       OT.placeTower("D0", 7); OT.placeTower("D1", 8); OT.link("D0", "D1"); OT.startWave(); OT.runWave();
       out.mid = OT.events().filter((e) => e.type === "enemy_killed").map((e) => e.number);
-      OT.seed(1); OT.newGame(); OT.loadLevel(1, 4); OT.setWave([56, 56, 56], { lanes: [0, 1, 2] });
+      OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 4); OT.setWave([56, 56, 56], { lanes: [0, 1, 2] });
       OT.placeTower("A1", 7); OT.placeTower("B1", 8); OT.link("A1", "B1"); OT.startWave(); const st = OT.runWave();
       out.trunk = OT.events().filter((e) => e.type === "enemy_killed").length; out.hearts = st.hearts;
       return out;
@@ -612,7 +619,7 @@ export function register({ test, assert, eq }) {
     const gap = await run(page, () => {
       let min = 1e9;
       for (const [land, idx] of [[1, 2], [1, 4]]) {
-        OT.seed(1); OT.newGame(); OT.loadLevel(land, idx);
+        OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx);
         const pts = (ln, d) => { const P = ln.points, cum = [0]; for (let j = 1; j < P.length; j++) cum.push(cum[j - 1] + Math.hypot(P[j][0] - P[j - 1][0], P[j][1] - P[j - 1][1])); d = Math.max(0, Math.min(d, cum.at(-1))); let i = 0; while (i < P.length - 2 && d > cum[i + 1]) i++; const t = (d - cum[i]) / (cum[i + 1] - cum[i]); return [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t]; };
         OT.setWave(Array.from({ length: 12 }, () => 56));
         OT.startWave();
@@ -754,7 +761,7 @@ export function register({ test, assert, eq }) {
   });
 
   test("Реальное время: цикл rAF ведёт волну по карте, пауза кнопкой, продолжение, плашка конца волны", async ({ page }) => {
-    await run(page, () => { OT.seed(1); OT.newGame(); OT.setSetting("speed", "fast"); OT.loadLevel(1, 0); OT.setWave([12, 12]); OT.placeTower("A0", 3); OT.placeTower("B0", 4); OT.link("A0", "B0"); });   // без manual
+    await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.setSetting("speed", "fast"); OT.loadLevel(1, 0); OT.setWave([12, 12]); OT.placeTower("A0", 3); OT.placeTower("B0", 4); OT.link("A0", "B0"); });   // без manual
     await page.click("#btn-fight");
     await page.waitForTimeout(2500);
     const s1 = await run(page, () => OT.state());
@@ -776,12 +783,12 @@ export function register({ test, assert, eq }) {
   // ---------- Д8: звук ----------
 
   test("Д8: до жеста звук молчит (audioState 'none'), с sound:false осцилляторов нет, со звуком — блипы", async ({ page }) => {
-    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(1, 0); });
+    await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 0); });
     eq(await run(page, () => OT.audioState()), "none", "до жеста");
     await run(page, () => { OT.setWave([56]); OT.placeTower("A0", 7); OT.placeTower("B0", 8); OT.link("A0", "B0"); OT.startWave(); OT.runWave(); });
     eq(await run(page, () => OT.audioStats()), { state: "none", osc: 0 }, "до жеста ничего не звучит");
     // Жест: касание страницы создаёт контекст.
-    await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(1, 0); OT.setSetting("sound", false); });
+    await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 0); OT.setSetting("sound", false); });
     await page.mouse.click(5, 5);
     const state = await run(page, () => OT.audioState());
     assert(state === "running" || state === "suspended", "после жеста контекст не создан: " + state);
@@ -813,7 +820,7 @@ export function register({ test, assert, eq }) {
       const noScroll = () => run(page, () => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight);
       const size = (sel) => run(page, (sel) => { const e = document.querySelector(sel), b = e.getBoundingClientRect(); return { m: Math.min(b.width, b.height), vis: !!e.offsetParent }; }, sel);
       // Титул и карта.
-      await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); });
+      await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); });
       assert(await noScroll(), `${w}×${h}: скролл на титуле`);
       assert((await size("#btn-play")).m >= 48, `${w}×${h}: «Играть»`);
       await run(page, () => OT.show("map"));
@@ -824,7 +831,7 @@ export function register({ test, assert, eq }) {
       assert(fits, `${w}×${h}: карта не помещается`);
       // Бой на землях 1 и 6 (в руке 9 и 12 цифр).
       for (const [land, idx, digits] of [[1, 0, 9], [6, 4, 12]]) {
-        await run(page, ({ land, idx }) => { OT.seed(1); OT.newGame(); OT.loadLevel(land, idx); }, { land, idx });
+        await run(page, ({ land, idx }) => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx); }, { land, idx });
         assert(await noScroll(), `${w}×${h}: скролл в бою`);
         const f = await size("#btn-fight"), hand = await run(page, () => [...document.querySelectorAll("#hand [data-digit]")].map((e) => Math.min(e.getBoundingClientRect().width, e.getBoundingClientRect().height)));
         assert(f.vis && f.m >= 48, `${w}×${h}: «В бою!» ${f.m}`);
@@ -839,7 +846,7 @@ export function register({ test, assert, eq }) {
         assert(menu.length === 3 && menu.every((m) => m >= 48), `${w}×${h}: меню паузы ${JSON.stringify(menu)}`);
       }
       // Итоги уровня (земля 3: две подсказки, три строки «ещё лучом»), всё помещается.
-      await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(3, 3); H.level(); });
+      await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(3, 3); H.level(); });
       assert(await page.isVisible("#scr-level-end"), `${w}×${h}: нет итогов`);
       assert(await noScroll(), `${w}×${h}: скролл на итогах`);
       const le = await run(page, () => { const st = document.getElementById("stage").getBoundingClientRect(), b = document.getElementById("btn-le-next").getBoundingClientRect(), t = document.getElementById("le-title").getBoundingClientRect(); return { fit: b.bottom <= st.bottom && t.top >= st.top, m: Math.min(b.width, b.height, document.getElementById("btn-le-map").getBoundingClientRect().height) }; });
@@ -860,11 +867,11 @@ export function register({ test, assert, eq }) {
       const sfx = `${w}x${h}`;
       if (w === 1024) {
         // карта мира с несколькими звёздами
-        await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame(); for (const [l, i] of [[1, 0], [1, 1], [2, 0]]) { OT.loadLevel(l, i); H.level(); } OT.show("map"); });
+        await run(page, () => { OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); for (const [l, i] of [[1, 0], [1, 1], [2, 0]]) { OT.loadLevel(l, i); H.level(); } OT.show("map"); });
         await shot(`karta-mira-${sfx}`);
         // T4 с лучами: три дороги, ствол и ветки
         await run(page, () => {
-          OT.seed(1); OT.newGame(); OT.loadLevel(1, 4);
+          OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 4);
           OT.setWave([56, 24, 42, 12, 56, 24, 42, 12]);
           for (const [p, d] of [["A0", 7], ["B0", 8], ["A1", 4], ["B1", 6], ["A2", 3], ["B2", 8], ["D0", 6], ["D1", 7]]) OT.placeTower(p, d);
           for (const [a, b] of [["A0", "B0"], ["A1", "B1"], ["A2", "B2"], ["D0", "D1"], ["A0", "B1"], ["B0", "D1"]]) OT.link(a, b);
@@ -873,7 +880,7 @@ export function register({ test, assert, eq }) {
         await shot(`t4-tri-tropy-luchi-${sfx}`);
         // босс с висящей записью
         await run(page, () => {
-          OT.seed(1); OT.newGame(); OT.loadLevel(4, 0);
+          OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(4, 0);
           OT.setWave([56, 24, 56], { armored: [56] });
           OT.placeTower("A0", 7); OT.placeTower("B0", 5); OT.link("A0", "B0"); OT.placeTower("A1", 3); OT.link("B0", "A1");
           OT.placeTower("B1", 6); OT.placeTower("A2", 4); OT.link("B1", "A2");
@@ -883,14 +890,14 @@ export function register({ test, assert, eq }) {
         await shot(`boss-zametka-${sfx}`);
         // земля 5
         await run(page, () => {
-          OT.seed(2); OT.newGame(); OT.loadLevel(5, 2);
+          OT.seed(2); OT.newGame({ veteran: true }); OT.loadLevel(5, 2);
           const s = OT.state(); const f = s.pads.filter((p) => p.fixed);
           const plan = s.wave.plan.slice(0, 2); for (const p of plan) { OT.placeTower(p.a, p.da); OT.placeTower(p.b, p.db); OT.link(p.a, p.b); }
         });
         await shot(`zemlya5-zaranee-stoyashchie-${sfx}`);
         // земля 6: двузначный босс
         await run(page, () => {
-          OT.seed(1); OT.newGame(); OT.loadLevel(6, 1);
+          OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(6, 1);
           OT.setWave([92, 21, 76], { armored: [92, 76] });
           const plan = OT.state().wave.plan; for (const p of plan) { OT.placeTower(p.a, p.da); OT.placeTower(p.b, p.db); } for (const p of plan) OT.link(p.a, p.b);
           OT.startWave(); for (let i = 0; i < 900; i++) { OT.step(0.1); const e = OT.state().enemies.find((x) => x.armored && x.rem !== x.number); if (e) break; } OT.step(0.3);
@@ -898,7 +905,7 @@ export function register({ test, assert, eq }) {
         await shot(`zemlya6-dvuznachnyj-boss-${sfx}`);
       }
       // итоги уровня (земля 3: две подсказки, строки «ещё лучом»)
-      await run(page, () => { OT.seed(1); OT.newGame(); OT.loadLevel(3, 1); H.level(); });
+      await run(page, () => { OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(3, 1); H.level(); });
       await shot(`itogi-urovnya-${sfx}`);
     });
   }

@@ -24,7 +24,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 :focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
 /* 2. Сцена: логическое поле 1600x900, масштаб и letterbox ставит JS (Render.resize). */
-#app { position: fixed; inset: 0; background: var(--bg); overflow: hidden; }
+#app { position: fixed; inset: 0; background: var(--bg); overflow: hidden; font-size: var(--fs); }
 #stage { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; overflow: hidden; background: var(--grass); }
 #field { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; display: block; touch-action: none; }
 
@@ -70,28 +70,43 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 .screen h1 { margin: 0; font: 400 118px/1.05 var(--f-num); color: var(--gold); text-shadow: 0 6px 0 #7a5400; }
 .screen p { margin: 0; font-weight: 800; font-size: 38px; max-width: 1000px; line-height: 1.3; }
 #btn-play { width: 420px; height: 120px; font-size: 56px; font-family: var(--f-num); font-weight: 400; margin-top: 20px; }
-/* Карта мира: шесть земель, по пять уровней. */
-#scr-map { gap: 10px; padding-top: 14px; }
-#scr-map h2 { margin: 0; font: 400 58px/1.1 var(--f-num); color: var(--gold); text-shadow: 0 4px 0 #7a5400; }
-#lands { display: grid; grid-template-columns: repeat(3, 500px); gap: 22px 24px; }
-.land { position: relative; height: 350px; padding: 16px 14px 12px; border-radius: 34px; border: 6px solid #2b4f66; background: linear-gradient(#3a7d52, #2c6a45); display: grid; grid-template-rows: auto 1fr auto; justify-items: center; text-align: center; }
+/* Карта мира: шесть земель, по пять уровней, награды. */
+#scr-map { gap: 8px; padding-top: 8px; }
+#scr-map h2 { margin: 0; font: 400 50px/1.1 var(--f-num); color: var(--gold); text-shadow: 0 4px 0 #7a5400; }
+#lands { display: grid; grid-template-columns: repeat(3, 500px); gap: 14px 24px; }
+.land { position: relative; height: 280px; padding: 12px 14px 8px; border-radius: 34px; border: 6px solid #2b4f66; background: linear-gradient(#3a7d52, #2c6a45); display: grid; grid-template-rows: auto 1fr auto; justify-items: center; text-align: center; }
 .land[data-land="2"] { background: linear-gradient(#7a9a4a, #5f8238); }
 .land[data-land="3"] { background: linear-gradient(#2f7a4c, #1f5e3a); }
 .land[data-land="4"] { background: linear-gradient(#8b95a3, #66707e); }
 .land[data-land="5"] { background: linear-gradient(#b08a52, #8c6a38); }
 .land[data-land="6"] { background: linear-gradient(#8a63d2, #6c48b3); }
 .land.locked { filter: saturate(.25) brightness(.7); }
-.land h3 { margin: 0; font: 800 32px/1.15 var(--f-body); color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.35); min-height: 74px; display: flex; align-items: center; }
-.land .lock { align-self: center; font-weight: 800; font-size: 28px; line-height: 1.25; padding: 0 10px; }
-.land .lock svg { display: block; margin: 0 auto 6px; width: 54px; height: 54px; fill: var(--gold); stroke: var(--ink); stroke-width: 1.5; }
-.lvls { display: flex; gap: 16px; align-items: flex-start; justify-content: center; margin-bottom: 8px; }
+.land h3 { margin: 0; font: 800 29px/1.15 var(--f-body); color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.35); min-height: 66px; display: flex; align-items: center; }
+.land .lock { align-self: center; font-weight: 800; font-size: 27px; line-height: 1.22; padding: 0 10px; }
+.land .lock svg { display: block; margin: 0 auto 4px; width: 50px; height: 50px; fill: var(--gold); stroke: var(--ink); stroke-width: 1.5; }
+.lvls { display: flex; gap: 16px; align-items: flex-start; justify-content: center; margin-bottom: 6px; }
 .lvl-cell { display: grid; justify-items: center; gap: 2px; }
 .lvl { width: 78px; height: 78px; border-radius: 50%; background: linear-gradient(#ffd75e,#ffc83d); color: var(--gold-ink); font: 400 38px/1 var(--f-num); box-shadow: 0 5px 0 #b9861a; border: 4px solid var(--ink); }
 .lvl:active { transform: translateY(3px); box-shadow: 0 2px 0 #b9861a; }
 .lvl-stars { display: flex; gap: 2px; height: 24px; }
 .lvl-stars svg { fill: rgba(0,0,0,.35); stroke: rgba(255,255,255,.45); stroke-width: 1.2; }
 .lvl-stars svg.on { fill: var(--gold); stroke: var(--ink); }
-.land .sample { align-self: center; font: 400 54px/1 var(--f-num); color: rgba(255,255,255,.28); }
+.land .sample { align-self: center; font: 400 50px/1 var(--f-num); color: rgba(255,255,255,.28); }
+#btn-parent { position: absolute; right: 18px; top: 10px; width: 84px; height: 84px; border-radius: 50%; background: rgba(255,255,255,.14); border: 4px solid rgba(255,255,255,.35); display: grid; place-content: center; }
+#btn-parent svg.gear { width: 46px; height: 46px; stroke: rgba(255,255,255,.75); }
+#btn-parent svg.ring { position: absolute; inset: -4px; width: 84px; height: 84px; transform: rotate(-90deg); pointer-events: none; }
+#btn-parent svg.ring circle { fill: none; stroke: var(--gold); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 245; stroke-dashoffset: 245; }
+#rewards { width: 1560px; padding: 6px 14px 10px; border-radius: 26px; background: rgba(0,0,0,.26); display: grid; gap: 4px; text-align: left; }
+#rewards h3 { margin: 0; font: 800 26px/1.2 var(--f-body); color: var(--gold); }
+#rewards h3 small { font-weight: 600; font-size: 22px; color: #d6e4ee; margin-left: 12px; }
+#rw-list { display: flex; gap: 8px; }
+.rw { flex: 1 1 0; min-width: 0; display: grid; justify-items: center; align-content: start; gap: 0; padding: 4px 4px 6px; border-radius: 18px; background: rgba(255,255,255,.1); border: 4px solid transparent; color: #fff; text-align: center; font: 800 20px/1.15 var(--f-body); }
+.rw canvas { width: 62px; height: 62px; }
+.rw.lock canvas { filter: grayscale(1) brightness(.75); opacity: .8; }
+.rw.got { border-color: var(--gold); background: rgba(255,200,61,.2); }
+.rw.on { background: rgba(255,200,61,.42); }
+.rw .nm { min-height: 46px; display: grid; align-content: center; }
+.rw .pg { font-weight: 600; font-size: 19px; opacity: .92; }
 /* Итоги уровня. */
 #scr-level-end { gap: 12px; }
 #scr-level-end h2 { margin: 0; font: 400 76px/1.1 var(--f-num); color: var(--gold); text-shadow: 0 5px 0 #7a5400; }
@@ -108,8 +123,74 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 #le-btns .btn { width: 360px; height: 100px; font-size: 44px; font-family: var(--f-num); font-weight: 400; }
 #toast { position: absolute; left: 50%; top: 130px; transform: translateX(-50%); padding: 10px 26px; border-radius: 20px; background: var(--paper); color: var(--ink); font-weight: 800; font-size: 32px; pointer-events: none; }
 
+/* Ночь и отдых. */
+#scr-night, #scr-rest { gap: 14px; }
+#scr-night h2, #scr-rest h2 { margin: 0; font: 400 70px/1.1 var(--f-num); color: var(--gold); text-shadow: 0 5px 0 #7a5400; }
+.moon { width: 120px; height: 120px; fill: #ffe9a8; filter: drop-shadow(0 0 14px rgba(255,233,168,.45)); }
+#nt-stars { display: flex; gap: 10px; }
+#nt-stars svg { width: 70px; height: 67px; fill: #31566e; stroke: #0f2230; stroke-width: 1.2; }
+#nt-stars svg.on { fill: var(--gold); }
+#nt-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; width: 1380px; }
+.nt-col { padding: 12px 18px 16px; background: rgba(0,0,0,.24); border-radius: 26px; min-height: 140px; }
+.nt-col h3 { margin: 0 0 10px; font: 800 32px/1.2 var(--f-body); color: #bfe8ff; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.chip { padding: 6px 18px; border-radius: 20px; background: var(--paper); color: var(--ink); border: 4px solid #c9b88a; font: 400 34px/1.2 var(--f-num); }
+.chip.star { border-color: var(--gold); background: #fff3c4; }
+.chip.dim { opacity: .85; background: #e7edf2; border-color: #9fb2c0; }
+.nt-col p { margin: 0; font-size: 30px; opacity: .85; }
+#nt-btns { display: flex; gap: 28px; margin-top: 6px; align-items: center; }
+#nt-btns .btn { width: 420px; height: 100px; font-size: 42px; font-family: var(--f-num); font-weight: 400; }
+#rest-msg { font: 400 44px/1.15 var(--f-num); color: #ffe9a8; max-width: 640px; }
+#rest-text { font: 400 70px/1.1 var(--f-num); color: #ffe9a8; max-width: 1500px; }
+#btn-rest-map { width: 420px; height: 100px; font-size: 44px; font-family: var(--f-num); font-weight: 400; }
+/* Экран для взрослого. */
+#scr-parent { display: block; place-content: start stretch; justify-items: stretch; padding: 10px 22px; text-align: left; overflow: hidden; font-size: 24px; background: #1d3a50; }
+#scr-parent h2 { margin: 0; font: 400 44px/1.1 var(--f-num); color: var(--gold); }
+.pr-top { display: flex; justify-content: space-between; align-items: center; height: 70px; }
+.pr-top .btn { width: 230px; height: 64px; font-size: 32px; }
+.pr-body { display: grid; grid-template-columns: 640px 1fr; gap: 24px; }
+.pr-left h3, .pr-right h3 { margin: 0 0 4px; font: 800 24px/1.25 var(--f-body); color: #bfe8ff; }
+.pr-grid { display: grid; grid-template-columns: 52px repeat(8, 1fr); gap: 4px; margin-bottom: 10px; }
+.pr-grid > div, .pr-grid > button { height: 50px; border-radius: 10px; display: grid; place-content: center; font: 400 24px/1 var(--f-num); }
+.pr-grid .hd { background: transparent; color: #bfe8ff; }
+.pr-grid button { color: var(--ink); border: 3px solid transparent; }
+.pr-grid button.sel { border-color: #fff; }
+.pr-grid button.sym { opacity: .8; }
+.pr-row { display: grid; grid-template-columns: 52px repeat(8, 1fr); gap: 4px; margin-bottom: 8px; }
+.pr-row .hd { color: #bfe8ff; font: 400 24px/50px var(--f-num); text-align: center; }
+.pr-row button { height: 50px; border-radius: 10px; color: var(--ink); font: 400 24px/1 var(--f-num); border: 3px solid transparent; }
+.pr-row button.sel { border-color: #fff; }
+.pr-leg { display: flex; gap: 10px; align-items: center; font-size: 20px; margin: 4px 0 6px; }
+.pr-leg i { display: inline-block; width: 22px; height: 22px; border-radius: 6px; vertical-align: -4px; margin-right: 4px; }
+.pr-sum { font-size: 24px; line-height: 1.5; }
+.pr-sum b { color: var(--gold); }
+#pr-detail { min-height: 72px; padding: 8px 14px; background: rgba(0,0,0,.28); border-radius: 14px; font-size: 26px; font-weight: 800; line-height: 1.3; margin-bottom: 8px; }
+.pr-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+.pr-list { margin: 0; padding: 0; list-style: none; font-size: 24px; line-height: 1.45; }
+.pr-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-list li.none { opacity: .6; }
+.pr-set { display: grid; gap: 6px; padding: 8px 12px; background: rgba(0,0,0,.2); border-radius: 14px; margin-bottom: 8px; }
+.pr-set .rw2 { display: flex; gap: 8px; align-items: center; }
+.pr-set .rw2 > span { width: 190px; font-weight: 800; }
+.pr-set button { height: 46px; padding: 0 14px; white-space: nowrap; border-radius: 14px; background: #e9f0f4; color: var(--ink); font: 800 22px/1 var(--f-body); border: 3px solid transparent; }
+.pr-set button.on { background: var(--gold); border-color: var(--ink); }
+.pr-set button.sq { width: 56px; padding: 0; font-size: 30px; }
+.pr-set .val { min-width: 44px; text-align: center; font: 400 30px/1 var(--f-num); }
+#pr-today { margin: 4px 0 8px; font-size: 24px; }
+.pr-reset { display: flex; gap: 10px; align-items: center; }
+.pr-reset button { height: 52px; padding: 0 18px; border-radius: 14px; background: #f3d2cd; color: #5c1209; font: 800 24px/1 var(--f-body); }
+.pr-reset button.yes { background: var(--heart); color: #fff; }
+
 /* 6. Поверни планшет. */
 #rotate { position: fixed; inset: 0; z-index: 99; background: var(--bg); color: var(--gold); display: grid; place-content: center; text-align: center; font: 400 9vw/1.15 var(--f-num); padding: 0 6vw; }
+
+/* Крупный шрифт (настройка взрослого): --fs ×1,25, цифры руки и подписи на canvas крупнее. */
+#app.big { --fs: 37.5px; }
+#app.big #hand .hd { font-size: 62px; }
+#app.big #hand.dense .hd { font-size: 52px; }
+#app.big .rc { font-size: 36px; }
+#app.big #le-lines p { font-size: 38px; }
+#app.big #le-hearts { font-size: 44px; }
 
 /* 7. Спокойный режим движения. */
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -145,6 +226,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
     <section class="screen" id="scr-map" hidden>
       <h2>Карта мира</h2>
       <div id="lands"></div>
+      <div id="rewards"><h3>Награды<small>Освой все факты ряда — получишь облик башни</small></h3><div id="rw-list"></div></div>
+      <button class="btn" id="btn-parent" type="button" aria-label="Для взрослого: нажать и держать">
+        <svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.500" fill="none" stroke-width="3.500"/><circle cx="12" cy="12" r="10" fill="none" stroke-width="3.600" stroke-dasharray="3.140 3.140"/></svg>
+        <svg class="ring" viewBox="0 0 84 84" aria-hidden="true"><circle id="parent-ring" cx="42" cy="42" r="39"/></svg>
+      </button>
     </section>
     <section class="screen" id="scr-level-end" hidden>
       <h2 id="le-title">Уровень пройден!</h2>
@@ -156,17 +242,37 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
         <button class="btn alt" id="btn-le-map" type="button">На карту</button>
       </div>
     </section>
+    <section class="screen" id="scr-night" hidden>
+      <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.500A8.500 8.500 0 019.500 4a8.500 8.500 0 1010.500 10.500z"/></svg>
+      <h2>Крепость закрывается на ночь</h2>
+      <div id="nt-stars" aria-label="Звёзды"></div>
+      <div id="nt-cols">
+        <div class="nt-col"><h3>Освоено сегодня</h3><div class="chips" id="nt-done"></div></div>
+        <div class="nt-col"><h3>Вернутся завтра</h3><div class="chips" id="nt-back"></div></div>
+      </div>
+      <div id="nt-btns">
+        <button class="btn" id="btn-more" type="button">Ещё один уровень</button>
+        <div id="rest-msg" hidden>Крепость отдыхает до завтра</div>
+        <button class="btn alt" id="btn-night-map" type="button">На карту</button>
+      </div>
+    </section>
+    <section class="screen" id="scr-rest" hidden>
+      <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.500A8.500 8.500 0 019.500 4a8.500 8.500 0 1010.500 10.500z"/></svg>
+      <div id="rest-text">Крепость отдыхает до завтра</div>
+      <button class="btn" id="btn-rest-map" type="button">На карту</button>
+    </section>
+    <section class="screen" id="scr-parent" hidden></section>
   </div>
   <div id="rotate" hidden>Поверни планшет боком</div>
 </div>
 <script>
 (() => { "use strict";
-// Оборона таблицы. Этап 2: карта мира, шесть земель, боссы, деление, двузначные, три волны на уровень.
+// Оборона таблицы. Этап 3: подстройка под ребёнка (Лейтнер, сборка волн, путаницы), сессия, экран взрослого, сохранение и зеркало в db.
 // Модули 0–13 — чистая логика: не трогают document и canvas. Рисуют и слушают только Render, UI, Input, Audio и boot.
 const W = 1600, H = 900, DT = 1 / 60;
 const PAD_OFF = 170, PAD_R = 48, LINK_MAX = 470, CATCH_CSS = 40, HEARTS = 10;
 const WAVES_PER_LEVEL = 3;
-const DEV_UNLOCK_ALL = true;                     // все земли открыты; этап 3 снимает флаг и открывает земли по карточкам
+const INTERVAL = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14 }, UNLOCK_BOX = 3, MASTER_BOX = 4, NIGHT_AFTER = 3, PER_DAY_DEFAULT = 5;
 const SPEEDS = { veryslow: 30, slow: 45, normal: 60, fast: 80 };   // лп/с
 const GAP = 150, GAP_BOSS = 225;                 // расстояние между врагами, лп
 const FIELD_TOP = 110, FIELD_BOTTOM = 790;       // зона поля; выше лента, ниже рука
@@ -366,6 +472,25 @@ const Content = {
   ];
 }
 
+// Все ключи карточек, ряды ×N для облика башен, названия фишек.
+{
+  Content.ALL = new Set();
+  for (const LD of Content.LANDS) for (const k of LD.cards) Content.ALL.add(k);
+  Content.ROWS = {};                              // ряд ×N: все m: карточки с множителем N (оба множителя ≤ 10), у ×7 их 9
+  for (let n = 2; n <= 9; n++) Content.ROWS[n] = [...Content.ALL].filter((k) => { const c = Content.cardOf(k); return c.op === "m" && c.a <= 10 && c.b <= 10 && (c.a === n || c.b === n); });
+  Content.SKINS = [
+    { id: "blizn", n: 2, name: "башня-близнецы", acc: "башню-близнецы" }, { id: "trilist", n: 3, name: "трилистник", acc: "трилистник" }, { id: "chetyre", n: 4, name: "четырёхзубец", acc: "четырёхзубец" },
+    { id: "zvezda", n: 5, name: "звезда", acc: "звезду" }, { id: "soty", n: 6, name: "соты", acc: "соты" }, { id: "mayak", n: 7, name: "башня-маяк", acc: "башню-маяк" },
+    { id: "osminog", n: 8, name: "осьминог", acc: "осьминога" }, { id: "kolokol", n: 9, name: "девятка-колокол", acc: "девятку-колокол" }, { id: "pushka", n: 0, name: "крепостная пушка", acc: "крепостную пушку" },
+  ];
+  // Фишка карточки для экрана ночи и экрана взрослого: «7 × 8», «56 : 7» для деления.
+  Content.label = (key) => {
+    const c = Content.cardOf(key);
+    if (!c) return key;
+    return c.op === "d" ? c.n + " : " + c.a : c.a + " " + TIMES + " " + c.b;
+  };
+}
+
 /* ---------- 2 Clock: сегодняшняя дата с подменой ---------- */
 const Clock = {
   override: null,
@@ -393,25 +518,272 @@ const Bus = {
   clear() { Bus.log.length = 0; },
 };
 
-/* ---------- 4 Store: заглушка (этап 3: localStorage, миграции, зеркало в db) ---------- */
+/* ---------- 4 Store: localStorage с версиями и зеркало в db артефакта ---------- */
+// Три документа (раздел 2 чертежа): progress, settings, day; у каждого v и updatedAt. localStorage пишется всегда, db — когда есть window.claude.
+// Версия новее известной: работаем на данных по умолчанию в памяти, readonly = true, в localStorage и db ничего не пишется, ключ остаётся как был.
+// Store и Clock — единственная граница логики с браузером (localStorage, window.claude, таймер отложенной записи).
 const Store = {
-  readonly: false, mode: "local",
-  load() {}, save(/* docName */) {}, flush() {}, attachDb() {},
-  migrate(doc) { return doc; },
+  LS: "oborona-v1-", DOCS: ["progress", "settings", "day"], CURRENT: 1,
+  readonly: false, mode: "local", data: {}, refs: {}, timers: {}, writing: {}, again: {}, pending: {},
+  fresh(k) {
+    if (k === "progress") return { v: 1, updatedAt: 0, cards: {}, lands: { unlocked: [1], stars: {} }, hints: {}, conf: {}, diff: { hard: 0, easy: false }, skins: { got: [], on: {} }, seed: (Clock.nowMs() % 2147483000) + 1, wn: 0 };
+    if (k === "settings") return { v: 1, updatedAt: 0, speed: "slow", perDay: PER_DAY_DEFAULT, sound: true, big: false };
+    return { v: 1, updatedAt: 0, date: Clock.today(), started: 0, done: 0, played: [], up: [], down: [] };
+  },
+  MIGRATIONS: {},                                // { n: doc => doc версии n+1 }; пока версия одна
+  migrate(doc, k) {
+    const base = Store.fresh(k);
+    if (!doc || typeof doc !== "object" || Array.isArray(doc)) return base;
+    let v = typeof doc.v === "number" ? doc.v : 1;     // нет v — считаем первой версией
+    if (v > Store.CURRENT) { Store.readonly = true; return base; }
+    while (v < Store.CURRENT) { const m = Store.MIGRATIONS[v]; if (m) doc = m(doc); v++; }
+    const out = Object.assign(base, doc);
+    out.v = Store.CURRENT;
+    const obj = (x) => x && typeof x === "object" && !Array.isArray(x);
+    if (k === "progress") {
+      for (const f of ["cards", "hints", "conf"]) if (!obj(out[f])) out[f] = {};
+      out.lands = Object.assign({ unlocked: [1], stars: {} }, obj(doc.lands) ? doc.lands : {});
+      if (!Array.isArray(out.lands.unlocked)) out.lands.unlocked = [1];
+      if (!out.lands.unlocked.includes(1)) out.lands.unlocked.unshift(1);
+      if (!obj(out.lands.stars)) out.lands.stars = {};
+      out.diff = Object.assign({ hard: 0, easy: false }, obj(doc.diff) ? doc.diff : {});
+      out.skins = Object.assign({ got: [], on: {} }, obj(doc.skins) ? doc.skins : {});
+      if (!Array.isArray(out.skins.got)) out.skins.got = [];
+      if (!obj(out.skins.on)) out.skins.on = {};
+      if (!(out.seed >= 1)) out.seed = base.seed;
+      if (!(out.wn >= 0)) out.wn = 0;
+    } else if (k === "day") {
+      for (const f of ["played", "up", "down"]) if (!Array.isArray(out[f])) out[f] = [];
+      if (typeof out.date !== "string") out.date = Clock.today();
+    } else {
+      if (!SPEEDS[out.speed]) out.speed = "slow";
+      if (!(out.perDay >= 1 && out.perDay <= 20)) out.perDay = PER_DAY_DEFAULT;
+    }
+    return out;
+  },
+  load() {
+    for (const k of Store.DOCS) {
+      let raw = null;
+      try { raw = JSON.parse(localStorage.getItem(Store.LS + k) || "null"); } catch (e) { raw = null; }
+      Store.data[k] = Store.migrate(raw, k);
+    }
+  },
+  save(k) {
+    if (Store.readonly) return;
+    const d = Store.data[k];
+    d.updatedAt = Clock.nowMs();
+    try { localStorage.setItem(Store.LS + k, JSON.stringify(d)); } catch (e) { /* приватное окно, квота: играем дальше без записи */ }
+    Store.queue(k);
+  },
+  queue(k) {                                     // в режиме db запись уходит с задержкой 700 мс
+    if (Store.mode !== "db" || !Store.refs[k]) return;
+    clearTimeout(Store.timers[k]);
+    Store.timers[k] = setTimeout(() => { Store.timers[k] = null; Store.flush(k); }, 700);
+  },
+  flush(k) {
+    if (Store.readonly || Store.mode !== "db" || !Store.refs[k]) return;
+    if (Store.writing[k]) { Store.again[k] = true; return; }
+    Store.writing[k] = true;
+    Store.refs[k].set(Util.clone(Store.data[k])).then(() => {
+      Store.writing[k] = false;
+      if (Store.again[k]) { Store.again[k] = false; Store.flush(k); }
+    }, (e) => {
+      Store.writing[k] = false;
+      if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) Store.mode = "readonly";
+      else if (e && e.code === "unavailable") setTimeout(() => Store.flush(k), 900 + (Clock.nowMs() % 900));
+    });
+  },
+  flushAll() { for (const k of Store.DOCS) if (Store.timers[k]) { clearTimeout(Store.timers[k]); Store.timers[k] = null; Store.flush(k); } },
+  // Стереть документы (новая игра, «Сбросить прогресс»); настройки по умолчанию не трогаем. Seed сохраняется, чтобы тесты были повторяемы.
+  reset(keys) {
+    for (const k of keys) {
+      const seed = k === "progress" && Store.data.progress ? Store.data.progress.seed : 0;
+      Store.data[k] = Store.fresh(k);
+      if (seed) Store.data[k].seed = seed;
+      if (Store.readonly) continue;
+      Store.save(k);
+    }
+  },
+  // Снимок из db применяется, только если его updatedAt новее локального. Во время уровня данные ждут конца волны (Game.endWave).
+  applyExternal(k, d) {
+    const doc = Store.migrate(Util.clone(d), k);
+    if (Store.readonly || !(doc.updatedAt > (Store.data[k].updatedAt || 0))) return false;
+    if (k === "progress" && Game.level && Game.screen === "game" && ["prep", "battle", "paused"].includes(Game.level.phase)) { Store.pending[k] = doc; return false; }
+    Store.data[k] = doc;
+    try { localStorage.setItem(Store.LS + k, JSON.stringify(doc)); } catch (e) { /* ок */ }
+    return true;
+  },
+  applyPending() {                               // конец волны: отложенный снимок progress ложится под отчёт волны
+    const doc = Store.pending.progress;
+    if (!doc) return;
+    Store.pending.progress = null;
+    if (!Store.readonly && doc.updatedAt > (Store.data.progress.updatedAt || 0)) {
+      Store.data.progress = doc;
+      Game.seed = doc.seed; Game.waveCounter = doc.wn;
+      try { localStorage.setItem(Store.LS + "progress", JSON.stringify(doc)); } catch (e) { /* ок */ }
+    }
+  },
+  attachDb() {                                   // как в арене (plan/trenazhery.html): window.claude.use("db"), документы oborona/*
+    try {
+      if (!(window.claude && typeof window.claude.use === "function")) return;
+      window.claude.use("db").then((db) => {
+        if (!db) return;
+        Store.mode = "db";
+        for (const k of Store.DOCS) {
+          Store.refs[k] = db.doc("oborona/" + k);
+          Store.refs[k].onSnapshot((snap) => {
+            if (Store.timers[k] || Store.writing[k]) return;
+            const mine = Store.data[k].updatedAt || 0;
+            if (snap.exists) {
+              const d = snap.data() || {};
+              if ((d.updatedAt || 0) > mine) { if (Store.applyExternal(k, d)) Game.onExternalData(); return; }
+              if ((d.updatedAt || 0) === mine) return;
+            }
+            if (mine > 0) Store.flush(k);        // в db пусто или старее: зеркалим локальные данные
+          }, () => { Store.mode = "readonly"; });
+        }
+      }, () => { /* нет db — остаёмся на localStorage */ });
+    } catch (e) { /* ок */ }
+  },
 };
 
-/* ---------- 5 Learner: заглушка (этап 3: карточки Лейтнера, путаницы, подсказки) ---------- */
-// Пока все карточки земли считаются знакомыми, подсказка боссов всегда полная.
+/* ---------- 5 Learner: карточки Лейтнера, путаницы, подсказки, земли, облики ---------- */
+// Все данные лежат в Store.data.progress; модуль не знает ни DOM, ни canvas.
 const Learner = {
-  onWaveEnd(/* report */) {},
-  due() { return []; },
-  isMastered() { return false; },
-  landDone() { return false; },
-  landProgress(land) { return { done: 0, total: Content.LANDS[land - 1].cards.length }; },
-  landOpen(land) { return DEV_UNLOCK_ALL || land === 1 || Learner.landDone(land - 1); },
-  hintMode() { return "full"; },
-  recordConfusion() {},
-  recordBuildTime() {},
+  P: () => Store.data.progress,
+  blank: (today) => ({ b: 1, due: today, seen: 0, ok: 0, miss: 0, tS: 0, tN: 0, pd: "" }),
+  get: (k) => Store.data.progress.cards[k] || null,
+  ensure(k, today) { const cs = Store.data.progress.cards; return cs[k] || (cs[k] = Learner.blank(today || Clock.today())); },
+  isMastered(k) { const c = Learner.get(k); return !!c && c.b >= MASTER_BOX; },
+  due(keys) { const t = Clock.today(); return keys.filter((k) => { const c = Learner.get(k); return c && c.due <= t; }); },
+  // Земля пройдена (открывает следующую): у всех её карточек коробка ≥ 3, то есть верно в два разных дня.
+  landDone(id) { const LD = Content.LANDS[id - 1]; return !!LD && LD.cards.every((k) => { const c = Learner.get(k); return c && c.b >= UNLOCK_BOX; }); },
+  landProgress(id) {
+    const LD = Content.LANDS[id - 1];
+    return { done: LD.cards.filter((k) => { const c = Learner.get(k); return c && c.b >= UNLOCK_BOX; }).length, total: LD.cards.length };
+  },
+  landOpen(id) { return id === 1 || Store.data.progress.lands.unlocked.includes(id); },
+  checkUnlocks() {
+    const P = Learner.P();
+    for (let id = 2; id <= Content.LANDS.length; id++) {
+      if (P.lands.unlocked.includes(id) || !Learner.landDone(id - 1)) continue;
+      P.lands.unlocked.push(id);
+      Bus.emit("land_unlocked", { land: id });
+    }
+  },
+  // Подсказка-путь (раздел 7): пока босс не побеждён с ней в два разных дня — полная, потом пунктир, потом ничего.
+  hintMode(key) {
+    const h = Store.data.progress.hints[key];
+    if (h && h.free.length >= 2) return "none";
+    if (h && h.full.length >= 2) return "line";
+    return "full";
+  },
+  noteHint(key, today, withHint) {
+    const hs = Store.data.progress.hints, h = hs[key] || (hs[key] = { full: [], free: [] }), list = withHint ? h.full : h.free;
+    if (!list.includes(today)) list.push(today);
+  },
+  // Какой карточке зачёт за врага, побитого лучом da × db: карточке пары, которой побит, если она есть в игре и уже заведена
+  // (или это и есть карточка врага); иначе карточке, из которой враг сделан. Боссов и двузначных это не касается.
+  creditKey(enemyCard, da, db) {
+    const c = Content.cardOf(enemyCard);
+    if (!c || c.op === "b") return enemyCard;
+    const k = c.op + ":" + Math.min(da, db) + "x" + Math.max(da, db);
+    return k === enemyCard || (Content.ALL.has(k) && Store.data.progress.cards[k]) ? k : enemyCard;
+  },
+  setBox(key, c, to, today) {
+    const from = c.b;
+    c.b = to;
+    if (from !== to) Bus.emit("card_changed", { key, from, to });
+  },
+  recordConfusion(a, b) {
+    const lo = Math.min(a, b), hi = Math.max(a, b), P = Learner.P(), key = lo + "-" + hi, e = P.conf[key] || (P.conf[key] = { n: 0, last: "" });
+    e.n++; e.last = Clock.today();
+    Bus.emit("confusion", { a: lo, b: hi, n: e.n });
+  },
+  // Отчёт волны (Game.endWave): карточки, лучи, подсказки, время постройки. Возвращает ничего, пишет в progress и day.
+  onWaveEnd(rep) {
+    const P = Learner.P(), day = Game.rollDay(), today = Clock.today(), down = new Set();
+    // 1–2. Счётчики и штраф: враг дошёл до крепости — карточка, из которой он сделан, в коробку 1.
+    const by = new Map();
+    for (const e of rep.enemies) {
+      if (!Content.cardOf(e.card)) continue;      // число вне таблицы (OT.setWave с «141») карточки не заводит
+      const s = by.get(e.card) || { n: 0, ok: 0, castle: 0 };
+      s.n++; if (e.outcome === "killed") s.ok++; else s.castle++;
+      by.set(e.card, s);
+    }
+    for (const [key, s] of by) {
+      const c = Learner.ensure(key, today);
+      c.seen += s.n; c.ok += s.ok; c.miss += s.castle;
+      if (s.castle) {
+        down.add(key);
+        Learner.setBox(key, c, 1, today); c.due = today;
+        day.up = day.up.filter((x) => x !== key);
+        if (!day.down.includes(key)) day.down.push(key);
+      }
+    }
+    // 3. Зачёт: враг побеждён засчитанным лучом (построен в подготовке, пара переделана не больше двух раз; у босса — все лучи), раз в день и только когда пора.
+    for (const e of rep.enemies) {
+      if (e.outcome !== "killed" || !e.killer || !e.killer.counted || !(e.hits || []).every((h) => h.counted)) continue;
+      const key = e.armored ? e.card : Learner.creditKey(e.card, e.killer.da, e.killer.db), c = P.cards[key];
+      if (!c || down.has(key) || c.due > today || c.pd === today) continue;
+      const to = Math.min(5, c.b + 1);
+      Learner.setBox(key, c, to, today);
+      c.due = Clock.addDays(today, INTERVAL[to]); c.pd = today;
+      if (!day.up.includes(key)) day.up.push(key);
+    }
+    // Время постройки (только для взрослого): сумма и число замеров на карточку.
+    for (const t of rep.times || []) { const c = P.cards[t.key]; if (c) { c.tS += t.ms; c.tN++; } }
+    // Подсказка боссов (раздел 7): победа с полной подсказкой — дата в full, иначе в free.
+    for (const e of rep.enemies) {
+      if (!e.armored || e.outcome !== "killed") continue;
+      const h = (rep.hints || []).find((x) => x.card === e.card), hit = (x) => x && h && (x.product === h.parts[0] || (x.a === h.pads[0] && x.b === h.pads[1]) || (x.a === h.pads[1] && x.b === h.pads[0]));
+      Learner.noteHint(e.card, today, !!(h && h.mode === "full" && ((e.hits || []).some(hit) || hit(e.killer))));
+    }
+    // Путаницы (6.5): лучи этой подготовки, которые не нужны ни одному врагу, приписываются ближайшему числу волны (обычному).
+    const need = new Set(rep.numbers.concat(rep.parts));
+    for (const b of rep.beams) {
+      if (b.w !== rep.waveIdx || need.has(b.product)) continue;
+      let best = null;
+      for (const e of rep.wave) { const d = Math.abs(e.number - b.product); if (!best || d < best.d || (d === best.d && e.number < best.number)) best = { d, number: e.number, armored: e.armored }; }
+      if (best && !best.armored) Learner.recordConfusion(best.number, b.product);
+    }
+    // Трудность: два тяжёлых раунда подряд — лёгкий режим до волны с ≥ 80 %.
+    const rate = rep.total ? rep.killed / rep.total : 1, D = P.diff;
+    D.hard = rate < 0.6 ? D.hard + 1 : 0;
+    if (D.hard >= 2) D.easy = true;
+    if (rate >= 0.8) { D.easy = false; D.hard = 0; }
+    Learner.checkUnlocks();
+    Learner.checkSkins();
+    Store.save("progress"); Store.save("day");
+  },
+  // Облики башен: ряд ×N освоен (все его m: карточки в коробке ≥ 4), «крепостная пушка» — все 15 b:.
+  skinCards: (def) => (def.n ? Content.ROWS[def.n] : Content.H15),
+  skinProgress(def) { const ks = Learner.skinCards(def); return { done: ks.filter(Learner.isMastered).length, total: ks.length }; },
+  checkSkins() {
+    const P = Learner.P();
+    for (const def of Content.SKINS) {
+      if (P.skins.got.includes(def.id)) continue;
+      const pr = Learner.skinProgress(def);
+      if (pr.done < pr.total) continue;
+      P.skins.got.push(def.id);
+      P.skins.on[def.n || "all"] = def.id;       // выдан сразу включённым; на карте мира его можно выключить и включить снова
+      Bus.emit("skin_unlocked", { id: def.id });
+    }
+  },
+  skinFor(digit) { const on = Store.data.progress.skins.on; return on.all || on[digit] || "base"; },
+  toggleSkin(id) {
+    const P = Learner.P(), def = Content.SKINS.find((d) => d.id === id), slot = def && (def.n || "all");
+    if (!def || !P.skins.got.includes(id)) return false;
+    if (P.skins.on[slot] === id) delete P.skins.on[slot]; else P.skins.on[slot] = id;
+    Store.save("progress");
+    return true;
+  },
+  // Для экрана взрослого: точность и среднее время по карточке.
+  stats(key) {
+    const c = Learner.get(key);
+    if (!c) return null;
+    return { b: c.b, due: c.due, seen: c.seen, ok: c.ok, miss: c.miss, acc: c.seen ? Math.round((100 * c.ok) / c.seen) : null, ms: c.tN ? c.tS / c.tN : null };
+  },
 };
 
 /* ---------- 6 Solver: можно ли построить волну на этих площадках ---------- */
@@ -420,6 +792,7 @@ const Learner = {
 // Спрос: число или { n, lanes:[id…] (дорожки, которые луч обязан пересекать; по умолчанию все), tag, part (часть разрезания босса) }.
 // opts.enemies — враги волны {number, armored, lane}: найденный план дополнительно проверяется проходом каждого врага по дороге.
 // opts.fixed — цифры заранее стоящих башен {padId: digit}.
+// opts.budget — общий бюджет узлов на волну { left }: все попытки сборки волны тратят один счётчик (раздел 6.4, WaveGen.BUDGET).
 const Solver = {
   LIMIT: 7000,
   simulate(level, plan, enemies) {
@@ -445,13 +818,13 @@ const Solver = {
       : { n: d.n, lanes: d.lanes && d.lanes.length ? d.lanes : all, tag: d.tag || null, part: !!d.part,
           xs: d.pref ? [...new Set(d.pref.filter((x) => hand.includes(x)).concat(hand))] : hand });   // pref — разложение, которое пробуется первым
     const edges = Object.keys(level.pairs).sort().map((k) => level.pairs[k]);
-    const digit = {}, cnt = {}, used = new Set(), plan = [];
+    const digit = {}, cnt = {}, used = new Set(), plan = [], bud = opts.budget || null;
     for (const id of Object.keys(level.towers)) if (level.towers[id].fixed) digit[id] = level.towers[id].digit;
     Object.assign(digit, opts.fixed || {});
     let nodes = 0;
     const go = (i) => {
       if (i === dem.length) return !opts.enemies || Solver.simulate(level, plan, opts.enemies);
-      if (++nodes > Solver.LIMIT) return false;
+      if (++nodes > Solver.LIMIT || (bud && --bud.left < 0)) return false;   // свой лимит на вызов и общий бюджет волны
       const { n, lanes, tag, part, xs } = dem[i];
       if (!part && plan.some((p) => p.da * p.db === n && lanes.every((l) => level.pairs[Solver.pairKey(p.a, p.b)].cross[l] !== undefined))) return go(i + 1);   // уже есть такой луч
       for (const e of edges) {
@@ -478,68 +851,166 @@ const Solver = {
   },
 };
 
-/* ---------- 7 WaveGen: состав волны ---------- */
-// Шаги 1, 4, 6–9 раздела 6.4 без Лейтнера: все карточки земли считаются знакомыми, «новые» вводятся по порядку от волны к волне
-// (за 15 волн земли проходит весь список). Этап 3 заменит выбор карточек на корзины, оставив тот же вход и выход.
+/* ---------- 7 WaveGen: состав волны (раздел 6.4) ---------- */
+// Вход make(cx): land, idx, waveIdx, level, seed, rng, cards (карточки ребёнка), today, conf (путаницы), easy, priors (добавлять повторы прошлых земель).
+// Корзины по врагам: ≈ 70 % знакомых, 20 % «пора повторить», 10 % новых. Различных чисел ≤ 4 (≤ 3 на T1, в лёгкой волне на 1 меньше).
+// Модуль чистый: состояние берёт только из cx (подсказки боссов спрашивают Learner.hintMode).
 const WaveGen = {
-  BASE: [6, 7, 8, 9, 10],
+  BASE: [6, 7, 8, 9, 10], BUDGET: 15000, KNOWN_W: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 1 },
   sizeOf(idx, waveIdx, easy) { const n = Math.min(12, WaveGen.BASE[idx] + waveIdx); return easy ? Math.max(6, n - 2) : n; },
-  intro(N, s) { return Math.min(N, 3 + Math.floor((s * (N - 3)) / 14)); },   // сколько карточек земли уже введено к волне s = уровень·3 + волна
   priors(land) {                                 // m: карточки прошлых земель — обычные враги-повторы
     const out = [];
     for (let i = 0; i < land - 1; i++) for (const k of Content.LANDS[i].cards) if (k[0] === "m") out.push(k);
     return out;
   },
-  // Набор из k различных чисел: самая новая карточка, остальные из введённых; иногда повтор из прошлых земель.
-  pickCards(rng, intro, priors, k, first) {
-    const chosen = [], nums = new Set();
-    const add = (key) => { const num = Content.cardNumber(key); if (nums.has(num)) return false; nums.add(num); chosen.push(key); return true; };
-    if (first) add(first);
-    for (let g = 0; chosen.length < k && g < 120; g++) {
-      const fromPrior = priors.length && (!intro.length || (chosen.length >= 2 && rng.next() < 0.3));
-      add(rng.pick(fromPrior ? priors : intro));
+  box1(cards) { let n = 0; for (const k of Object.keys(cards)) if (cards[k].b === 1) n++; return n; },
+  // Доли врагов по корзинам; пустая корзина отдаёт долю следующей по цепочке known → due → new → known.
+  shares(n, have, newOK) {
+    const q = { known: 0, due: Math.round(0.2 * n), fresh: have.fresh && newOK ? Math.max(1, Math.round(0.1 * n)) : 0 };
+    q.known = n - q.due - q.fresh;
+    const order = ["known", "due", "fresh"];
+    for (let i = 0; i < 3; i++) {
+      const b = order[i];
+      if (have[b] || !q[b]) continue;
+      for (let j = 1; j <= 3; j++) { const t = order[(i + j) % 3]; if (have[t] && (t !== "fresh" || newOK)) { q[t] += q[b]; q[b] = 0; break; } }
     }
-    return chosen;
+    return q;
   },
-  spread(cards, n, armored) {                    // n врагов по кругу между карточками
-    const out = [];
-    for (let i = 0; i < n; i++) { const c = cards[i % cards.length]; out.push({ number: Content.cardNumber(c), card: c, armored: !!armored }); }
-    return out;
+  // n врагов из карточек пула: корзины, различные числа, путаницы. o: { own, extra, n, kMax, exclude:Set(числа) }.
+  // Возвращает { list:[{card, n}], newCard, pairs:[[числоA, числоБ]] }.
+  composeCards(cx, o) {
+    const { cards, today, rng, easy } = cx, n = o.n;
+    if (n <= 0) return { list: [], newCard: null, pairs: [] };
+    const ownSet = new Set(o.own), seen = new Set(o.exclude || []);
+    const num = Content.cardNumber, usable = (k) => !seen.has(num(k));
+    const due = [], known = [], fresh = [];
+    for (const k of o.own.concat(o.extra.filter((x) => !ownSet.has(x)))) {
+      const c = cards[k];
+      if (!c) { if (ownSet.has(k)) fresh.push(k); } else if (c.due <= today) due.push(k); else known.push(k);
+    }
+    due.sort((x, y) => cards[x].b - cards[y].b || (cards[x].due < cards[y].due ? -1 : cards[x].due > cards[y].due ? 1 : 0));
+    const newOK = !easy && o.newOK !== false && WaveGen.box1(cards) < 5;
+    const avail = { known, due, fresh: newOK ? fresh : [] };
+    const have = { known: known.length > 0, due: due.length > 0, fresh: avail.fresh.length > 0 };
+    if (!have.known && !have.due && !have.fresh && fresh.length) { avail.fresh = fresh; have.fresh = true; }   // нечего повторять: вводим новое
+    const q = WaveGen.shares(n, have, have.fresh);
+    // Сколько различных карточек берёт каждая корзина.
+    let names = ["known", "due", "fresh"].filter((b) => q[b] > 0 && avail[b].length);
+    const kMax = Math.max(1, o.kMax);
+    while (names.length > kMax) {
+      const drop = names.slice().sort((x, y) => q[x] - q[y] || (x === "fresh" ? -1 : 1))[0];
+      names = names.filter((x) => x !== drop);
+      q[names[0]] += q[drop]; q[drop] = 0;
+    }
+    const slots = { known: 0, due: 0, fresh: 0 }, want = {
+      fresh: q.fresh > n / 2 ? Math.min(3, q.fresh) : 1, known: Math.min(3, q.known), due: Math.min(2, q.due),
+    };
+    for (const b of names) slots[b] = 1;
+    let free = kMax - names.length;
+    for (const b of ["fresh", "known", "due"]) while (free > 0 && slots[b] > 0 && slots[b] < Math.min(want[b], avail[b].length)) { slots[b]++; free--; }
+    // Выбор карточек: новые — по порядку таблицы, пора повторить — с меньшей коробкой, знакомые — случайно с весом коробки (в лёгкой волне — с наибольшей).
+    const chosen = { known: [], due: [], fresh: [] };
+    for (const b of ["fresh", "due", "known"]) {
+      const bag = avail[b].slice();
+      while (chosen[b].length < slots[b] && bag.length) {
+        let i = 0;
+        if (b === "known" && easy) { let bi = 0; bag.forEach((k, j) => { if (cards[k].b > cards[bag[bi]].b) bi = j; }); i = bi; }
+        else if (b === "known") { const w = bag.map((k) => WaveGen.KNOWN_W[cards[k].b] || 1); let r = rng.next() * w.reduce((x, y) => x + y, 0); while (i < bag.length - 1 && (r -= w[i]) >= 0) i++; }
+        const k = bag.splice(i, 1)[0];
+        if (!usable(k)) continue;
+        seen.add(num(k)); chosen[b].push(k);
+      }
+    }
+    // Путаницы (6.5): партнёр выбранной карточки с вероятностью 0,6 заменяет одну знакомую; пара идёт в ленте рядом.
+    const pairs = [], conf = cx.conf || {}, pool = o.own.concat(o.extra);
+    for (const key of Object.keys(conf)) {
+      if (!(conf[key].n >= 2)) continue;
+      const [x, y] = key.split("-").map(Number), inWave = (v) => [].concat(chosen.known, chosen.due, chosen.fresh).some((k) => num(k) === v);
+      for (const [mine, other] of [[x, y], [y, x]]) {
+        if (!inWave(mine) || inWave(other)) continue;
+        const partner = !seen.has(other) && pool.find((k) => num(k) === other && (cards[k] || ownSet.has(k)));
+        if (!partner || rng.next() >= 0.6) continue;
+        const victim = chosen.known.find((k) => num(k) !== mine);
+        if (victim) { chosen.known[chosen.known.indexOf(victim)] = partner; seen.delete(num(victim)); seen.add(other); }
+        else if ([].concat(chosen.known, chosen.due, chosen.fresh).length < kMax) { chosen.known.push(partner); seen.add(other); }
+      }
+      if (inWave(x) && inWave(y)) pairs.push([x, y]);
+    }
+    // Разложить n врагов по выбранным карточкам: доля корзины делится между её карточками, у каждой хотя бы один враг.
+    const flat = [];
+    for (const b of ["fresh", "due", "known"]) chosen[b].forEach((k, i, cs) => flat.push({ card: k, b, n: Math.max(1, Math.floor(q[b] / cs.length) + (i < q[b] % cs.length ? 1 : 0)) }));
+    if (!flat.length) return { list: [], newCard: null, pairs: [] };
+    let tot = flat.reduce((a, e) => a + e.n, 0);
+    while (tot > n) { const e = flat.filter((x) => x.n > 1).sort((x, y) => y.n - x.n)[0]; if (!e) break; e.n--; tot--; }
+    while (tot < n) { const e = flat.filter((x) => x.b === "known").sort((x, y) => x.n - y.n)[0] || flat.slice().sort((x, y) => x.n - y.n)[0]; e.n++; tot++; }
+    // Чтобы одно число не шло три раза подряд, ни у одной карточки не больше (2n + 2) / 3 врагов: лишние уходят к самой малой.
+    for (let cap = Math.floor((2 * n + 2) / 3), g = 0; flat.length > 1 && g < 40; g++) {
+      const hi = flat.slice().sort((x, y) => y.n - x.n)[0], lo = flat.slice().sort((x, y) => x.n - y.n)[0];
+      if (hi.n <= cap) break;
+      hi.n--; lo.n++;
+    }
+    return { list: flat.map((e) => ({ card: e.card, n: e.n })), newCard: chosen.fresh[0] || null, pairs };
   },
+  expand(list, armored) { const out = []; for (const e of list) for (let i = 0; i < e.n; i++) out.push({ number: Content.cardNumber(e.card), card: e.card, armored: !!armored }); return out; },
   composeNormal(cx, n, kMax, shrink) {
-    const { land, rng, s } = cx, LD = Content.LANDS[land - 1], intro = LD.normal.slice(0, WaveGen.intro(LD.normal.length, s));
-    const k = Math.max(1, Math.min(kMax, s === 0 ? 3 : kMax) - shrink), newCard = intro[intro.length - 1];
-    const cards = WaveGen.pickCards(rng, intro, land > 1 ? WaveGen.priors(land) : [], k, newCard);
-    return { list: WaveGen.spread(cards, n, false), fixed: {}, newCard };
+    const LD = Content.LANDS[cx.land - 1], k = Math.max(1, kMax - shrink - (cx.easy ? 1 : 0));
+    const r = WaveGen.composeCards(cx, { own: LD.normal, extra: cx.priors ? WaveGen.priors(cx.land) : [], n, kMax: k });
+    return { list: WaveGen.expand(r.list, false), fixed: {}, newCard: r.newCard, pairs: r.pairs };
   },
   composeBoss(cx, n, kMax, shrink) {
-    const { land, idx, rng, s, level: L } = cx, LD = Content.LANDS[land - 1], BL = LD.boss;
-    // Боссов ≤ 3 на волну, различных ≤ 2; два разных босса (четыре луча) — только на T2: на стволе T3 и T4 для них не хватает башен.
+    const { land, rng, level: L, cards, today, easy } = cx, LD = Content.LANDS[land - 1], s = cx.s;
+    // Боссов ≤ 3 на волну, различных ≤ 2; два разных (четыре луча) — только на T2: на стволе T3 и T4 для них не хватает башен.
     let nb = Math.min(3, 1 + (s >> 2)), nCards = nb > 1 && L.template === "T2" ? 2 : 1;
     if (shrink >= 1) nCards = 1;
     if (shrink >= 2) nb = 1;
-    const cards = [BL[s % BL.length]];
-    if (nCards === 2) { let j = (s * 7 + 3) % BL.length; if (BL[j] === cards[0]) j = (j + 1) % BL.length; cards.push(BL[j]); }
-    const bosses = WaveGen.spread(cards, nb, true);
-    const bossNums = new Set(cards.map(Content.cardNumber));     // обычное число, равное боссу, убило бы его целым лучом
-    const pool = LD.normal.concat(WaveGen.priors(land)).filter((k) => !bossNums.has(Content.cardNumber(k)));
-    const kN = Math.max(1, Math.min(2, kMax - nCards) - (shrink >= 3 ? 1 : 0));
-    const normalCards = WaveGen.pickCards(rng, pool, [], kN, null);
-    return { list: bosses.concat(WaveGen.spread(normalCards, n - nb, false)), fixed: {}, newCard: null };
+    if (easy) { nb = 1; nCards = 1; }
+    // «Трудная» b: карточка вводится, только когда её m: уже в коробке ≥ 2 (на земле 6 двузначные идут без условия).
+    const gate = (k) => land !== 4 || (cards["m:" + k.slice(2)] && cards["m:" + k.slice(2)].b >= 2);
+    const pool = LD.boss.filter(gate), due = [], known = [], fresh = [];
+    for (const k of pool) { const c = cards[k]; if (!c) fresh.push(k); else if (c.due <= today) due.push(k); else known.push(k); }
+    due.sort((x, y) => cards[x].b - cards[y].b);
+    const freshOK = !easy && WaveGen.box1(cards) < 5, picks = [], nums = new Set();
+    for (let i = 0; i < nCards; i++) {
+      const w = { known: known.length ? 0.65 : 0, due: due.length ? 0.2 : 0, fresh: fresh.length && freshOK ? 0.15 : 0 }, sum = w.known + w.due + w.fresh;
+      let from = null;
+      if (sum > 0) { let r = rng.next() * sum; for (const b of ["due", "fresh", "known"]) if (w[b] > 0 && (r -= w[b]) < 0) { from = b; break; } if (!from) from = w.known ? "known" : w.due ? "due" : "fresh"; }
+      else if (fresh.length) from = "fresh";
+      if (!from) break;
+      const list = from === "due" ? due : from === "fresh" ? fresh : known;
+      let pickI = 0;
+      if (from === "known") { const ws = list.map((k) => WaveGen.KNOWN_W[cards[k].b] || 1); let r = rng.next() * ws.reduce((x, y) => x + y, 0); while (pickI < list.length - 1 && (r -= ws[pickI]) >= 0) pickI++; if (easy) { pickI = 0; list.forEach((k, j) => { if (cards[k].b > cards[list[pickI]].b) pickI = j; }); } }
+      const k = list.splice(pickI, 1)[0];
+      if (nums.has(Content.cardNumber(k))) continue;
+      nums.add(Content.cardNumber(k)); picks.push(k);
+    }
+    if (!picks.length) nb = 0;
+    nb = Math.max(nb, picks.length);
+    const bosses = [];
+    for (let i = 0; i < nb; i++) bosses.push({ number: Content.cardNumber(picks[i % picks.length]), card: picks[i % picks.length], armored: true });
+    // Обычное число в волне с боссом не равно самому боссу: целый луч убил бы босса без разрезания.
+    const kN = Math.max(1, (picks.length ? Math.min(2, kMax - picks.length) : kMax) - (shrink >= 3 ? 1 : 0));
+    const pri = cx.priors ? WaveGen.priors(land) : [];
+    let r = WaveGen.composeCards(cx, { own: LD.normal, extra: pri, n: n - nb, kMax: kN, exclude: nums });
+    if (!r.list.length) {                         // обычных карточек в прогрессе ещё нет (отладочный запуск без прошлых земель): повторы считаются знакомыми
+      const c2 = Object.assign({}, cards);
+      for (const k of pri) if (!c2[k]) c2[k] = { b: 3, due: "9999-12-31" };
+      r = WaveGen.composeCards(Object.assign({}, cx, { cards: c2 }), { own: LD.normal, extra: pri, n: n - nb, kMax: kN, exclude: nums });
+    }
+    return { list: bosses.concat(WaveGen.expand(r.list, false)), fixed: {}, newCard: null, pairs: r.pairs };
   },
   composeDiv(cx, n, kMax, shrink) {
-    const { idx, rng, s } = cx, LD = Content.LANDS[4], intro = LD.cards.slice(0, WaveGen.intro(LD.cards.length, s));
-    const k = Math.max(1, Math.min(kMax, 2 + (idx >> 1)) - shrink), newCard = intro[intro.length - 1];
-    const cards = WaveGen.pickCards(rng, intro, [], k, newCard), pads = rng.shuffle(["A0", "A1", "A2", "A3"]), fixed = {};
-    cards.forEach((key, i) => {                  // заранее стоящая башня получает один из множителей: то меньший, то больший
-      const c = Content.cardOf(key);
+    const { idx, rng } = cx, LD = Content.LANDS[4];
+    const k = Math.max(1, Math.min(kMax, 2 + (idx >> 1)) - shrink - (cx.easy ? 1 : 0));
+    const r = WaveGen.composeCards(cx, { own: LD.cards, extra: [], n, kMax: k }), pads = rng.shuffle(["A0", "A1", "A2", "A3"]), fixed = {};
+    r.list.forEach((e, i) => {                   // заранее стоящая башня получает один из множителей: то меньший, то больший
+      const c = Content.cardOf(e.card);
       fixed[pads[i]] = i % 2 === 0 ? Math.min(c.a, c.b) : Math.max(c.a, c.b);
     });
-    for (const p of pads.slice(cards.length)) fixed[p] = rng.int(2, 9);          // остальные — отвлекающие
-    return { list: WaveGen.spread(cards, n, false), fixed, newCard };
+    for (const p of pads.slice(r.list.length)) fixed[p] = rng.int(2, 9);          // остальные — отвлекающие
+    return { list: WaveGen.expand(r.list, false), fixed, newCard: r.newCard, pairs: [] };
   },
-  // Порядок выхода: боссы во второй половине, одно число не больше двух раз подряд, новая карточка не первая.
-  arrange(list, rng, lanes, newCard) {
+  // Порядок выхода: боссы во второй половине, одно число не больше двух раз подряд, новая карточка не первая, путаницы рядом.
+  arrange(list, rng, lanes, newCard, pairs) {
     const n = list.length, out = new Array(n).fill(null);
     const bosses = list.filter((e) => e.armored), normals = list.filter((e) => !e.armored), half = [];
     for (let i = Math.ceil(n / 2); i < n; i++) half.push(i);
@@ -556,6 +1027,32 @@ const WaveGen = {
       rng.shuffle(normals);
       free.forEach((pos, j) => { out[pos] = normals[j]; });
       if (ok(out)) break;
+      if (t === 199) {                             // случайные перестановки не нашли порядок: собираем жадно, беря самое частое число, которое не даст троих подряд
+        const groups = new Map();
+        free.forEach((pos) => { out[pos] = null; });
+        for (const e of normals) { const key = e.number + ":" + e.card; (groups.get(key) || groups.set(key, []).get(key)).push(e); }
+        out.forEach((v, pos) => {
+          if (v) return;
+          const cand = [...groups.values()].filter((g) => g.length).filter((g) => !(pos >= 2 && out[pos - 1] && out[pos - 2] && same(g[0], out[pos - 1]) && same(g[0], out[pos - 2])))
+            .sort((a, b) => b.length - a.length || (pos === 0 && a[0].card === newCard ? 1 : -1));
+          const g = cand[0] || [...groups.values()].filter((q) => q.length)[0];
+          out[pos] = g.pop();
+        });
+      }
+    }
+    for (const [x, y] of pairs || []) {            // путаница: числа x и y рядом (обмен соседей, позиции боссов не двигаются)
+      const at = (v, skip) => out.findIndex((e, i) => e && !e.armored && e.number === v && i !== skip);
+      const i = at(x, -1);
+      if (i < 0 || (out[i + 1] && !out[i + 1].armored && out[i + 1].number === y) || (out[i - 1] && !out[i - 1].armored && out[i - 1].number === y)) continue;
+      const j = at(y, -1);
+      if (j < 0) continue;
+      for (const nb of [i + 1, i - 1]) {
+        if (nb < 0 || nb >= n || out[nb].armored || out[nb].number === x || nb === j) continue;
+        const keep = out.slice();
+        [out[nb], out[j]] = [out[j], out[nb]];
+        if (ok(out)) break;
+        for (let q = 0; q < n; q++) out[q] = keep[q];
+      }
     }
     return out.map((e, i) => Object.assign({}, e, { lane: i % lanes }));
   },
@@ -571,7 +1068,7 @@ const WaveGen = {
     for (const [num, ls] of numLanes) dem.push({ n: num, lanes: [...ls].sort(), tag: null, part: false });
     return dem;
   },
-  plan(L, ordered, fixed) { return Solver.canBuild(L, WaveGen.demandsOf(ordered), { enemies: ordered, fixed: fixed || {} }); },
+  plan(L, ordered, fixed, budget) { return Solver.canBuild(L, WaveGen.demandsOf(ordered), { enemies: ordered, fixed: fixed || {}, budget }); },
   // Подсказка-путь: для каждого босса — первая по ходу пара из плана (раздел 7).
   hintsFor(L, ordered, plan) {
     const hints = [], seen = new Set();
@@ -591,23 +1088,26 @@ const WaveGen = {
   },
   make(cx) {
     const { land, idx, waveIdx, level: L, rng } = cx, LD = Content.LANDS[land - 1];
-    const c2 = { land, idx, rng, s: idx * 3 + waveIdx, level: L }, n = WaveGen.sizeOf(idx, waveIdx, !!cx.easy);
+    cx = Object.assign({ cards: {}, today: Clock.today(), conf: {}, easy: false, priors: true }, cx, { s: idx * 3 + waveIdx });
+    const n = WaveGen.sizeOf(idx, waveIdx, !!cx.easy), budget = { left: WaveGen.BUDGET };
     const kMax = L.template === "T1" ? 3 : 4, compose = land === 5 ? WaveGen.composeDiv : LD.boss.length ? WaveGen.composeBoss : WaveGen.composeNormal;
     const wave = (ordered, plan, fixed) => ({
       idx: waveIdx, easy: !!cx.easy, seed: cx.seed, fixed, hints: WaveGen.hintsFor(L, ordered, plan.plan),
       plan: plan.plan.map((p) => ({ n: p.number, a: p.a, b: p.b, da: p.da, db: p.db, tag: p.tag })),
       enemies: ordered.map((e) => ({ number: e.number, card: e.card, armored: e.armored, lane: e.lane })),
     });
-    for (let attempt = 0; attempt < 60; attempt++) {
-      const comp = compose(c2, n, kMax, Math.floor(attempt / 10));        // каждые 10 неудач — проще
-      const ordered = WaveGen.arrange(comp.list, rng, L.lanes.length, comp.newCard), plan = WaveGen.plan(L, ordered, comp.fixed);
+    // Общий бюджет Solver на всю волну. После двух неудач с двумя боссами — один; потом проще и проще (shrink растёт с каждой неудачей).
+    for (let attempt = 0; attempt < 60 && budget.left > 0; attempt++) {
+      const comp = compose(cx, n, kMax, Math.max(0, attempt - 1));
+      if (!comp.list.length) continue;
+      const ordered = WaveGen.arrange(comp.list, rng, L.lanes.length, comp.newCard, comp.pairs), plan = WaveGen.plan(L, ordered, comp.fixed, budget);
       if (plan.ok) return wave(ordered, plan, comp.fixed);
     }
-    // Запасной вариант: одно решаемое число (или одна карточка деления).
-    const cards = land === 5 ? LD.cards : Content.tableNumbers().map(Content.cardForNumber);
+    // Запасной вариант: одно решаемое число (или одна карточка деления) с отдельным малым бюджетом.
+    const small = { left: 4000 }, cards = land === 5 ? LD.cards : Content.tableNumbers().map(Content.cardForNumber);
     for (const key of cards) {
       const fixed = land === 5 ? { A0: Content.cardOf(key).a, A1: 2, A2: 2, A3: 2 } : {};
-      const ordered = WaveGen.spread([key], n, false).map((e, i) => Object.assign(e, { lane: i % L.lanes.length })), plan = WaveGen.plan(L, ordered, fixed);
+      const ordered = WaveGen.expand([{ card: key, n }], false).map((e, i) => Object.assign(e, { lane: i % L.lanes.length })), plan = WaveGen.plan(L, ordered, fixed, small);
       if (plan.ok) return wave(ordered, plan, fixed);
     }
     throw new Error("WaveGen: нет решаемой волны");
@@ -712,7 +1212,7 @@ const Level = {
       towers: {}, beams: [], enemies: [], queue: [], fx: [],
       spawnT: 0, hearts: HEARTS, wave: null, waveIdx: 0,
       phase: "prep", simT: 0, plaqueT: 0, endT: 0, nextBeamId: 1, nextEnemyId: 1,
-      prep: { startMs: 0, lastBuildMs: 0, pairEdits: {}, covered: {} },
+      prep: { startMs: 0, lastBuildMs: 0, pairEdits: {}, covered: {}, times: [] },
       results: [], killedBy: {}, kills: [], bosses: [], adj: null, pairs: null,
     };
     Geo.leads(L.lanes);
@@ -740,6 +1240,19 @@ const Build = {
     return best;
   },
   _label(b) { return b.da + " " + TIMES + " " + b.db + " = " + b.product; },
+  // Время постройки (для взрослого, ребёнку не показывается): первый луч с нужным произведением на пару за подготовку.
+  // Замер идёт от прошлой постройки (или начала подготовки), не дольше минуты; пишется карточке пары, которой зачтётся враг,
+  // у боссов — карточке босса (за часть разрезания). Применяется в конце волны (Learner.onWaveEnd).
+  _timeBeam(L, b) {
+    const now = Clock.nowMs(), ms = Math.min(60000, Math.max(0, now - L.prep.lastBuildMs)), w = L.wave;
+    L.prep.lastBuildMs = now;
+    if (L.phase !== "prep" || !w) return;
+    const en = w.enemies.find((e) => !e.armored && e.number === b.product), bo = en ? null : w.enemies.find((e) => e.armored && Content.demandsOf(e.card).includes(b.product));
+    const key = en ? Learner.creditKey(en.card, b.da, b.db) : bo ? bo.card : null, tag = (en ? "n" : "p") + b.product;
+    if (!key || L.prep.covered[tag]) return;
+    L.prep.covered[tag] = true;
+    L.prep.times.push({ key, ms });
+  },
   _touchPair(L, a, b) {                          // счёт переделок пары за эту подготовку
     const key = [a, b].sort().join("|");
     L.prep.pairEdits[key] = (L.prep.pairEdits[key] || 0) + 1;
@@ -770,7 +1283,8 @@ const Build = {
       b.product = b.da * b.db; b.label = Build._label(b);
       if (b.product !== was) {
         b.born = L.phase === "paused" ? "pause" : "prep";
-        b.rebuilds = Build._touchPair(L, b.a, b.b);
+        b.rebuilds = Build._touchPair(L, b.a, b.b); b.w = L.waveIdx;
+        Build._timeBeam(L, b);
         Bus.emit("beam_broken", { id: b.id, product: was });
         Bus.emit("beam_built", { id: b.id, a: b.a, b: b.b, product: b.product, born: b.born });
       }
@@ -820,6 +1334,8 @@ const Build = {
     const beam = { id: L.nextBeamId++, a, b, da: ta.digit, db: tb.digit, product: ta.digit * tb.digit, label: "", cross, born: L.phase === "paused" ? "pause" : "prep", rebuilds: 0, blinkT: 0 };
     beam.label = Build._label(beam);
     beam.rebuilds = Build._touchPair(L, a, b);
+    beam.w = L.waveIdx;                            // в подготовке какой волны построен (путаницы считают только лучи этой волны)
+    Build._timeBeam(L, beam);
     L.beams.push(beam);
     Bus.emit("beam_built", { id: beam.id, a, b, product: beam.product, born: beam.born });
     return { ok: true, id: beam.id };
@@ -882,7 +1398,7 @@ const Sim = {
       const r = Rules.apply(e, b);
       if (r.kind === "kill") {
         e.alive = false; e.outcome = "killed"; e.d = c; e.deadT = 0; e.rem = 0;
-        e.killedBy = { a: b.a, b: b.b, da: b.da, db: b.db, product: b.product };
+        e.killedBy = { a: b.a, b: b.b, da: b.da, db: b.db, product: b.product, counted: b.born === "prep" && b.rebuilds <= 1 };   // засчитанный луч: построен в подготовке, пара переделана ≤ 2 раз
         if (e.armored) L.bosses.push({ number: e.number, chain: e.hitLog.map((h) => h.product).concat(b.product) });
         else L.kills.push({ number: e.number, da: b.da, db: b.db });
         Bus.emit("enemy_killed", { id: e.id, number: e.number, beam: { a: b.a, b: b.b, da: b.da, db: b.db, product: b.product } });
@@ -891,7 +1407,7 @@ const Sim = {
         return;                                  // остальные лучи этого шага пропускаются
       }
       if (r.kind === "cut") {
-        e.rem = r.to; e.hitLog.push({ product: b.product, from: r.from, to: r.to });
+        e.rem = r.to; e.hitLog.push({ product: b.product, from: r.from, to: r.to, a: b.a, b: b.b, counted: b.born === "prep" && b.rebuilds <= 1 });
         e.cutNote = r.from + " " + MINUS + " " + b.product + " = " + r.to;
         e.note = e.cutNote; e.noteT = 0;
         Bus.emit("boss_hit", { id: e.id, from: r.from, to: r.to, product: b.product });
@@ -939,14 +1455,28 @@ const Sim = {
   },
 };
 
-/* ---------- 13 Game: фазы prep → battle ⇄ paused → waveEnd → (prep | levelEnd); экраны title, map, game ---------- */
+/* ---------- 13 Game: фазы prep → battle ⇄ paused → waveEnd → (prep | levelEnd); экраны title, map, game, rest, parent ---------- */
 const Game = {
   level: null, screen: "title", manual: false, seed: 1, waveCounter: 0, cur: 1,
-  settings: { speed: "slow", perDay: 5, sound: true, big: false },
-  progress: { stars: {} },                       // лучший результат по уровням, ключ «земля-уровень»; этап 3 переносит в Store
-  startLevel(land, idx) {
+  get settings() { return Store.data.settings; },
+  get progress() { return Store.data.progress; },
+  // День (раздел 8): сбрасывается, когда дата сменилась.
+  rollDay() {
+    const t = Clock.today();
+    if (Store.data.day.date !== t) { Store.data.day = Store.fresh("day"); Store.data.day.date = t; Store.save("day"); }
+    return Store.data.day;
+  },
+  startLevel(land, idx, opts) {
+    opts = opts || {};
     if (!Content.LANDS[land - 1] || !(idx >= 0 && idx < 5)) return Build.fail("no_level");
     if (!Learner.landOpen(land)) return Build.fail("locked");
+    const day = Game.rollDay();
+    if (!opts.ignoreLimit && day.started >= Game.settings.perDay) {   // лимит дня считает начатые уровни: «Крепость отдыхает до завтра»
+      Game.level = null; Game.screen = "rest";
+      return Build.fail("rest");
+    }
+    day.started++;
+    Store.save("day");
     Game.level = Level.create(land, idx);
     Game.screen = "game"; Game.cur = land;
     Game.startPrep();
@@ -954,14 +1484,19 @@ const Game = {
   },
   toTitle() { Game.level = null; Game.screen = "title"; },
   toMap() { Game.level = null; Game.screen = "map"; },
+  toRest() { Game.level = null; Game.screen = "rest"; },
+  toParent() { Game.level = null; Game.screen = "parent"; },
+  toNight() { Game.level = null; Game.screen = "night"; },
   newWave() {
-    const L = Game.level;
-    return WaveGen.make({ land: L.land, idx: L.idx, waveIdx: L.waveIdx, level: L, seed: Game.seed + Game.waveCounter, rng: Util.rng(Game.seed + Game.waveCounter++) });
+    const L = Game.level, P = Store.data.progress, seed = Game.seed + Game.waveCounter++;
+    P.wn = Game.waveCounter;
+    return WaveGen.make({ land: L.land, idx: L.idx, waveIdx: L.waveIdx, level: L, seed, rng: Util.rng(seed),
+      cards: P.cards, today: Clock.today(), conf: P.conf, easy: P.diff.easy, priors: !Learner.landOpen(L.land + 1) });   // старую землю переигрываем только на её карточках
   },
   startPrep() {                                  // подготовка: симуляция стоит, таймера нет
     const L = Game.level;
     L.phase = "prep"; L.plaqueT = 0; L.endT = 0;
-    L.prep = { startMs: Clock.nowMs(), lastBuildMs: Clock.nowMs(), pairEdits: {}, covered: {} };
+    L.prep = { startMs: Clock.nowMs(), lastBuildMs: Clock.nowMs(), pairEdits: {}, covered: {}, times: [] };
     Game.loadWave(Game.newWave());
   },
   loadWave(wave) {                               // подменяет волну текущей подготовки (OT.setWave тоже)
@@ -975,6 +1510,7 @@ const Game = {
       for (const p of L.pads) p.fixed = false;
     } else {
       for (const p of L.pads) if (p.fixed) { p.fixed = false; delete L.towers[p.id]; }   // старые заранее стоящие башни уходят
+      if (L.land === 4 || L.land === 6) for (const b of L.beams.slice()) Build._dropBeam(L, b);   // с боссом в каждой волне старые лучи режут его и сбивают подсказку: лучи снимаются, башни остаются
       for (const b of L.beams.slice()) if (!L.towers[b.a] || !L.towers[b.b]) Build._dropBeam(L, b);
     }
     for (const id of Object.keys(wave.fixed || {})) {   // новые цифры заранее стоящих башен
@@ -995,12 +1531,22 @@ const Game = {
   pause() { const L = Game.level; if (!L || L.phase !== "battle") return Build.fail("phase"); L.phase = "paused"; return { ok: true }; },
   resume() { const L = Game.level; if (!L || L.phase !== "paused") return Build.fail("phase"); L.phase = "battle"; return { ok: true }; },
   endWave() {                                    // зовёт Sim, когда очередь пуста и живых нет
-    const L = Game.level;
-    const killed = L.enemies.filter((e) => e.outcome === "killed").length, total = L.wave.enemies.length;
+    const L = Game.level, wave = L.wave;
+    const killed = L.enemies.filter((e) => e.outcome === "killed").length, total = wave.enemies.length;
     Bus.emit("wave_end", { waveIdx: L.waveIdx, killed, total });   // ещё в бою, поэтому t — время симуляции
     L.phase = "waveEnd";
     L.results.push({ killed, total, passed: total - killed });
-    Learner.onWaveEnd({ enemies: L.enemies.map((e) => ({ card: e.card, number: e.number, outcome: e.outcome, killedBy: e.killedBy || null })) });
+    Store.applyPending();                        // данные из db, пришедшие во время волны, ложатся под отчёт
+    Learner.onWaveEnd({
+      waveIdx: L.waveIdx, killed, total,
+      enemies: L.enemies.slice().sort((a, b) => a.ord - b.ord).map((e) => ({ card: e.card, number: e.number, armored: e.armored, outcome: e.outcome, killer: e.killedBy || null, hits: e.hitLog })),
+      wave: wave.enemies.map((e) => ({ number: e.number, armored: !!e.armored })),
+      numbers: wave.enemies.map((e) => e.number),
+      parts: [].concat(...wave.enemies.filter((e) => e.armored).map((e) => Content.demandsOf(e.card))),
+      hints: (wave.hints || []).map((h) => ({ card: h.card, mode: h.mode, pads: h.pads, parts: h.parts })),
+      beams: L.beams.map((b) => ({ id: b.id, a: b.a, b: b.b, product: b.product, w: b.w })),
+      times: L.prep.times,
+    });
     Game.onWaveEnd();
   },
   onWaveEnd() {
@@ -1010,16 +1556,34 @@ const Game = {
   nextWave() { Game.level.waveIdx++; Game.startPrep(); },
   stars(hearts) { return hearts >= 9 ? 3 : hearts >= 6 ? 2 : 1; },
   onLevelEnd() {
-    const L = Game.level, stars = Game.stars(L.hearts), key = L.land + "-" + L.idx;
+    const L = Game.level, stars = Game.stars(L.hearts), key = L.land + "-" + L.idx, P = Store.data.progress, day = Game.rollDay();
     L.phase = "levelEnd"; L.endT = 0.6;          // экран итогов появляется через 0,6 с после последней победы
-    Game.progress.stars[key] = Math.max(Game.progress.stars[key] || 0, stars);
+    P.lands.stars[key] = Math.max(P.lands.stars[key] || 0, stars);
+    day.done++; day.played.push({ land: L.land, idx: L.idx, stars });
+    Store.save("progress"); Store.save("day");
     Bus.emit("level_end", { land: L.land, level: L.idx, hearts: L.hearts, stars });
+    if (day.done >= NIGHT_AFTER) Bus.emit("session_end", { done: day.done, rest: day.started >= Game.settings.perDay });
+  },
+  // Для тестов и отладки: мгновенно доиграть уровень (оставшиеся волны пропускаются, карточки не меняются), затем обычный конец уровня.
+  finishLevel(hearts) {
+    const L = Game.level;
+    if (!L) return Build.fail("no_level");
+    if (L.phase === "levelEnd") return Build.fail("phase");
+    L.hearts = Util.clamp(hearts === undefined ? HEARTS : hearts, 0, HEARTS);
+    L.waveIdx = WAVES_PER_LEVEL - 1; L.queue = []; L.enemies = [];
+    Game.onLevelEnd();
+    L.endT = 0;
+    return { ok: true };
   },
   // Какой уровень следующий (раздел 8): первый уровень этой земли без 3 звёзд, иначе уровень 0 следующей открытой земли, иначе уровень 0 этой.
   nextLevel(land) {
-    const st = Game.progress.stars;
+    const st = Store.data.progress.lands.stars;
     for (let i = 0; i < 5; i++) if ((st[land + "-" + i] || 0) < 3) return [land, i];
     return land < Content.LANDS.length && Learner.landOpen(land + 1) ? [land + 1, 0] : [land, 0];
+  },
+  startNext() {                                  // «Ещё один уровень» и «Дальше»
+    const [l, i] = Game.nextLevel(Game.level ? Game.level.land : Game.cur);
+    return Game.startLevel(l, i);
   },
   // Итоги уровня: звёзды, подсказки земли, «можно было ещё лучом…» (до трёх строк) и цепочки боссов (до двух).
   endData() {
@@ -1037,6 +1601,25 @@ const Game = {
       if (!chains.includes(text) && chains.length < 2) chains.push(text);
     }
     return { stars: Game.stars(L.hearts), hearts: L.hearts, tips: LD.tips, alts, chains };
+  },
+  // Ночной экран (раздел 8): освоено сегодня и вернётся завтра, по 8 фишек.
+  nightData() {
+    const day = Game.rollDay(), P = Store.data.progress, today = Clock.today(), tomorrow = Clock.addDays(today, 1), uniq = (a) => [...new Set(a)];
+    const mastered = day.up.filter((k) => P.cards[k] && P.cards[k].b >= MASTER_BOX), rest = day.up.filter((k) => !mastered.includes(k));
+    const done = uniq(mastered.concat(rest)).map((k) => ({ key: k, label: Content.label(k), star: mastered.includes(k) }));
+    const back = uniq(day.down.concat(day.up.filter((k) => P.cards[k] && P.cards[k].due <= tomorrow),
+      Object.keys(P.cards).filter((k) => P.cards[k].due <= tomorrow).sort((x, y) => P.cards[x].b - P.cards[y].b))).slice(0, 8).map((k) => ({ key: k, label: Content.label(k) }));
+    const last = day.played[day.played.length - 1];
+    return { done: done.slice(0, 8), back, stars: last ? last.stars : 0, canMore: day.started < Game.settings.perDay, doneN: day.done };
+  },
+  // Данные из db пришли снаружи (новее локальных): обновляем то, что не мешает бою.
+  onExternalData() {
+    Game.seed = Store.data.progress.seed; Game.waveCounter = Store.data.progress.wn;
+    UI.applySettings();
+  },
+  resetProgress() {                              // «Сбросить прогресс»: настройки остаются
+    Store.reset(["progress", "day"]);
+    Game.seed = Store.data.progress.seed; Game.waveCounter = 0;
   },
   ribbon() {                                     // карточки ленты в порядке выхода
     const L = Game.level;
@@ -1195,18 +1778,49 @@ const Render = {
       }
     }
   },
+  // Облики башен (раздел 8): только внешний вид, цифра всегда по центру. skin: base | blizn | trilist | chetyre | zvezda | soty | mayak | osminog | kolokol | pushka.
+  skinBack(c, sk) {
+    const k = Render.col;
+    c.lineJoin = "round"; c.strokeStyle = k.ink; c.lineWidth = 4;
+    if (sk === "zvezda") { c.fillStyle = "#ffd23f"; Render.star(c, 0, 2, 64, 0); c.fill(); c.stroke(); }
+    else if (sk === "soty") { c.fillStyle = "#f2b84b"; c.beginPath(); for (let i = 0; i < 6; i++) { const t = (i * Math.PI) / 3; c.lineTo(Math.cos(t) * 58, Math.sin(t) * 58); } c.closePath(); c.fill(); c.stroke(); }
+    else if (sk === "osminog") { c.fillStyle = "#8a63d2"; for (let i = 0; i < 8; i++) { const t = (i * Math.PI) / 4; Render.circ(c, Math.cos(t) * 53, Math.sin(t) * 53, 11); c.fill(); c.stroke(); } }
+    else if (sk === "chetyre") { c.fillStyle = k["stone-2"]; for (let i = 0; i < 4; i++) { c.save(); c.rotate((i * Math.PI) / 2); c.beginPath(); c.moveTo(-15, -44); c.lineTo(0, -70); c.lineTo(15, -44); c.closePath(); c.fill(); c.stroke(); c.restore(); } }
+    else if (sk === "trilist") { c.fillStyle = "#4caf63"; for (let i = 0; i < 3; i++) { c.save(); c.rotate((i * 2 * Math.PI) / 3); c.beginPath(); c.ellipse(0, -52, 17, 25, 0, 0, Math.PI * 2); c.fill(); c.stroke(); c.restore(); } }
+    else if (sk === "blizn") { c.fillStyle = "#dfe5ec"; for (const sx of [-1, 1]) { Render.circ(c, sx * 36, -40, 18); c.fill(); c.stroke(); } }
+    else if (sk === "pushka") { c.save(); c.rotate(Math.PI / 4); c.fillStyle = "#2d333c"; Render.rr(c, -15, -80, 30, 54, 7); c.fill(); c.stroke(); c.fillStyle = "#171a1f"; Render.rr(c, -19, -84, 38, 14, 5); c.fill(); c.stroke(); c.restore(); }
+  },
+  skinBody(c, sk, fixed) {                       // заливка тела башни (круг R 34)
+    const g = c.createRadialGradient(-10, -12, 4, 0, 0, 34), set = (a, b) => { g.addColorStop(0, a); g.addColorStop(1, b); return g; };
+    if (fixed) return set("#9aa3ae", "#5d6671");            // заранее стоящая — каменная
+    return ({ zvezda: () => set("#ffe38a", "#e0a82a"), soty: () => set("#ffd27a", "#d58f1c"), mayak: () => set("#ffffff", "#e3dccd"), osminog: () => set("#b79cf0", "#6c48b3"),
+      chetyre: () => set("#9fb6cf", "#5a738f"), trilist: () => set("#7fd18c", "#3f8f52"), blizn: () => set("#f2f5f9", "#aab4c0"), kolokol: () => set("#f0c274", "#a8703f"),
+      pushka: () => set("#5f6772", "#2b3038") }[sk] || (() => set("#c9915a", Render.col.wood)))();
+  },
+  skinFront(c, sk) {
+    const k = Render.col;
+    c.lineJoin = "round"; c.strokeStyle = k.ink; c.lineWidth = 3.5;
+    if (sk === "mayak") {                         // красные полосы маяка и лампа
+      c.save(); Render.circ(c, 0, 0, 33); c.clip(); c.fillStyle = "#d65a4a";
+      for (const yy of [-22, 6]) c.fillRect(-40, yy, 80, 11);
+      c.restore();
+      c.fillStyle = "#ffd23f"; c.beginPath(); c.arc(0, -37, 13, Math.PI, 0); c.closePath(); c.fill(); c.stroke();
+    } else if (sk === "kolokol") { c.fillStyle = "#ffd23f"; c.beginPath(); c.arc(0, -36, 15, Math.PI, 0); c.closePath(); c.fill(); c.stroke(); Render.circ(c, 0, 42, 6); c.fill(); c.stroke(); }
+    else if (sk === "pushka") { c.fillStyle = k.rivet; for (const [rx, ry] of [[-24, -24], [24, -24], [-24, 24], [24, 24]]) { Render.circ(c, rx, ry, 4); c.fill(); c.stroke(); } }
+  },
   tower(c, x, y, digit, o) {
     const k = Render.col; o = o || {};
+    const sk = o.fixed ? "base" : o.skin || Learner.skinFor(digit);
     c.save(); c.globalAlpha = o.alpha === undefined ? 1 : o.alpha; c.translate(x, y); if (o.scale) c.scale(o.scale, o.scale);
     c.fillStyle = "rgba(0,0,0,.22)"; c.beginPath(); c.ellipse(0, 8, 48, 40, 0, 0, Math.PI * 2); c.fill();
+    Render.skinBack(c, sk);
     c.lineJoin = "round"; c.strokeStyle = k.ink; c.fillStyle = k["stone-2"]; c.lineWidth = 3;
     for (let i = 0; i < 10; i++) { c.save(); c.rotate((i * Math.PI) / 5); Render.rr(c, -8, -53, 16, 14, 3); c.fill(); c.stroke(); c.restore(); }
     c.lineWidth = 4; c.fillStyle = k.stone; Render.circ(c, 0, 0, 43); c.fill(); c.stroke();
-    const g = c.createRadialGradient(-10, -12, 4, 0, 0, 34);
-    if (o.fixed) { g.addColorStop(0, "#9aa3ae"); g.addColorStop(1, "#5d6671"); } else { g.addColorStop(0, "#c9915a"); g.addColorStop(1, k.wood); }   // заранее стоящая — каменная
-    c.fillStyle = g; Render.circ(c, 0, 0, 34); c.fill(); c.stroke();
+    c.fillStyle = Render.skinBody(c, sk, !!o.fixed); Render.circ(c, 0, 0, 34); c.fill(); c.stroke();
     c.strokeStyle = "rgba(27,35,51,.28)"; c.lineWidth = 3;
-    for (const yy of [-14, 14]) { c.beginPath(); c.moveTo(-Math.sqrt(34 * 34 - yy * yy) + 3, yy); c.lineTo(Math.sqrt(34 * 34 - yy * yy) - 3, yy); c.stroke(); }
+    if (sk === "base") for (const yy of [-14, 14]) { c.beginPath(); c.moveTo(-Math.sqrt(34 * 34 - yy * yy) + 3, yy); c.lineTo(Math.sqrt(34 * 34 - yy * yy) - 3, yy); c.stroke(); }
+    Render.skinFront(c, sk);
     Render.txt(c, String(digit), 0, 3, Render.fit(c, String(digit), 58, 56, true), "#fff", k.ink, 6, true);
     c.restore();
   },
@@ -1287,8 +1901,9 @@ const Render = {
     c.restore();
     if (e.alive && e.note) {                     // «56, а луч даёт 42» уходит вверх; «56 − 35 = 21» висит
       const sticky = e.noteT <= 0, rise = sticky ? 0 : 20 * (1 - e.noteT);
-      c.font = "800 30px " + Render.F_BODY;
-      const w = c.measureText(e.note).width + 30, h = 44, busy = last.labels.concat(last.notes);
+      const nk = Render.k(), nf = 30 * nk;
+      c.font = "800 " + nf + "px " + Render.F_BODY;
+      const w = c.measureText(e.note).width + 30, h = 44 * nk, busy = last.labels.concat(last.notes);
       // Место для надписи: над врагом; если там подпись луча или чужая надпись — под щитом, затем выше и ниже шагами по 50 лп
       // и в стороны. Берётся вариант без наложений, ближайший к «над врагом».
       const cy = (v) => Util.clamp(v, FIELD_TOP + h / 2 + 2, FIELD_BOTTOM - h / 2 - 2), cxx = (v) => Util.clamp(v, w / 2 + 8, W - w / 2 - 8);
@@ -1302,10 +1917,10 @@ const Render = {
       }
       if (sticky) {
         c.fillStyle = k.paper; c.strokeStyle = k.ink; c.lineWidth = 4;
-        Render.rr(c, x - w / 2, y - 22, w, 44, 12); c.fill(); c.stroke();
-        Render.txt(c, e.note, x, y + 1, 30, k.ink, null, 0, false);
+        Render.rr(c, x - w / 2, y - h / 2, w, h, 12); c.fill(); c.stroke();
+        Render.txt(c, e.note, x, y + 1, nf, k.ink, null, 0, false);
       } else {
-        Render.txt(c, e.note, x, y, 30, "#fff", k.ink, 7, false);
+        Render.txt(c, e.note, x, y, nf, "#fff", k.ink, 7, false);
       }
       last.notes.push({ enemyId: e.id, text: e.note, x: x - w / 2, y: y - h / 2, w, h });
     }
@@ -1323,56 +1938,65 @@ const Render = {
     c.globalAlpha = 1;
   },
 
+  k: () => (Store.data.settings && Store.data.settings.big ? 1.25 : 1),   // крупный шрифт взрослого
   overlap: (a, b, m) => a.x < b.x + b.w + m && b.x < a.x + a.w + m && a.y < b.y + b.h + m && b.y < a.y + a.h + m,
 
   // --- подписи «a × b = c» ---
-  // Место для плашки пары площадок a–b: на луче в 95 лп от оси дороги к верхнему концу; если занято или плашка касается дороги, к нижнему;
-  // затем сдвиг наружу по лучу шагами по 20 лп (до 3). Если и так не вышло, перебираем ещё расстояния (60…200), и только потом «как есть».
-  spot(L, a, b, w, h, placed) {
-    const pa = Level.pad(L, a), pb = Level.pad(L, b), C = Render.crossPoint(L, { a, b });
+  // Место для плашки пары площадок a–b. Сначала места раздела 10 (на луче в 95 лп от оси дороги к верхнему концу, затем к нижнему, сдвиг наружу по 20 лп),
+  // потом по всей длине луча и вплотную сбоку. Плашки друг на друга и цифра башни (диск 36 лп) не закрываются совсем; если в тесноте места нет,
+  // шрифт уменьшается (34 → 30 → 26 лп), а при нужде берётся лучший из плохих вариантов.
+  spot(c, L, a, b, text, placed, towers) {
+    const pa = Level.pad(L, a), pb = Level.pad(L, b), C = Render.crossPoint(L, { a, b }), kk = Render.k();
     const top = pa.y <= pb.y ? pa : pb, bot = top === pa ? pb : pa;
     const ut = [top.x - C.x, top.y - C.y], ub = [bot.x - C.x, bot.y - C.y];
     const lt = Math.hypot(ut[0], ut[1]) || 1, lb = Math.hypot(ub[0], ub[1]) || 1;
-    const at = (u, l, dist) => ({ x: Util.clamp(C.x + (u[0] / l) * dist - w / 2, 8, W - 8 - w), y: Util.clamp(C.y + (u[1] / l) * dist - h / 2, FIELD_TOP + 8, FIELD_BOTTOM - 8 - h), w, h });
-    const cands = [];
-    for (let i = 0; i <= 3; i++) { cands.push(at(ut, lt, 95 + 20 * i)); cands.push(at(ub, lb, 95 + 20 * i)); }
-    for (const dd of [75, 60, 175, 200]) { cands.push(at(ut, lt, dd)); cands.push(at(ub, lb, dd)); }
-    // Из кандидатов берётся лучший по штрафу: наложение на другие плашки недопустимо (пока есть выбор), затем башни, затем кромка дороги.
-    const towers = L.pads.filter((p) => L.towers[p.id]);
-    const towerHit = (q, p) => {                 // цифра башни (диск 36 лп) не закрывается совсем, кромка (до 52 лп) — в крайнем случае
-      const dx = Math.max(q.x - p.x, 0, p.x - (q.x + q.w)), dy = Math.max(q.y - p.y, 0, p.y - (q.y + q.h)), d = Math.hypot(dx, dy);
-      return d < 36 ? 5000 + (36 - d) * 50 : d < 52 ? (52 - d) * 12 : 0;
-    };
-    const roadHits = (q) => {                    // сколько из 9 точек плашки ближе 66 лп к оси дороги (кромка 62 + 4)
-      let n = 0;
-      for (const fx of [0, 0.5, 1]) for (const fy of [0, 0.5, 1]) {
-        const x = q.x + q.w * fx, y = q.y + q.h * fy;
-        if (L.lanes.some((ln) => Geo.distToLane(ln, x, y) < 66)) n++;
+    const bx = pb.x - pa.x, by = pb.y - pa.y, bl = Math.hypot(bx, by) || 1, nx = -by / bl, ny = bx / bl;
+    const hardTower = 36, HARD = 1e5;
+    let best = null;
+    for (const fs of [34, 30, 26]) {
+      const f = fs * kk, w = Math.ceil((c.font = "400 " + f + "px " + Render.F_NUM, c.measureText(text).width)) + Math.round(30 * (fs / 34) * kk), h = Math.round(54 * (fs / 34) * kk);
+      const cl = (q) => ({ x: Util.clamp(q.x, 8, W - 8 - w), y: Util.clamp(q.y, FIELD_TOP + 8, FIELD_BOTTOM - 8 - h), w, h });
+      const at = (u, l, dist) => cl({ x: C.x + (u[0] / l) * dist - w / 2, y: C.y + (u[1] / l) * dist - h / 2 });
+      const cands = [];
+      for (let i = 0; i <= 3; i++) { cands.push(at(ut, lt, 95 + 20 * i)); cands.push(at(ub, lb, 95 + 20 * i)); }
+      for (const dd of [75, 60, 175, 200]) { cands.push(at(ut, lt, dd)); cands.push(at(ub, lb, dd)); }
+      const side = (Math.abs(nx) * w + Math.abs(ny) * h) / 2 + 8;
+      for (const t of [0.5, 0.4, 0.6, 0.3, 0.7, 0.22, 0.78, 0.35, 0.65]) for (const o of [0, 1, -1]) {
+        cands.push(cl({ x: pa.x + bx * t + nx * o * side - w / 2, y: pa.y + by * t + ny * o * side - h / 2 }));
       }
-      return n;
-    };
-    let best = cands[0], bs = Infinity;
-    cands.forEach((q, i) => {
-      const score = (placed.some((o) => Render.overlap(q, o, 6)) ? 1e6 : 0) + roadHits(q) * 100 + towers.reduce((m, p) => m + towerHit(q, p), 0) + i;
-      if (score < bs) { bs = score; best = q; }
-    });
+      const towerHit = (q, p) => {               // диск цифры 36 лп не закрывается совсем, кольцо до 52 лп — в крайнем случае
+        const dx = Math.max(q.x - p.x, 0, p.x - (q.x + q.w)), dy = Math.max(q.y - p.y, 0, p.y - (q.y + q.h)), d = Math.hypot(dx, dy);
+        return d < hardTower ? HARD + (hardTower - d) * 50 : d < 52 ? (52 - d) * 12 : 0;
+      };
+      const roadHits = (q) => {                  // сколько из 9 точек плашки ближе 66 лп к оси дороги (кромка 62 + 4)
+        let n = 0;
+        for (const fx of [0, 0.5, 1]) for (const fy of [0, 0.5, 1]) {
+          const x = q.x + q.w * fx, y = q.y + q.h * fy;
+          if (L.lanes.some((ln) => Geo.distToLane(ln, x, y) < 66)) n++;
+        }
+        return n;
+      };
+      cands.forEach((q, i) => {
+        const score = (placed.some((o) => Render.overlap(q, o, 6)) ? 1e6 : 0) + roadHits(q) * 100 + towers.reduce((m, p) => m + towerHit(q, p), 0) + i + (fs < 34 ? 400 : 0);
+        if (!best || score < best.score) best = Object.assign(q, { score, fs: f });
+      });
+      if (best.score < HARD) break;               // нашёлся чистый вариант: меньший шрифт не нужен
+    }
     return best;
   },
   labels(c, L, last) {
-    const placed = [];
-    c.font = "400 34px " + Render.F_NUM;
-    for (const b of L.beams.slice().sort((m, n) => m.id - n.id)) {
-      const r = Render.spot(L, b.a, b.b, Math.ceil(c.measureText(b.label).width) + 30, 54, placed);
-      placed.push(r);
-      last.labels.push({ beamId: b.id, text: b.label, x: r.x, y: r.y, w: r.w, h: r.h });
-    }
+    const placed = [], towers = L.pads.filter((p) => L.towers[p.id]), at = {};
+    const len = (b) => { const pa = Level.pad(L, b.a), pb = Level.pad(L, b.b); return Util.dist(pa.x, pa.y, pb.x, pb.y); };
+    // Короткие лучи раскладываются первыми: у них меньше всего чистых мест. В last.labels порядок остаётся по id.
+    for (const b of L.beams.slice().sort((m, n) => len(m) - len(n) || m.id - n.id)) { const r = Render.spot(c, L, b.a, b.b, b.label, placed, towers); placed.push(r); at[b.id] = r; }
+    for (const b of L.beams.slice().sort((m, n) => m.id - n.id)) { const r = at[b.id]; last.labels.push({ beamId: b.id, text: b.label, x: r.x, y: r.y, w: r.w, h: r.h, fs: r.fs }); }
     if (L.phase !== "prep" && L.phase !== "paused") return;
     for (const hn of (L.wave && L.wave.hints) || []) {   // подсказка-путь: пунктир и призрак «7 × 5», пока на паре нет луча
       if (hn.mode === "none" || Build.beamBetween(L, hn.pads[0], hn.pads[1])) continue;
       const e = { card: hn.card, pads: hn.pads.slice(), mode: hn.mode, ghost: hn.mode === "full" ? hn.ghost : null };
       if (e.ghost) {
-        const r = Render.spot(L, hn.pads[0], hn.pads[1], Math.ceil(c.measureText(e.ghost).width) + 30, 54, placed);
-        placed.push(r); Object.assign(e, { x: r.x, y: r.y, w: r.w, h: r.h });
+        const r = Render.spot(c, L, hn.pads[0], hn.pads[1], e.ghost, placed, towers);
+        placed.push(r); Object.assign(e, { x: r.x, y: r.y, w: r.w, h: r.h, fs: r.fs });
       }
       last.hints.push(e);
     }
@@ -1391,13 +2015,13 @@ const Render = {
       if (!h.ghost) continue;
       c.save(); c.globalAlpha = 0.72; c.fillStyle = k.paper; c.strokeStyle = k.hint; c.lineWidth = 4; c.setLineDash([10, 8]);
       Render.rr(c, h.x, h.y, h.w, h.h, 14); c.fill(); c.stroke(); c.setLineDash([]);
-      Render.txt(c, h.ghost, h.x + h.w / 2, h.y + h.h / 2 + 2, 34, k.hint, null, 0, true);
+      Render.txt(c, h.ghost, h.x + h.w / 2, h.y + h.h / 2 + 2, h.fs || 34, k.hint, null, 0, true);
       c.restore();
     }
     for (const r of last.labels) {
       c.fillStyle = k.paper; c.strokeStyle = k.gold; c.lineWidth = 5;
       Render.rr(c, r.x, r.y, r.w, r.h, 14); c.fill(); c.stroke();
-      Render.txt(c, r.text, r.x + r.w / 2, r.y + r.h / 2 + 2, 34, k.ink, null, 0, true);
+      Render.txt(c, r.text, r.x + r.w / 2, r.y + r.h / 2 + 2, r.fs || 34, k.ink, null, 0, true);
     }
     const d = Input.delBeam;                     // «✕» рядом с подписью, 3 секунды после касания
     if (d && Render.t < d.until) {
@@ -1551,18 +2175,20 @@ const Input = {
   },
 };
 
-/* ---------- 16 UI: DOM поверх canvas (сердца, лента, кнопки, рука, меню паузы, плашки, титул, карта мира, итоги уровня) ---------- */
+/* ---------- 16 UI: DOM поверх canvas (сердца, лента, кнопки, рука, меню паузы, плашки, титул, карта мира с наградами, итоги, ночь, отдых, экран взрослого) ---------- */
 const UI = {
-  el: {}, sig: "", handKey: "",
+  el: {}, sig: "", handKey: "", prSel: null, holdT: 0, holdRaf: 0, holdStart: 0, resetT: 0, resetAsk: false,
   HEART: '<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C3 14 1 10 1 6.5 1 3.5 3.4 1.5 6 1.5c2.4 0 4.3 1.4 6 3.8 1.7-2.4 3.6-3.8 6-3.8 2.6 0 5 2 5 5 0 3.5-2 7.5-11 14.5z"/></svg>',
   OK: '<svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="5"/><path d="M2.6 5.2l1.7 1.7 3.2-3.5" fill="none" stroke="#fff" stroke-width="1.4"/></svg>',
   TOWER: '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 9V3h2v1h1V3h2v1h1V3h2v6z"/></svg>',
   STAR: (on, cls) => '<svg viewBox="0 0 24 23" class="' + (cls || "") + (on ? " on" : "") + '" aria-hidden="true"><path d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.5 5.6 21.1 7 14l-5.3-5 7.2-.9z"/></svg>',
   LOCK: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0110 0v3h1.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 20.5v-9A1.5 1.5 0 015.5 10zM9 10h6V7a3 3 0 00-6 0z"/></svg>',
+  SPEEDS: [["veryslow", "Очень медленно"], ["slow", "Медленно"], ["normal", "Нормально"], ["fast", "Быстро"]],
   init() {
-    for (const id of ["hud", "hearts", "ribbon", "ribbon-cap", "wave-info", "btn-pause", "hand", "btn-fight", "pause-menu", "btn-resume", "btn-sound", "btn-to-map",
+    for (const id of ["app", "hud", "hearts", "ribbon", "ribbon-cap", "wave-info", "btn-pause", "hand", "btn-fight", "pause-menu", "btn-resume", "btn-sound", "btn-to-map",
       "plaque", "plaque-text", "plaque-sub", "toast", "scr-title", "btn-play", "scr-map", "lands", "scr-level-end", "le-title", "le-stars", "le-hearts", "le-lines",
-      "btn-le-next", "btn-le-map"]) UI.el[id] = document.getElementById(id);
+      "btn-le-next", "btn-le-map", "scr-night", "nt-stars", "nt-done", "nt-back", "btn-more", "rest-msg", "btn-night-map", "scr-rest", "btn-rest-map", "scr-parent",
+      "btn-parent", "parent-ring", "rw-list"]) UI.el[id] = document.getElementById(id);
     const el = UI.el;
     const on = (id, fn) => el[id].addEventListener("click", () => { fn(); UI.sync(); });   // экран обновляется сразу, не ждёт кадра
     on("btn-play", () => { Audio.unlock(); Game.toMap(); });
@@ -1570,15 +2196,48 @@ const UI = {
     on("btn-pause", () => Game.pause());
     on("btn-resume", () => Game.resume());
     on("btn-to-map", () => { Input.reset(); Game.toMap(); });
-    on("btn-sound", () => { Game.settings.sound = !Game.settings.sound; });
+    on("btn-sound", () => { Game.settings.sound = !Game.settings.sound; Store.save("settings"); });
     on("btn-le-map", () => { Input.reset(); Game.toMap(); });
-    on("btn-le-next", () => { const [l, i] = Game.nextLevel(Game.level.land); Input.reset(); Game.startLevel(l, i); });
+    on("btn-le-next", () => { Input.reset(); Game.startNext(); });
+    on("btn-more", () => { Input.reset(); Game.startNext(); });
+    on("btn-night-map", () => { Input.reset(); Game.toMap(); });
+    on("btn-rest-map", () => Game.toMap());
     el.lands.addEventListener("click", (e) => {
       const b = e.target.closest ? e.target.closest("[data-level]") : null;
       if (!b) return;
       const [l, i] = b.dataset.level.split("-").map(Number);
       Audio.unlock(); Input.reset(); Game.startLevel(l, i); UI.sync();
     });
+    el["rw-list"].addEventListener("click", (e) => {
+      const b = e.target.closest ? e.target.closest("button[data-skin]") : null;
+      if (b) { Learner.toggleSkin(b.dataset.skin); UI.sync(); }
+    });
+    // Кнопка взрослого: открывается только удержанием 2 секунды, кольцо заполняется, при раннем отпускании сбрасывается. Простое касание ничего не делает.
+    el["btn-parent"].addEventListener("pointerdown", (e) => { if (e.button > 0) return; UI.holdBegin(); });
+    for (const ev of ["pointerup", "pointercancel", "pointerleave"]) el["btn-parent"].addEventListener(ev, () => UI.holdEnd());
+    el["btn-parent"].addEventListener("contextmenu", (e) => e.preventDefault());
+    el["scr-parent"].addEventListener("click", UI.onParentClick);
+  },
+  holdBegin() {
+    UI.holdEnd();
+    UI.holdStart = performance.now();
+    UI.holdT = setTimeout(() => { UI.holdEnd(); Game.toParent(); UI.sync(); }, 2000);
+    const tick = () => {
+      const p = Math.min(1, (performance.now() - UI.holdStart) / 2000);
+      UI.el["parent-ring"].style.strokeDashoffset = String(245 * (1 - p));
+      if (UI.holdT) UI.holdRaf = requestAnimationFrame(tick);
+    };
+    tick();
+  },
+  holdEnd() {
+    clearTimeout(UI.holdT); UI.holdT = 0;
+    cancelAnimationFrame(UI.holdRaf);
+    if (UI.el["parent-ring"]) UI.el["parent-ring"].style.strokeDashoffset = "245";
+  },
+  applySettings() {                              // крупный шрифт: --fs ×1,25 на #app, canvas берёт Render.k()
+    UI.el.app.classList.toggle("big", !!Game.settings.big);
+    UI.sig = "";
+    Render.draw();
   },
   buildHand(hand) {                              // цифры руки пересобираются, когда меняется набор (земля 6: ещё 20, 30, 40)
     const key = hand.join(","), el = UI.el;
@@ -1600,7 +2259,7 @@ const UI = {
   },
   stars(n) { return [1, 2, 3].map((i) => UI.STAR(i <= n)).join(""); },
   renderMap() {
-    const st = Game.progress.stars;
+    const st = Store.data.progress.lands.stars;
     UI.el.lands.innerHTML = Content.LANDS.map((LD) => {
       const open = Learner.landOpen(LD.id);
       if (!open) {
@@ -1616,6 +2275,25 @@ const UI = {
       }
       return '<div class="land" data-land="' + LD.id + '"><h3>' + LD.id + ". " + LD.name + '</h3><div class="sample">' + LD.sample + '</div><div class="lvls">' + cells + "</div></div>";
     }).join("");
+    UI.renderRewards();
+  },
+  // Награды (раздел 8): облики башен за освоенные ряды, все видны заранее. Полученный облик включается и выключается нажатием.
+  renderRewards() {
+    const P = Store.data.progress;
+    UI.el["rw-list"].innerHTML = Content.SKINS.map((def) => {
+      const pr = Learner.skinProgress(def), got = P.skins.got.includes(def.id), on = got && P.skins.on[def.n || "all"] === def.id;
+      const row = def.n ? "×" + def.n : "15", hint = def.n ? "Освой все ×" + def.n + " — получишь " + def.acc + ": " + pr.done + " из " + pr.total
+        : "Освой «Трудные пятнадцать» — получишь " + def.acc + ": " + pr.done + " из " + pr.total;
+      const tag = got ? "button" : "div";
+      return "<" + tag + (got ? ' type="button"' : "") + ' class="rw ' + (got ? "got" : "lock") + (on ? " on" : "") + '" data-skin="' + def.id + '" title="' + hint + '" aria-label="' + (got ? def.name + (on ? ", включена" : ", выключена") : hint) + '">' +
+        '<canvas width="124" height="124" data-skin="' + def.id + '" data-digit="' + (def.n || 15) + '"></canvas><div class="nm">' + def.name + '</div><div class="pg">' +
+        (got ? (on ? "включена" : "выключена") : row + " · " + pr.done + " из " + pr.total) + "</div></" + tag + ">";
+    }).join("");
+    for (const cv of UI.el["rw-list"].querySelectorAll("canvas")) {
+      const c = cv.getContext("2d");
+      c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 124, 124);
+      Render.tower(c, 62, 62, +cv.dataset.digit, { skin: cv.dataset.skin, scale: 0.74 });
+    }
   },
   renderEnd() {
     const D = Game.endData(), el = UI.el;
@@ -1624,28 +2302,117 @@ const UI = {
     el["le-hearts"].textContent = "Сердец: " + D.hearts + " из " + HEARTS;
     el["le-lines"].innerHTML = D.tips.map((t) => '<p class="tip">' + t + "</p>").concat(D.alts.map((t) => '<p class="alt">' + t + "</p>"), D.chains.map((t) => '<p class="chain">' + t + "</p>")).join("");
   },
+  renderNight() {
+    const D = Game.nightData(), el = UI.el, chips = (a, cls) => a.map((c) => '<span class="chip ' + (c.star ? "star " : "") + (cls || "") + '">' + c.label + "</span>").join("");
+    el["nt-stars"].innerHTML = UI.stars(D.stars);
+    el["nt-done"].innerHTML = D.done.length ? chips(D.done) : "<p>Сегодня тренировались, завтра продолжим</p>";
+    el["nt-back"].innerHTML = D.back.length ? chips(D.back, "dim") : "<p>Все факты на местах</p>";
+    el["btn-more"].hidden = !D.canMore;
+    el["rest-msg"].hidden = D.canMore;
+  },
+  // --- экран для взрослого: карта таблицы, трудные факты, путаницы, настройки, сброс. Строится при открытии, при закрытии очищается. ---
+  fmtMs: (ms) => (ms / 1000).toFixed(1).replace(".", ",") + " с",
+  fmtDate: (d) => d.slice(8, 10) + "." + d.slice(5, 7),
+  times: (n) => (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? n + " раза" : n + " раз"),
+  cardLabel(key) {
+    const c = Content.cardOf(key);
+    return c ? Content.label(key) + (c.op === "b" ? " (босс)" : "") : key;
+  },
+  detail(key) {
+    const c = Content.cardOf(key), st = Learner.stats(key), head = c.op === "d" ? c.n + " : " + c.a + " = " + c.b : c.a + " " + TIMES + " " + c.b + " = " + c.n;
+    if (!st || !st.seen) return head + " · ещё не встречался" + (st ? " · коробка " + st.b : "");
+    return head + " · верно " + st.ok + " из " + st.seen + " (" + st.acc + " %) · среднее время постройки " + (st.ms === null ? "—" : UI.fmtMs(st.ms)) + " · коробка " + st.b + " · снова " + UI.fmtDate(st.due);
+  },
+  renderParent() {
+    const P = Store.data.progress, S = Game.settings, day = Game.rollDay(), el = UI.el["scr-parent"];
+    const color = (k) => "var(--b" + (P.cards[k] ? P.cards[k].b : 0) + ")";
+    const cell = (k, txt) => '<button type="button" data-k="' + k + '" class="' + (UI.prSel === k ? "sel" : "") + '" style="background:' + color(k) + '" aria-label="' + UI.cardLabel(k) + '">' + txt + "</button>";
+    let grid = '<div class="hd"></div>';
+    for (let x = 2; x <= 9; x++) grid += '<div class="hd">' + x + "</div>";
+    for (let r = 2; r <= 9; r++) {
+      grid += '<div class="hd">' + r + "</div>";
+      for (let q = 2; q <= 9; q++) grid += cell("m:" + Math.min(r, q) + "x" + Math.max(r, q), r * q);
+    }
+    let x10 = '<div class="hd">×10</div>';
+    for (let x = 2; x <= 9; x++) x10 += cell("m:" + x + "x10", x * 10);
+    const mastered = (list) => list.filter(Learner.isMastered).length;
+    const sums = [["Боссы", Content.H15], ["Деление", Content.LANDS[4].cards], ["Двузначные", Content.LANDS[5].cards]]
+      .map(([t, l]) => t + ": освоено <b>" + mastered(l) + "</b> из " + l.length).join("<br>");
+    const legend = [0, 1, 2, 3, 4, 5].map((b) => '<span><i style="background:var(--b' + b + ')"></i>' + (b ? b : "нет") + "</span>").join("");
+    const hard = Object.keys(P.cards).filter((k) => P.cards[k].seen >= 2).sort((x, y) => {
+      const a = P.cards[x], b = P.cards[y], ra = a.miss / a.seen, rb = b.miss / b.seen;
+      return rb - ra || a.b - b.b || (b.tN ? b.tS / b.tN : 0) - (a.tN ? a.tS / a.tN : 0);
+    }).slice(0, 5);
+    const conf = Object.keys(P.conf).sort((x, y) => P.conf[y].n - P.conf[x].n).slice(0, 5);
+    const sp = UI.SPEEDS.map(([id, name]) => '<button type="button" data-speed="' + id + '" class="' + (S.speed === id ? "on" : "") + '">' + name + "</button>").join("");
+    el.innerHTML =
+      '<div class="pr-top"><h2>Для взрослого</h2><button class="btn alt" id="btn-parent-back" type="button">Назад</button></div>' +
+      '<div class="pr-body"><div class="pr-left"><h3>Карта таблицы: цвет клетки — коробка Лейтнера</h3><div class="pr-grid">' + grid + '</div><div class="pr-row">' + x10 + "</div>" +
+      '<div class="pr-leg">' + legend + '</div><div class="pr-sum">' + sums + "</div></div>" +
+      '<div class="pr-right"><div id="pr-detail">' + (UI.prSel ? UI.detail(UI.prSel) : "Коснитесь клетки: точность и среднее время постройки") + "</div>" +
+      '<div class="pr-two"><div><h3>Самые трудные факты</h3><ul class="pr-list">' +
+      (hard.length ? hard.map((k) => "<li>" + UI.cardLabel(k) + " · ошибок " + P.cards[k].miss + " из " + P.cards[k].seen + "</li>").join("") : '<li class="none">пока мало данных</li>') + "</ul></div>" +
+      '<div><h3>Частые путаницы</h3><ul class="pr-list">' +
+      (conf.length ? conf.map((k) => "<li>" + k.split("-").reverse().join(" ↔ ") + " (" + UI.times(P.conf[k].n) + ")</li>").join("") : '<li class="none">пока нет</li>') + "</ul></div></div>" +
+      '<h3>Настройки</h3><div class="pr-set"><div class="rw2"><span>Скорость врагов</span>' + sp + "</div>" +
+      '<div class="rw2"><span>Уровней в день</span><button type="button" class="sq" id="pr-per-minus" aria-label="Меньше">−</button><span class="val" id="pr-per-val">' + S.perDay + '</span><button type="button" class="sq" id="pr-per-plus" aria-label="Больше">+</button></div>' +
+      '<div class="rw2"><span>Звук</span><button type="button" id="pr-sound" class="' + (S.sound ? "on" : "") + '">' + (S.sound ? "включён" : "выключен") + "</button>" +
+      '<span style="margin-left:24px">Крупный шрифт</span><button type="button" id="pr-big" class="' + (S.big ? "on" : "") + '">' + (S.big ? "включён" : "выключен") + "</button></div></div>" +
+      '<div id="pr-today">Сегодня: уровней начато ' + day.started + ", сыграно " + day.done + ", лимит " + S.perDay + "</div>" +
+      '<div class="pr-reset">' + (UI.resetAsk ? '<button type="button" class="yes" id="btn-reset-yes">Да, сбросить всё</button><button type="button" id="btn-reset-no">Отмена</button>' : '<button type="button" id="btn-reset">Сбросить прогресс</button>') + "</div></div></div>";
+  },
+  onParentClick(e) {
+    const t = e.target.closest ? e.target.closest("button") : null;
+    if (!t) return;
+    const S = Game.settings, redo = () => { Store.save("settings"); UI.renderParent(); };
+    if (t.id === "btn-parent-back") { UI.resetAsk = false; clearTimeout(UI.resetT); UI.prSel = null; Game.toMap(); UI.sync(); return; }
+    if (t.dataset.k) { UI.prSel = t.dataset.k; UI.renderParent(); return; }
+    if (t.dataset.speed) { S.speed = t.dataset.speed; redo(); return; }
+    if (t.id === "pr-per-minus") { S.perDay = Math.max(2, S.perDay - 1); redo(); return; }
+    if (t.id === "pr-per-plus") { S.perDay = Math.min(8, S.perDay + 1); redo(); return; }
+    if (t.id === "pr-sound") { S.sound = !S.sound; redo(); return; }
+    if (t.id === "pr-big") { S.big = !S.big; UI.applySettings(); redo(); return; }
+    if (t.id === "btn-reset") {                  // подтверждение на странице (не confirm()): вторая кнопка видна 5 секунд
+      UI.resetAsk = true; UI.renderParent();
+      clearTimeout(UI.resetT);
+      UI.resetT = setTimeout(() => { UI.resetAsk = false; if (Game.screen === "parent") UI.renderParent(); }, 5000);
+      return;
+    }
+    if (t.id === "btn-reset-no") { UI.resetAsk = false; clearTimeout(UI.resetT); UI.renderParent(); return; }
+    if (t.id === "btn-reset-yes") { UI.resetAsk = false; clearTimeout(UI.resetT); Game.resetProgress(); UI.prSel = null; UI.renderParent(); UI.sig = ""; }
+  },
+  mapSig() {
+    const P = Store.data.progress;
+    return [P.lands.stars, P.lands.unlocked, P.skins, Content.LANDS.map((_, i) => Learner.landProgress(i + 1).done), Content.SKINS.map((d) => Learner.skinProgress(d).done)];
+  },
   sync() {                                       // перерисовывает DOM только когда что-то изменилось
-    const L = Game.level, el = UI.el, inGame = Game.screen === "game" && !!L;
+    const L = Game.level, el = UI.el, inGame = Game.screen === "game" && !!L, day = Game.rollDay();
     if (!Build.editable() && (Input.sel || Input.armed !== null || Input.drag || Input.down)) Input.reset();
     const ph = inGame ? L.phase : "none", rib = inGame ? Game.ribbon() : [];
     const last = inGame && L.results.length ? L.results[L.results.length - 1] : null;
     const atEnd = inGame && ph === "levelEnd" && L.endT <= 0, plaqueOn = inGame && ph === "waveEnd" && L.plaqueT <= 2;   // через 0,6 с после последней победы
-    const sig = JSON.stringify([Game.screen, ph, inGame ? L.hearts : 0, rib, inGame ? L.waveIdx : 0, Input.armed, Game.settings.sound, last, atEnd, plaqueOn,
-      inGame ? L.hand.length : 0, inGame ? L.land + "-" + L.idx : "", Game.screen === "map" ? Game.progress.stars : 0]);
+    const night = Game.screen === "night" || (atEnd && day.done >= NIGHT_AFTER), S = Game.settings;
+    const sig = JSON.stringify([Game.screen, ph, inGame ? L.hearts : 0, rib, inGame ? L.waveIdx : 0, Input.armed, S.sound, S.big, S.perDay, last, atEnd, plaqueOn,
+      inGame ? L.hand.length : 0, inGame ? L.land + "-" + L.idx : "", Game.screen === "map" ? UI.mapSig() : 0, night ? [day.done, day.started, day.up, day.down] : 0]);
     if (sig === UI.sig) return;
     UI.sig = sig;
     el["scr-title"].hidden = Game.screen !== "title";
     el["scr-map"].hidden = Game.screen !== "map";
     if (Game.screen === "map") UI.renderMap();
-    el["scr-level-end"].hidden = !atEnd;
-    if (atEnd) UI.renderEnd();
+    el["scr-rest"].hidden = Game.screen !== "rest";
+    el["scr-parent"].hidden = Game.screen !== "parent";
+    if (Game.screen === "parent") { if (!el["scr-parent"].firstChild) UI.renderParent(); } else el["scr-parent"].innerHTML = "";   // время постройки существует в DOM только на экране взрослого
+    el["scr-night"].hidden = !night;
+    if (night) UI.renderNight();
+    el["scr-level-end"].hidden = !(atEnd && !night);
+    if (atEnd && !night) UI.renderEnd();
     el.hud.hidden = !inGame;
     if (inGame) UI.buildHand(L.hand);
     el.hand.hidden = !inGame || !(ph === "prep" || ph === "battle" || ph === "paused");
     el["btn-fight"].hidden = ph !== "prep";
     el["btn-pause"].hidden = ph !== "battle";
     el["pause-menu"].hidden = ph !== "paused";
-    el["btn-sound"].textContent = "Звук: " + (Game.settings.sound ? "вкл" : "выкл");
+    el["btn-sound"].textContent = "Звук: " + (S.sound ? "вкл" : "выкл");
     for (const b of el.hand.querySelectorAll("[data-digit]")) b.classList.toggle("armed", Input.armed === +b.dataset.digit);
     if (inGame) {
       let h = "";
@@ -1720,21 +2487,54 @@ const Debug = {
       beams: L ? L.beams.map((b) => ({ id: b.id, a: b.a, b: b.b, da: b.da, db: b.db, product: b.product, label: b.label, cross: b.cross, born: b.born, rebuilds: b.rebuilds, blink: b.blinkT > 0 })) : [],
       enemies: L ? L.enemies.map((e) => ({ id: e.id, number: e.number, card: e.card, rem: e.rem, armored: e.armored, lane: e.lane, d: e.d, alive: e.alive, outcome: e.outcome, note: e.note, hitLog: e.hitLog })) : [],
       ribbon: Game.ribbon(), hints: L && L.wave ? L.wave.hints : [], wave: L && L.wave ? { numbers: L.wave.enemies.map((e) => e.number), fixed: L.wave.fixed, plan: L.wave.plan || [] } : null,
-      settings: Game.settings, day: { started: L ? 1 : 0, done: 0 }, diff: { hard: 0, easy: false },
-      unlocked: Content.LANDS.map((l) => l.id).filter((id) => Learner.landOpen(id)), stars: Game.progress.stars, cards: {}, conf: {},
+      settings: Game.settings, day: Game.rollDay(), diff: Store.data.progress.diff,
+      unlocked: Content.LANDS.map((l) => l.id).filter((id) => Learner.landOpen(id)), stars: Store.data.progress.lands.stars, cards: Store.data.progress.cards, conf: Store.data.progress.conf,
+      hintModes: Object.keys(Store.data.progress.hints), hintLog: Store.data.progress.hints, skins: Store.data.progress.skins, readonly: Store.readonly, storeMode: Store.mode,
       kills: L ? L.kills : [], bosses: L ? L.bosses : [],
     });
   },
   fail: (reason) => ({ ok: false, reason }),
+  // Синтетический прогресс: карточки всех земель до land, часть карточек самой земли ещё новая, коробки 2–5, треть к повторению сегодня.
+  synth(land, seed) {
+    const r = Util.rng(seed * 7 + land), cards = {}, today = Clock.today();
+    let box1 = 0;
+    for (let id = 1; id <= land; id++) for (const k of Content.LANDS[id - 1].cards) {
+      if (id === land && r.next() < 0.25) continue;
+      const b = box1 < 3 && r.next() < 0.06 ? 1 : r.int(2, 5);
+      if (b === 1) box1++;
+      cards[k] = { b, due: r.next() < 0.3 ? today : Clock.addDays(today, r.int(1, 10)), seen: 4, ok: 3, miss: 1, tS: 0, tN: 0, pd: "" };
+    }
+    return cards;
+  },
   make() {
     const redraw = () => { Render.draw(); UI.sync(); };
     const wrap = (fn) => (...a) => { const r = fn(...a); redraw(); return r; };   // после каждой мутации кадр свежий
     return {
       state: Debug.state,
       manual: (on) => { Game.manual = on !== false; return Game.manual; },
-      seed: (n) => { Game.seed = n; Game.waveCounter = 0; return n; },
-      newGame: () => { Input.reset(); Game.toTitle(); Game.waveCounter = 0; Game.progress = { stars: {} }; Bus.clear(); Render.shakes = {}; redraw(); return Debug.state(); },
-      loadLevel: wrap((land, idx) => { Input.reset(); return Game.startLevel(land, idx); }),
+      seed: (n) => { Game.seed = n; Game.waveCounter = 0; Store.data.progress.seed = n; Store.data.progress.wn = 0; return n; },
+      // Новая игра: progress и day стираются (localStorage и память), настройки остаются. { unlockAll } открывает все земли; { veteran } ещё и
+      // считает все карточки всех земель знакомыми (коробка 3, повтор через неделю): для проверок боёв, которым нужны земли 2–6 с готовым прогрессом.
+      newGame: (o) => {
+        o = o || {};
+        Input.reset(); Game.toTitle(); Store.reset(["progress", "day"]); Store.data.progress.seed = Game.seed; Game.waveCounter = 0; Bus.clear(); Render.shakes = {};
+        const P = Store.data.progress, today = Clock.today();
+        if (o.unlockAll || o.veteran) P.lands.unlocked = Content.LANDS.map((l) => l.id);
+        if (o.veteran) for (const LD of Content.LANDS) for (const k of LD.cards) P.cards[k] = Object.assign(Learner.blank(today), { b: 3, due: Clock.addDays(today, 7) });
+        redraw(); return Debug.state();
+      },
+      loadLevel: wrap((land, idx, o) => { Input.reset(); return Game.startLevel(land, idx, o); }),
+      finishLevel: wrap((o) => Game.finishLevel(o && o.hearts)),
+      setDate: wrap((key) => { Clock.setOverride(key); Game.rollDay(); return Clock.today(); }),
+      setCard: wrap((key, o) => {
+        o = o || {};
+        if (!Content.ALL.has(key) && !Content.cardOf(key)) return Debug.fail("no_card");
+        const c = Learner.ensure(key, Clock.today());
+        Object.assign(c, { b: o.b === undefined ? c.b : o.b, due: o.due || (o.b !== undefined ? Clock.today() : c.due) }, o.seen !== undefined ? { seen: o.seen, ok: o.ok || 0, miss: o.miss || 0 } : {}, o.pd !== undefined ? { pd: o.pd } : o.b !== undefined ? { pd: "" } : {}, o.tS !== undefined ? { tS: o.tS, tN: o.tN || 1 } : {});
+        return { ok: true };
+      }),
+      flush: () => { Store.flushAll(); Store.save("progress"); Store.save("settings"); Store.save("day"); Store.flushAll(); return Store.mode; },
+      openParent: wrap(() => { Game.toParent(); return Game.screen; }),
       setWave: wrap((numbers, o) => {
         const L = Game.level; o = o || {};
         if (!L || L.phase !== "prep") return Debug.fail("phase");
@@ -1773,11 +2573,18 @@ const Debug = {
       },
       pause: wrap(() => Game.pause()),
       resume: wrap(() => Game.resume()),
-      setSetting: (name, value) => { if (name in Game.settings) Game.settings[name] = value; redraw(); return Game.settings; },
+      setSetting: (name, value) => {
+        const S = Game.settings;
+        if (name in S && name !== "v" && name !== "updatedAt") { S[name] = value; Store.save("settings"); UI.applySettings(); }
+        redraw(); return S;
+      },
       events: (o) => { const r = Bus.log.slice(); if (o && o.clear) Bus.clear(); return r; },
       drawn: () => { Render.draw(); return Util.clone({ labels: Render.last.labels, notes: Render.last.notes, hints: Render.last.hints }); },
       toScreen: (x, y) => { const r = Render.cv.getBoundingClientRect(); return { x: r.left + (x * r.width) / W, y: r.top + (y * r.height) / H }; },
-      show: (name) => { if (name === "title") Game.toTitle(); else if (name === "map") Game.toMap(); redraw(); return Game.screen; },
+      show: (name) => {
+        if (name === "title") Game.toTitle(); else if (name === "map") Game.toMap(); else if (name === "rest") Game.toRest(); else if (name === "parent") Game.toParent(); else if (name === "night") Game.toNight();
+        redraw(); return Game.screen;
+      },
       audioState: () => Audio.state(),
       audioStats: () => ({ state: Audio.state(), osc: Audio.osc }),
       // --- проверки контента без игры (для тестов Solver, WaveGen и шаблонов) ---
@@ -1804,19 +2611,38 @@ const Debug = {
         if (!bad.length && !Solver.simulate(L, o.plan, o.enemies)) bad.push("кто-то из врагов не побеждается по плану");
         return bad;
       },
-      waveFor: (land, idx, waveIdx, seed) => { const L = Level.create(land, idx); return Util.clone(WaveGen.make({ land, idx, waveIdx, level: L, seed, rng: Util.rng(seed) })); },
+      // Волна без игры. o: { cards, conf, easy, today, priors } — состояние ребёнка; без cards берётся синтетическое «середина пути» (Debug.synth).
+      waveFor: (land, idx, waveIdx, seed, o) => {
+        o = o || {};
+        const L = Level.create(land, idx), cards = o.cards || Debug.synth(land, seed);
+        return Util.clone(WaveGen.make({ land, idx, waveIdx, level: L, seed, rng: Util.rng(seed), cards, conf: o.conf || {}, easy: !!o.easy, today: o.today || Clock.today(), priors: o.priors !== false }));
+      },
+      synth: (land, seed) => Debug.synth(land, seed),
+      // Замер сборки волн (мс на волну) для теста скорости: все земли, уровни, волны и seed.
+      timeWaves: (seeds) => {
+        const out = [];
+        for (let land = 1; land <= 6; land++) for (let idx = 0; idx < 5; idx++) for (let w = 0; w < 3; w++) for (const seed of seeds) {
+          const L = Level.create(land, idx), cards = Debug.synth(land, seed), t0 = performance.now();
+          WaveGen.make({ land, idx, waveIdx: w, level: L, seed, rng: Util.rng(seed), cards, conf: {}, easy: false, today: Clock.today(), priors: true });
+          out.push([performance.now() - t0, land, idx, w, seed]);
+        }
+        return out;
+      },
     };
   },
 };
 
 /* ---------- 19 boot ---------- */
+Store.load();                                    // localStorage → память; версия новее известной → readonly, ключ не трогаем
+Game.seed = Store.data.progress.seed; Game.waveCounter = Store.data.progress.wn;
 Render.init(document.getElementById("field"));
 UI.init();
+UI.applySettings();
 Input.init();
 window.addEventListener("pointerdown", () => Audio.unlock(), true);     // звук оживает только после жеста
 window.addEventListener("resize", Render.resize);
 window.addEventListener("orientationchange", Render.resize);
-document.addEventListener("visibilitychange", () => { if (document.hidden) Game.pause(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) { Game.pause(); Store.flushAll(); } });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => Render.draw());
 for (const [ev, snd] of [["beam_built", "build"], ["enemy_killed", "kill"], ["boss_hit", "cut"], ["enemy_passed_beam", "miss"], ["enemy_reached_castle", "castle"], ["wave_end", "wave"]]) Bus.on(ev, () => Audio.play(snd));
 let lastTs = performance.now(), acc = 0;
@@ -1833,5 +2659,6 @@ function frame(now) {
 requestAnimationFrame(frame);
 window.OT = Debug.make();
 UI.sync();
+Store.attachDb();                                // зеркало в db артефакта, если страница открыта как артефакт Claude
 })();
 </script>

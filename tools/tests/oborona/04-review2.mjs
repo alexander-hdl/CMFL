@@ -10,7 +10,7 @@ export function register({ test, assert, eq }) {
       for (const [land, cards] of [[4, lands[3].boss], [6, lands[5].boss]]) for (const card of cards) {
         const c = card.split(":")[1].split("x").map(Number), a = Math.min(...c), n = c[0] * c[1], parts = OT.split(card) || [n];
         for (const idx of [0, 1, 2, 4]) {                       // T1, T2, T3, T4
-          OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(land, idx);
+          OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(land, idx);
           OT.setWave([n], { armored: [n], cards: { [n]: card } });
           const s = OT.state(), want = a + " × " + parts[0] / a;
           if (!s.hints.length || s.hints[0].ghost !== want) out.push(`${card} ${s.template}: призрак ${s.hints[0] && s.hints[0].ghost}, ждали ${want}`);
@@ -36,7 +36,7 @@ export function register({ test, assert, eq }) {
 
   test("Ревью 2: босс 4 × 23 = 92 на земле 6 — лучи 4 × 20 и 4 × 3 по плану, «92 − 80 = 12», затем победа", async ({ page }) => {
     const r = await run(page, () => {
-      OT.manual(true); OT.seed(1); OT.newGame(); OT.loadLevel(6, 0);
+      OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(6, 0);
       OT.setWave([92], { armored: [92], cards: { 92: "m:4x23" } });
       const plan = OT.state().wave.plan;
       for (const p of plan) { OT.placeTower(p.a, p.da); OT.placeTower(p.b, p.db); }
