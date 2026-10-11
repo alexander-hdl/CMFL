@@ -415,31 +415,33 @@ var LS = "blokograd.v1";
 var S = null;
 function freshState() {
   return {
-    v: 2, day: 1, coins: 30, t: 0, extra: false, started: false, mode: "hero",
-    player: { x: 48.5, z: 50.5 }, visited: { home: true }, houses: [], oil: 0, jobDay: {}, jobs: 0, voyages: 0,
+    v: 3, day: 1, coins: 30, t: 0, extra: false, started: false, mode: "hero",
+    player: { x: 64.5, z: 66.5 }, visited: { home: true }, houses: [], oil: 0, jobDay: {}, jobs: 0, voyages: 0,
     blocks: { 8: 40, 3: 0, 2: 0, 6: 0, 4: 0, 10: 0, 13: 0, 12: 0, 16: 0 },
     parts: [], gaps: [], items: {}, museum: [],
     cards: {}, stats: {}, recent: { m: [], w: [], c: [] },
     quests: [], qseq: 0, builds: 0, crafts: 0, trades: 0,
-    props: [{ kind: "ship", x: 48, z: 93 }], villagers: defaultVillagers(),
+    props: defaultShips(), villagers: defaultVillagers(),
     today: { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() },
     log: [], world: null, custom: null, sound: true, seen: {}, cutHidden: {}, build: null, leafCount: 0, oreSeq: 0, diary: []
   };
 }
+function defaultShips() { return [{ kind: "ship", id: "s1", x: 64, z: 123 }, { kind: "ship", id: "s2", x: 18, z: 81 }]; }
 function defaultVillagers() {
   return [
-    { id: "fedor", name: "Мастер Фёдор", dat: "Мастеру Фёдору", x: 46, z: 51, skin: 0, lore: "Строит всё в Блокограде. Даёт чертежи и платит за мосты." },
-    { id: "marfa", name: "Бабушка Марфа", dat: "Бабушке Марфе", fem: true, x: 52, z: 47, skin: 1, lore: "Знает все слова на свете и их части." },
-    { id: "ilyas", name: "Торговец Ильяс", dat: "Торговцу Ильясу", x: 44, z: 47, skin: 2, lore: "Продаёт и покупает. Любит, когда платят без сдачи." },
-    { id: "grisha", gen: "Гриши", dat: "Рудокопу Грише", name: "Рудокоп Гриша", x: 48, z: 13, skin: 6, lore: "Живёт на Скалах. Платит за склады руды." },
-    { id: "petr", gen: "Петра", dat: "Лесорубу Петру", name: "Лесоруб Пётр", x: 83, z: 48, skin: 7, lore: "Живёт в Лесу. Платит за штабели досок." },
-    { id: "vera", gen: "Веры", dat: "Тёте Вере", fem: true, name: "Тётя Вера", x: 13, z: 48, skin: 8, lore: "Живёт на Лугах. Платит за клумбы и грядки." },
-    { id: "marat", gen: "Марата", dat: "Капитану Марату", name: "Капитан Марат", x: 48, z: 83, skin: 4, lore: "Живёт на Песках. Возит на корабле к Снегам." },
-    { id: "zima", gen: "Зимы", dat: "Бабушке Зиме", fem: true, name: "Бабушка Зима", x: 84, z: 85, skin: 5, lore: "Живёт на Снегах. Платит за снежные стены." }
+    { id: "fedor", name: "Мастер Фёдор", dat: "Мастеру Фёдору", x: 62, z: 67, skin: 0, lore: "Строит всё в Блокограде. Даёт чертежи и платит за мосты." },
+    { id: "marfa", name: "Бабушка Марфа", dat: "Бабушке Марфе", fem: true, x: 68, z: 63, skin: 1, lore: "Знает все слова на свете и их части." },
+    { id: "ilyas", name: "Торговец Ильяс", dat: "Торговцу Ильясу", x: 60, z: 63, skin: 2, lore: "Продаёт и покупает. Любит, когда платят без сдачи." },
+    { id: "grisha", gen: "Гриши", dat: "Рудокопу Грише", name: "Рудокоп Гриша", x: 64, z: 19, skin: 6, lore: "Живёт на Скалах. Платит за склады руды." },
+    { id: "petr", gen: "Петра", dat: "Лесорубу Петру", name: "Лесоруб Пётр", x: 109, z: 64, skin: 7, lore: "Живёт в Лесу. Платит за штабели досок." },
+    { id: "vera", gen: "Веры", dat: "Тёте Вере", fem: true, name: "Тётя Вера", x: 19, z: 64, skin: 8, lore: "Живёт на Лугах. Платит за клумбы и грядки." },
+    { id: "marat", gen: "Марата", dat: "Капитану Марату", name: "Капитан Марат", x: 64, z: 105, skin: 4, lore: "Живёт на Песках. Возит на корабле к Снегам." },
+    { id: "zima", gen: "Зимы", dat: "Бабушке Зиме", fem: true, name: "Бабушка Зима", x: 108, z: 109, skin: 5, lore: "Живёт на Снегах. Платит за снежные стены." },
+    { id: "tikhon", gen: "Тихона", dat: "Деду Тихону", name: "Дед Тихон", x: 20, z: 109, skin: 1, lore: "Живёт на Черепахах. Платит за сушилки для сетей." }
   ];
 }
 function load() {
-  try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && (o.v === 1 || o.v === 2)) return o; } } catch (e) {}
+  try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && (o.v === 1 || o.v === 2 || o.v === 3)) return o; } } catch (e) {}
   return null;
 }
 var saveTimer = null, dbRef = null, dbWriting = false, savedAt = 0, noSave = false;
@@ -501,17 +503,18 @@ function pickWord(list, prefix) {
 function content() { return S.custom || CONTENT; }
 
 /* ===================== WORLD ===================== */
-var W = 96, H = 20, D = 96, CH = 16, SEA = 3; /* SEA: deck level above the two water layers */
+var W = 128, H = 20, D = 128, CH = 16, SEA = 3, HX = 64, HZ = 64; /* SEA: deck level above the two water layers */
 var AIR = 0, GRASS = 1, DIRT = 2, STONE = 3, SAND = 4, WATER = 5, LOG = 6, LEAF = 7, PLANK = 8, ORE = 9, BRICK = 10, ROOF = 11, FENCE = 12, GLASS = 13, BED = 14, PATH = 15, SNOW = 16, ICE = 17, PIER = 18;
 var BLOCK_NAME = { 1: "дёрн", 2: "земля", 3: "камень", 4: "песок", 6: "бревно", 7: "листья", 8: "доски", 9: "руда", 10: "кирпич", 11: "черепица", 12: "забор", 13: "стекло", 14: "грядка", 15: "дорожка", 16: "снег", 17: "лёд", 18: "причал" };
 /* islands: the home one in the middle, four around it (bridges), one far corner (ship only) */
 var ISLANDS = [
-  { id: "home", name: "Блокоград", cx: 48, cz: 48, r: 17, kind: "home" },
-  { id: "rock", name: "Скалы", cx: 48, cz: 12, r: 10, kind: "rock", bridge: { x0: 47, x1: 49, z0: null, z1: null, axis: "z" } },
-  { id: "forest", name: "Лес", cx: 84, cz: 48, r: 10, kind: "forest", bridge: { axis: "x", z0: 47, z1: 49 } },
-  { id: "sand", name: "Пески", cx: 48, cz: 84, r: 10, kind: "sand", bridge: { axis: "z", x0: 47, x1: 49 } },
-  { id: "west", name: "Луга", cx: 12, cz: 48, r: 10, kind: "meadow", bridge: { axis: "x", z0: 47, z1: 49 } },
-  { id: "snow", name: "Снега", cx: 84, cz: 84, r: 9, kind: "snow", ship: true }
+  { id: "home", name: "Блокоград", cx: 64, cz: 64, r: 24, kind: "home" },
+  { id: "rock", name: "Скалы", cx: 64, cz: 18, r: 14, kind: "rock", bridge: { axis: "z" } },
+  { id: "forest", name: "Лес", cx: 110, cz: 64, r: 14, kind: "forest", bridge: { axis: "x" } },
+  { id: "sand", name: "Пески", cx: 64, cz: 106, r: 13, kind: "sand", bridge: { axis: "z" }, pier: { x: 64, z: 121 }, shipAt: { x: 64, z: 123 } },
+  { id: "west", name: "Луга", cx: 18, cz: 64, r: 13, kind: "meadow", bridge: { axis: "x" }, pier: { x: 18, z: 79 }, shipAt: { x: 18, z: 81 } },
+  { id: "snow", name: "Снега", cx: 108, cz: 108, r: 12, kind: "snow", ship: true, pier: { x: 95, z: 108 }, shipAt: { x: 92, z: 108 } },
+  { id: "turtle", name: "Черепахи", cx: 20, cz: 108, r: 11, kind: "meadow", ship: true, pier: { x: 20, z: 95 }, shipAt: { x: 20, z: 93 } }
 ];
 function islandById(id) { for (var i = 0; i < ISLANDS.length; i++) if (ISLANDS[i].id === id) return ISLANDS[i]; return null; }
 function islandAt(x, z) { var best = null, bd = 1e9; ISLANDS.forEach(function (I) { var d = Math.hypot(x - I.cx, z - I.cz) - I.r; if (d < bd) { bd = d; best = I; } }); return bd < 8 ? best : null; }
@@ -558,12 +561,12 @@ var World = {
       }
     }
     /* the village square on the home island, levelled at the height the land already has there */
-    var ring = []; for (z = 40; z <= 56; z += 2) for (x = 38; x <= 58; x += 2) ring.push(hm[z * W + x]); ring.sort(function (a, b) { return a - b; });
+    var ring = []; for (z = HZ - 8; z <= HZ + 8; z += 2) for (x = HX - 10; x <= HX + 10; x += 2) ring.push(hm[z * W + x]); ring.sort(function (a, b) { return a - b; });
     var SQ = Math.max(SEA + 1, ring[Math.floor(ring.length / 2)]);
-    for (z = 42; z <= 54; z++) for (x = 40; x <= 56; x++) { for (y = 0; y < H; y++) b[self.idx(x, y, z)] = y < SQ - 1 ? STONE : (y === SQ - 1 ? DIRT : (y === SQ ? GRASS : AIR)); hm[z * W + x] = SQ; }
+    for (z = HZ - 6; z <= HZ + 6; z++) for (x = HX - 8; x <= HX + 8; x++) { for (y = 0; y < H; y++) b[self.idx(x, y, z)] = y < SQ - 1 ? STONE : (y === SQ - 1 ? DIRT : (y === SQ ? GRASS : AIR)); hm[z * W + x] = SQ; }
     /* soften the edge of the square so the hero can walk out in every direction */
-    for (z = 38; z <= 58; z++) for (x = 36; x <= 60; x++) { var inside = x >= 40 && x <= 56 && z >= 42 && z <= 54; if (inside) continue; var dEdge = Math.max(40 - x, x - 56, 42 - z, z - 54, 0); var want = SQ + Math.sign(hm[z * W + x] - SQ) * Math.min(Math.abs(hm[z * W + x] - SQ), dEdge); if (want === hm[z * W + x] || hm[z * W + x] < SEA) continue; for (y = 0; y < H; y++) b[self.idx(x, y, z)] = y < want - 2 ? STONE : (y < want ? DIRT : (y === want ? GRASS : AIR)); hm[z * W + x] = want; }
-    for (z = 46; z <= 50; z++) for (x = 44; x <= 52; x++) b[self.idx(x, SQ, z)] = PATH;
+    for (z = HZ - 10; z <= HZ + 10; z++) for (x = HX - 12; x <= HX + 12; x++) { var inside = x >= HX - 8 && x <= HX + 8 && z >= HZ - 6 && z <= HZ + 6; if (inside) continue; var dEdge = Math.max(HX - 8 - x, x - (HX + 8), HZ - 6 - z, z - (HZ + 6), 0); var want = SQ + Math.sign(hm[z * W + x] - SQ) * Math.min(Math.abs(hm[z * W + x] - SQ), dEdge); if (want === hm[z * W + x] || hm[z * W + x] < SEA) continue; for (y = 0; y < H; y++) b[self.idx(x, y, z)] = y < want - 2 ? STONE : (y < want ? DIRT : (y === want ? GRASS : AIR)); hm[z * W + x] = want; }
+    for (z = HZ - 2; z <= HZ + 2; z++) for (x = HX - 4; x <= HX + 4; x++) b[self.idx(x, SQ, z)] = PATH;
     /* flatten a small plaza on each other island for its villager */
     ISLANDS.forEach(function (I) { if (I.id === "home") return; var py = Math.max(SEA + 1, hm[I.cz * W + I.cx]); for (var zz = I.cz - 2; zz <= I.cz + 2; zz++) for (var xx = I.cx - 2; xx <= I.cx + 2; xx++) { for (var yy = 0; yy < H; yy++) b[self.idx(xx, yy, zz)] = yy < py - 1 ? STONE : (yy === py - 1 ? DIRT : (yy === py ? (I.kind === "snow" ? SNOW : I.kind === "sand" ? SAND : PATH) : AIR)); } });
     /* trees: dense in the forest, a few elsewhere */
@@ -573,38 +576,39 @@ var World = {
       var k2 = kind[z * W + x]; if (!k2 || k2 === "sand" || k2 === "snow") continue;
       if (k2 !== "forest" && rnd() < 0.72) continue;
       var ty = self.top(x, z); if (ty < SEA + 1 || b[self.idx(x, ty, z)] !== GRASS) continue;
-      if (x >= 38 && x <= 58 && z >= 40 && z <= 56) continue;
+      if (x >= HX - 10 && x <= HX + 10 && z >= HZ - 8 && z <= HZ + 8) continue;
       var near = ISLANDS.some(function (I) { return I.id !== "home" && Math.abs(x - I.cx) <= 3 && Math.abs(z - I.cz) <= 3; }); if (near) continue;
-      if (Math.abs(x - 48) <= 2 || Math.abs(z - 48) <= 2) continue; /* keep bridge lanes clear */
+      if (Math.abs(x - HX) <= 2 || Math.abs(z - HZ) <= 2) continue; /* keep bridge lanes clear */
       for (y = 1; y <= 3; y++) b[self.idx(x, ty + y, z)] = LOG;
       for (var lx = -1; lx <= 1; lx++) for (var lz = -1; lz <= 1; lz++) for (var ly = 3; ly <= 4; ly++) { if (ly === 4 && Math.abs(lx) + Math.abs(lz) > 1) continue; if (lx === 0 && lz === 0 && ly === 3) continue; var xx = x + lx, zz = z + lz, yy = ty + ly; if (xx >= 0 && xx < W && zz >= 0 && zz < D && yy < H && !b[self.idx(xx, yy, zz)]) b[self.idx(xx, yy, zz)] = LEAF; }
       trees++;
     }
     /* rock outcrops with ore on the home island and the rocky island */
-    [[36, 36], [60, 38], [38, 60], [60, 60], [48, 8], [42, 14], [54, 14]].forEach(function (c) {
+    var RK = islandById("rock");
+    [[HX - 16, HZ - 16], [HX + 16, HZ - 14], [HX - 14, HZ + 16], [HX + 16, HZ + 16], [RK.cx, RK.cz - 7], [RK.cx - 9, RK.cz + 2], [RK.cx + 9, RK.cz + 2], [HX + 4, HZ - 18]].forEach(function (c) {
       var cx = c[0], cz = c[1]; if (self.top(cx, cz) < SEA) return;
-      for (var dx = -3; dx <= 3; dx++) for (var dz = -3; dz <= 3; dz++) { var xx = cx + dx, zz = cz + dz; var r = Math.abs(dx) + Math.abs(dz); if (r > 4) continue; var base = self.top(xx, zz); if (base < SEA) continue; if (Math.abs(xx - 48) <= 2 && zz > 20 && zz < 76 && false) continue; var add = r <= 1 ? 4 : (r <= 2 ? 3 : (r <= 3 ? 2 : 1)); for (var k3 = 1; k3 <= add && base + k3 < H; k3++) b[self.idx(xx, base + k3, zz)] = STONE; }
+      for (var dx = -3; dx <= 3; dx++) for (var dz = -3; dz <= 3; dz++) { var xx = cx + dx, zz = cz + dz; var r = Math.abs(dx) + Math.abs(dz); if (r > 4) continue; var base = self.top(xx, zz); if (base < SEA) continue; var add = r <= 1 ? 4 : (r <= 2 ? 3 : (r <= 3 ? 2 : 1)); for (var k3 = 1; k3 <= add && base + k3 < H; k3++) b[self.idx(xx, base + k3, zz)] = STONE; }
     });
     /* ice floes near the snow island */
-    for (z = 70; z < 96; z++) for (x = 70; x < 96; x++) if (hm[z * W + x] < SEA && noise(n2, x, z, 3) > 0.72) b[self.idx(x, 2, z)] = ICE;
+    for (z = 92; z < D; z++) for (x = 92; x < W; x++) if (hm[z * W + x] < SEA && noise(n2, x, z, 3) > 0.72) b[self.idx(x, 2, z)] = ICE;
     /* piers: a wooden landing on each shore where a bridge starts and ends */
     this.computeBridges();
     ISLANDS.forEach(function (I) { if (!I.bridge) return; var B = I.bridge; B.cells.forEach(function (c) { if (c.pier) { for (var yy = 0; yy <= SEA; yy++) b[self.idx(c.x, yy, c.z)] = yy === SEA ? PIER : (yy === 0 ? SAND : STONE); } }); });
     /* the ship landing on the sand island and on the snow island */
-    [[48, 92], [92, 84]].forEach(function (p) { for (var dz = -1; dz <= 1; dz++) for (var dx = -1; dx <= 1; dx++) { var xx = p[0] + dx, zz = p[1] + dz; if (xx >= W || zz >= D) continue; for (var yy = 0; yy <= SEA; yy++) b[self.idx(xx, yy, zz)] = yy === SEA ? PIER : (yy === 0 ? SAND : STONE); } });
-    this.seedOre(rnd, 60);
+    ISLANDS.filter(function (I) { return I.pier; }).map(function (I) { return [I.pier.x, I.pier.z]; }).forEach(function (p) { for (var dz = -1; dz <= 1; dz++) for (var dx = -1; dx <= 1; dx++) { var xx = p[0] + dx, zz = p[1] + dz; if (xx >= W || zz >= D) continue; for (var yy = 0; yy <= SEA; yy++) b[self.idx(xx, yy, zz)] = yy === SEA ? PIER : (yy === 0 ? SAND : STONE); } });
+    this.seedOre(rnd, 90);
     this.dirty = true; this.dirtyChunks = {}; this.touchAll();
   },
   computeBridges: function () {
     /* a bridge is the straight strip of water between the home shore and the island shore, three blocks wide */
     var self = this;
     ISLANDS.forEach(function (I) {
-      if (!I.bridge) return; var B = I.bridge, cells = [], lanes = B.axis === "z" ? [47, 48, 49] : [47, 48, 49];
+      if (!I.bridge) return; var B = I.bridge, cells = [], lanes = B.axis === "z" ? [HX - 1, HX, HX + 1] : [HZ - 1, HZ, HZ + 1];
       var from, to, step;
-      if (B.axis === "z") { if (I.cz < 48) { from = 48; to = I.cz; step = -1; } else { from = 48; to = I.cz; step = 1; } }
-      else { if (I.cx < 48) { from = 48; to = I.cx; step = -1; } else { from = 48; to = I.cx; step = 1; } }
+      if (B.axis === "z") { from = HZ; to = I.cz; step = I.cz < HZ ? -1 : 1; }
+      else { from = HX; to = I.cx; step = I.cx < HX ? -1 : 1; }
       var water = [];
-      for (var p = from; p !== to; p += step) { var x = B.axis === "z" ? 48 : p, z = B.axis === "z" ? p : 48; var isW = self.isWater(x, z); water.push({ p: p, w: isW }); }
+      for (var p = from; p !== to; p += step) { var x = B.axis === "z" ? HX : p, z = B.axis === "z" ? p : HZ; var isW = self.isWater(x, z); water.push({ p: p, w: isW }); }
       var first = -1, last = -1; for (var i = 0; i < water.length; i++) if (water[i].w) { if (first < 0) first = i; last = i; }
       if (first < 0) { B.cells = []; B.len = 0; return; }
       var pA = water[first].p, pB = water[last].p;
@@ -620,7 +624,7 @@ var World = {
   touchAll: function () { for (var cx = 0; cx < W / CH; cx++) for (var cz = 0; cz < D / CH; cz++) this.dirtyChunks[cx + "," + cz] = true; },
   seedOre: function (rnd, count) {
     rnd = rnd || Math.random; var b = this.b, placed = 0, tries = 0;
-    while (placed < count && tries++ < 8000) {
+    while (placed < count && tries++ < 40000) {
       var x = Math.floor(rnd() * W), z = Math.floor(rnd() * D), y = 1 + Math.floor(rnd() * 9);
       var i = this.idx(x, y, z); if (b[i] !== STONE) continue;
       var exposed = false; [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, -1]].forEach(function (d) { var v = World.get(x + d[0], y + d[1], z + d[2]); if (v === AIR) exposed = true; });
@@ -648,7 +652,7 @@ function surfaceY(x, z) { return World.isWater(x, z) ? SEA : World.top(x, z) + 1
 
 /* ===================== RENDER ===================== */
 var TILTS = [35.264, 55, 72, 89];
-var R = { azTarget: 0, az: 0, zoom: 22, tilt: 0, el: 35.264, target: new THREE.Vector3(48, 4, 50) };
+var R = { azTarget: 0, az: 0, zoom: 26, tilt: 0, el: 35.264, target: new THREE.Vector3(64, 4, 66) };
 var scene, camera, renderer, atlasTex, chunks = {}, chunkMeshes = [], waterMeshes = [], frameMesh, missMesh, sunLight, hemi, spriteGroup, outlineMesh, matOpaque, matWater;
 var TILES = {};
 function makeAtlas() {
@@ -738,9 +742,10 @@ function rebuildTerrain(all) {
 function initRender() {
   scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fd3ff);
   renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   $("c3d").appendChild(renderer.domElement);
-  camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -300, 600);
+  renderer.domElement.addEventListener("webglcontextlost", function (e) { e.preventDefault(); try { save(true); } catch (x) {} hint("Экран погас: браузер сбросил графику. Перезапускаю игру…", 0); setTimeout(function () { location.reload(); }, 900); });
+  camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -400, 800);
   atlasTex = makeAtlas();
   matOpaque = new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true });
   matWater = new THREE.MeshLambertMaterial({ map: atlasTex.tex, vertexColors: true, transparent: true, opacity: 0.75 });
@@ -760,14 +765,14 @@ function resize() {
 function updateCamera() {
   var az = (R.az + 45) * Math.PI / 180, el = R.el * Math.PI / 180;
   var dir = new THREE.Vector3(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
-  camera.position.copy(R.target).addScaledVector(dir, 120); camera.lookAt(R.target); camera.updateMatrixWorld();
+  camera.position.copy(R.target).addScaledVector(dir, 160); camera.lookAt(R.target); camera.updateMatrixWorld();
 }
 function setSun(t) {
   var a = Math.PI * Math.min(1, Math.max(0, t));
-  sunLight.position.set(Math.cos(a) * 60 + 48, Math.sin(a) * 70 + 10, 70); sunLight.target.position.set(48, 4, 48); sunLight.target.updateMatrixWorld();
+  sunLight.position.set(Math.cos(a) * 80 + HX, Math.sin(a) * 90 + 10, HZ + 30); sunLight.target.position.set(HX, 4, HZ); sunLight.target.updateMatrixWorld();
   var day = Math.sin(a); var dusk = Math.max(0, 1 - day * 4) * 0.5;
   sunLight.intensity = 0.5 + day * 1.3; hemi.intensity = 0.45 + day * 0.5;
-  var c = new THREE.Color(0x8fd3ff).lerp(new THREE.Color(0xffb37a), dusk * 0.8); if (t >= 1) { c = new THREE.Color(0x1a2550); sunLight.intensity = 0.25; hemi.intensity = 0.35; }
+  var c = new THREE.Color(0x8fd3ff).lerp(new THREE.Color(0xffb37a), dusk * 0.8); if (t >= 1) { c = new THREE.Color(0x1a2550); sunLight.intensity = 0.4; hemi.intensity = 0.55; }
   scene.background = c; document.body.style.background = "#" + c.getHexString();
   var dot = $("sundot"); dot.setAttribute("cx", 6 + 84 * t); dot.setAttribute("cy", 36 - 34 * Math.sin(a));
   $("daylbl").textContent = t >= 1 ? "ночь" : (t < 0.25 ? "утро" : (t < 0.6 ? "день" : (t < 0.85 ? "вечер" : "закат")));
@@ -948,7 +953,7 @@ function updateHud() { $("coins").textContent = S.coins; $("dayno").textContent 
 
 /* ===================== PLAYER ===================== */
 var Player = {
-  path: [], moving: false, speed: 4.5, onArrive: null, held: null, stepAcc: 0,
+  path: [], moving: false, speed: 6, onArrive: null, held: null, stepAcc: 0,
   cell: function () { return { x: Math.floor(S.player.x), z: Math.floor(S.player.z) }; },
   dist: function (x, z) { var c = this.cell(); return Math.max(Math.abs(c.x - x), Math.abs(c.z - z)); },
   near: function (x, z, r) { return this.dist(x, z) <= (r || 3); },
@@ -1016,7 +1021,7 @@ var Mobs = {
       m.t += dt;
       if (m.state === "go") { var dx = m.tx - m.x, dz = m.tz - m.z, d = Math.hypot(dx, dz); if (d < 0.6) { m.state = "bite"; m.t = 0; } else { m.x += dx / d * 2.6 * dt; m.z += dz / d * 2.6 * dt; } }
       else if (m.state === "bite") { if (m.t > 5) { m.t = 0; self.bite(m); } }
-      else if (m.state === "flee") { var fx = m.x - 48, fz = m.z - 48, fd = Math.hypot(fx, fz) || 1; m.x += fx / fd * 5 * dt; m.z += fz / fd * 5 * dt; if (fd > 30) m.dead = true; }
+      else if (m.state === "flee") { var fx = m.x - HX, fz = m.z - HZ, fd = Math.hypot(fx, fz) || 1; m.x += fx / fd * 5 * dt; m.z += fz / fd * 5 * dt; if (fd > 30) m.dead = true; }
       if (m.sprite) { var y = World.walkTop(Math.floor(m.x), Math.floor(m.z)); if (y < 0) y = World.top(Math.floor(m.x), Math.floor(m.z)); if (y < 0) y = SEA - 1; m.sprite.position.set(m.x, y + 1 + (m.state === "bite" ? Math.abs(Math.sin(m.t * 8)) * 0.2 : 0), m.z); }
     });
     if (this.list.some(function (m) { return m.dead; })) { this.list = this.list.filter(function (m) { return !m.dead; }); refreshSprites(); }
@@ -1133,7 +1138,7 @@ function screenDir(d) {
 }
 var TILT_NAMES = ["обычный вид", "повыше", "почти сверху", "вид сверху"];
 function setTilt(i) { R.tilt = Math.max(0, Math.min(TILTS.length - 1, i)); hint("Камера: " + TILT_NAMES[R.tilt] + ".", 1800); }
-function setZoom(z) { R.zoom = Math.max(8, Math.min(60, z)); resize(); }
+function setZoom(z) { R.zoom = Math.max(8, Math.min(110, z)); resize(); }
 function pan(dx, dy) {
   if (S.mode === "hero") return;
   var el = $("c3d"), k = R.zoom / el.clientHeight;
@@ -1447,7 +1452,7 @@ function villagerFace(id) {
 }
 
 /* ===================== QUESTS ===================== */
-var VNAME = { fedor: "Мастер Фёдор", marfa: "Бабушка Марфа", ilyas: "Торговец Ильяс", grisha: "Рудокоп Гриша", petr: "Лесоруб Пётр", vera: "Тётя Вера", marat: "Капитан Марат", zima: "Бабушка Зима" };
+var VNAME = { fedor: "Мастер Фёдор", marfa: "Бабушка Марфа", ilyas: "Торговец Ильяс", grisha: "Рудокоп Гриша", petr: "Лесоруб Пётр", vera: "Тётя Вера", marat: "Капитан Марат", zima: "Бабушка Зима", tikhon: "Дед Тихон" };
 var FLOOR_NAMES = ["Пол для мастерской", "Пол для пекарни", "Пол для школы", "Пол для сарая", "Пол для библиотеки", "Пол для гончарной", "Пол для кузницы", "Пол для амбара"];
 var HOUSE_NAMES = ["Мастерская", "Пекарня", "Школа", "Сарай", "Библиотека", "Гончарная", "Кузница", "Амбар"];
 var BRIDGE_ORDER = ["rock", "forest", "west", "sand"];
@@ -1523,7 +1528,8 @@ var JOBS = {
   petr: { block: PLANK, names: ["Штабель досок", "Настил для лесопилки"], types: ["div", "rect"], pay: 20 },
   vera: { block: BED, names: ["Клумба", "Две грядки"], types: ["rect", "double"], pay: 20 },
   marat: { block: PLANK, names: ["Ящики на палубу", "Настил причала"], types: ["div", "rect"], pay: 25 },
-  zima: { block: SNOW, names: ["Снежная стена", "Снежная крепость"], types: ["wall", "rect"], pay: 30 }
+  zima: { block: SNOW, names: ["Снежная стена", "Снежная крепость"], types: ["wall", "rect"], pay: 30 },
+  tikhon: { block: PLANK, names: ["Сушилка для сетей", "Садок для рыбы"], types: ["rect", "div"], pay: 25 }
 };
 function makeJobQuest(vid) {
   var J = JOBS[vid]; if (!J) return null; var f = pickFact(); var type = pick(J.types); if (type === "div" && recentRate("m") < 0.75) type = "rect";
@@ -1608,7 +1614,8 @@ function openVillager(id) {
 }
 
 /* ===================== SHIP (voyages) ===================== */
-var ROUTES = { "sand>snow": { from: "sand", to: "snow", hours: 4, speed: 9, land: { x: 92, z: 83 } }, "snow>sand": { from: "snow", to: "sand", hours: 4, speed: 9, land: { x: 48, z: 91 } } };
+var ROUTES = { "sand>snow": { from: "sand", to: "snow", ship: "s1" }, "snow>sand": { from: "snow", to: "sand", ship: "s1" }, "west>turtle": { from: "west", to: "turtle", ship: "s2" }, "turtle>west": { from: "turtle", to: "west", ship: "s2" } };
+function routeLand(rt) { var I = islandById(rt.to); return { x: I.pier.x, z: I.pier.z }; }
 function shipJobBlock(board) {
   var qs = S.quests.filter(function (x) { return x.status === "open" && x.v === "marat" && x.kind === "job"; });
   if (qs.length) { qs.forEach(function (q) { board.appendChild(h("p", { class: "bubble", text: q.text })); board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary", text: questButtonLabel(q, Build.q === q), onclick: function () { takeQuest(q); } })])); }); return; }
@@ -1622,8 +1629,8 @@ function openShip(viaVillager) {
   var board = $("board"); board.innerHTML = "";
   board.appendChild(h("div", { class: "bhead" }, [villagerFace("marat"), h("h2", { text: "Капитан Марат" }), h("button", { class: "btn close", text: "Закрыть", onclick: closeModal })]));
   var routes = Object.keys(ROUTES).filter(function (k) { return ROUTES[k].from === hereId; });
-  if (hereId === "sand" && S.visited.sand) shipJobBlock(board);
-  if (!routes.length) { board.appendChild(h("p", { class: "bubble", text: "Корабль стоит у причала на «Песках». Приходи туда, и поплывём к «Снегам»." })); showModal(); return; }
+  if (hereId === "sand" && S.visited.sand && viaVillager) shipJobBlock(board);
+  if (!routes.length) { board.appendChild(h("p", { class: "bubble", text: "Корабли стоят у причалов: на «Песках» к Снегам и на «Лугах» к Черепахам. Приходи на причал, и поплывём." })); showModal(); return; }
   var key = routes[0], rt = ROUTES[key], dest = islandById(rt.to);
   board.appendChild(h("p", { class: "bubble", text: "Плывём на «" + dest.name + "»? Сначала заполним судовой журнал: без него в море нельзя." }));
   var f = pickFact(); var hours = Math.min(f.a, f.b), speed = Math.max(f.a, f.b); var variant = (S.voyages || 0) % 2;
@@ -1645,8 +1652,8 @@ function openShip(viaVillager) {
 }
 function sail(rt) {
   var dest = islandById(rt.to); Game.modal = true; Player.stop();
-  var sx = S.player.x, sz = S.player.z, tx = rt.land.x + 0.5, tz = rt.land.z + 0.5, t0 = performance.now(), dur = 4000;
-  var ship = S.props.filter(function (p) { return p.kind === "ship"; })[0];
+  var land = routeLand(rt); var sx = S.player.x, sz = S.player.z, tx = land.x + 0.5, tz = land.z + 0.5, t0 = performance.now(), dur = 4000;
+  var ship = S.props.filter(function (p) { return p.kind === "ship" && p.id === rt.ship; })[0];
   hint("Плывём на «" + dest.name + "»…", 0);
   if (S.mode !== "hero") setMode("hero");
   (function anim() {
@@ -1654,7 +1661,7 @@ function sail(rt) {
     S.player.x = sx + (tx - sx) * e; S.player.z = sz + (tz - sz) * e; R.target.x = S.player.x; R.target.z = S.player.z;
     if (ship) { ship.x = Math.floor(S.player.x); ship.z = Math.floor(S.player.z); }
     if (playerSprite) playerSprite.position.set(S.player.x, SEA + 0.6, S.player.z);
-    if (k < 1) requestAnimationFrame(anim); else { S.player.x = tx; S.player.z = tz; if (ship) { ship.x = rt.to === "snow" ? 92 : 48; ship.z = rt.to === "snow" ? 85 : 93; } Game.modal = false; Player.arrived(); refreshSprites(); updatePlayerSprite(); save(); hint("Приплыли на «" + dest.name + "»!", 4000); }
+    if (k < 1) requestAnimationFrame(anim); else { S.player.x = tx; S.player.z = tz; if (ship) { ship.x = dest.shipAt.x; ship.z = dest.shipAt.z; } Game.modal = false; Player.arrived(); refreshSprites(); updatePlayerSprite(); save(); hint("Приплыли на «" + dest.name + "»!", 4000); }
   })();
 }
 
@@ -1739,9 +1746,9 @@ function craftReward(word, kind, cardId, sub, ref) {
 }
 function freeSpot() {
   var taken = {}; S.props.forEach(function (p) { taken[p.x + "," + p.z] = 1; }); S.villagers.forEach(function (v) { taken[v.x + "," + v.z] = 1; });
-  var cx = Math.floor(S.player.x), cz = Math.floor(S.player.z); var I = islandAt(cx, cz); if (!I) { cx = 48; cz = 50; }
+  var cx = Math.floor(S.player.x), cz = Math.floor(S.player.z); var I = islandAt(cx, cz); if (!I) { cx = HX; cz = HZ + 2; }
   for (var r = 1; r < 16; r++) for (var dx = -r; dx <= r; dx++) for (var dz = -r; dz <= r; dz++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue; var x = cx + dx, z = cz + dz; if (x < 1 || z < 1 || x >= W - 1 || z >= D - 1) continue; var y = World.top(x, z); if (y < SEA || World.isWater(x, z)) continue; if (World.get(x, y + 1, z) !== AIR) continue; var t = World.get(x, y, z); if (t !== GRASS && t !== SAND && t !== PATH && t !== DIRT && t !== SNOW) continue; if (taken[x + "," + z]) continue; return { x: x, z: z }; }
-  return { x: 48, z: 50 };
+  return { x: HX, z: HZ + 2 };
 }
 function craftCheck(body) {
   body.appendChild(h("p", { class: "small muted", text: "В слове с дыркой гласную не слышно. Молот ударения ищет слово из той же семьи, где эта гласная под ударением, и она переходит в дырку." }));
@@ -2032,7 +2039,7 @@ function endDay() {
 function newDay() {
   S.day++; S.t = 0; S.extra = false; S.today = { built: [], words: [], coinsIn: 0, coinsOut: 0, date: todayKey() };
   Mobs.clear();
-  if (World.countOre() < 30) World.seedOre(null, 30);
+  if (World.countOre() < 50) World.seedOre(null, 50);
   S.quests.forEach(function (q) { if (q.status === "open" && (q.kind === "build" || q.kind === "job") && Build.q !== q && q.bp && q.bp.chestLeft == null && Math.random() < 0.5) q.status = "skip"; });
   if (!Build.partial) { Build.q = null; Frame.bp = null; Frame.reset(); setOutline([]); }
   addRepairQuests(); ensureQuests(); rebuildTerrain(); refreshSprites(); updateHud(); save(true);
@@ -2049,7 +2056,7 @@ function openDiary(onClose) {
   ta.addEventListener("keydown", function (e) { e.stopPropagation(); });
   board.appendChild(ta);
   var msg = h("p", { class: "muted" });
-  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn primary big", text: "Записать", onclick: function () {
+  board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Отправить родителям", onclick: function () { shareDiary(msg); } }), h("button", { class: "btn primary big", text: "Записать", onclick: function () {
     var t = ta.value.trim(); if (!t) { msg.textContent = "Сначала напиши что-нибудь."; return; }
     S.diary = S.diary || []; S.diary.push({ date: todayKey(), day: S.day, text: t.slice(0, 2000) }); if (S.diary.length > 200) S.diary.shift();
     ta.value = ""; SFX.ok(); save(true); msg.textContent = "Записано!"; renderEntries();
@@ -2065,6 +2072,15 @@ function openDiary(onClose) {
   }
   renderEntries();
   showModal(); setTimeout(function () { try { ta.focus(); } catch (e) {} }, 50);
+}
+
+function diaryText() { return (S.diary || []).map(function (e) { return "День " + e.day + " (" + e.date + "): " + e.text + (e.reply ? "\n  Ответ: " + e.reply : ""); }).join("\n"); }
+function shareDiary(msgEl) {
+  var txt = diaryText(); if (!txt) { if (msgEl) msgEl.textContent = "Дневник пока пустой."; return; }
+  var say = function (t) { if (msgEl) msgEl.textContent = t; else hint(t, 3000); };
+  var copy = function () { try { navigator.clipboard.writeText(txt).then(function () { say("Скопировано: вставь в сообщение родителям."); }, function () { say("Не удалось отправить. Открой экран для взрослого и скопируй дневник оттуда."); }); } catch (e) { say("Не удалось отправить."); } };
+  if (navigator.share) { navigator.share({ title: "Дневник Блокограда", text: txt }).then(function () { say("Отправлено!"); }, function () { copy(); }); }
+  else copy();
 }
 
 /* ===================== PARENT SCREEN ===================== */
@@ -2092,7 +2108,7 @@ function openParent() {
       dl.appendChild(h("div", { class: "entry-card" }, [h("div", { class: "when", text: "День " + e.day + " · " + e.date }), h("div", { class: "txt", text: e.text }), inp, h("div", { class: "row end" }, [h("button", { class: "btn", text: "Сохранить ответ", onclick: function () { e.reply = inp.value.trim(); save(true); hint("Ответ сохранён, ребёнок увидит его в дневнике.", 2500); } })])]));
     });
     board.appendChild(dl);
-    board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Скопировать дневник текстом", onclick: function () { var txt = (S.diary || []).map(function (e) { return "День " + e.day + " (" + e.date + "): " + e.text + (e.reply ? "\n  Ответ: " + e.reply : ""); }).join("\n"); try { navigator.clipboard.writeText(txt).then(function () { hint("Дневник скопирован.", 2000); }, function () { hint("Не удалось скопировать.", 2000); }); } catch (ex) { hint("Не удалось скопировать.", 2000); } } })]));
+    board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "Отправить дневник (почта, мессенджер)", onclick: function () { shareDiary(null); } }), h("button", { class: "btn", text: "Скопировать дневник текстом", onclick: function () { var txt = diaryText(); try { navigator.clipboard.writeText(txt).then(function () { hint("Дневник скопирован.", 2000); }, function () { hint("Не удалось скопировать.", 2000); }); } catch (ex) { hint("Не удалось скопировать.", 2000); } } })]));
   }
   board.appendChild(h("h3", { text: "Сохранение" }));
   board.appendChild(h("p", { class: "small muted", text: "Прогресс хранится в этом браузере. Чтобы перенести на другое устройство: «Скопировать» здесь, «Вставить» там." }));
@@ -2100,7 +2116,7 @@ function openParent() {
   var saveMsg = h("p", { class: "muted" });
   board.appendChild(h("div", { class: "row" }, [
     h("button", { class: "btn", text: "Скопировать сохранение", onclick: function () { save(true); var txt = JSON.stringify(S); saveTa.value = txt; try { navigator.clipboard.writeText(txt).then(function () { saveMsg.textContent = "Скопировано в буфер обмена (" + Math.round(txt.length / 1024) + " КБ)."; }, function () { saveTa.select(); saveMsg.textContent = "Выделено в поле ниже: скопируй вручную."; }); } catch (e) { saveTa.select(); saveMsg.textContent = "Выделено в поле ниже: скопируй вручную."; } } }),
-    h("button", { class: "btn", text: "Вставить сохранение из поля", onclick: function () { try { var o = JSON.parse(saveTa.value); if (!o || (o.v !== 1 && o.v !== 2)) throw new Error("не похоже на сохранение"); noSave = true; o.savedAt = Date.now(); try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} if (dbRef) dbRef.set({ json: JSON.stringify(o), savedAt: o.savedAt }).catch(function () {}); saveMsg.textContent = "Загружено, перезапускаю…"; setTimeout(function () { location.reload(); }, 600); } catch (e) { saveMsg.textContent = "Не удалось прочитать: " + e.message; } } })
+    h("button", { class: "btn", text: "Вставить сохранение из поля", onclick: function () { try { var o = JSON.parse(saveTa.value); if (!o || (o.v !== 1 && o.v !== 2 && o.v !== 3)) throw new Error("не похоже на сохранение"); noSave = true; o.savedAt = Date.now(); try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} if (dbRef) dbRef.set({ json: JSON.stringify(o), savedAt: o.savedAt }).catch(function () {}); saveMsg.textContent = "Загружено, перезапускаю…"; setTimeout(function () { location.reload(); }, 600); } catch (e) { saveMsg.textContent = "Не удалось прочитать: " + e.message; } } })
   ]));
   board.appendChild(saveTa); board.appendChild(saveMsg);
   board.appendChild(h("h3", { text: "Свой список слов" }));
@@ -2138,19 +2154,20 @@ function drawStartArt() {
   drawVillager(g, 0, "hammer"); g.save(); g.translate(72, 30); drawPlayer(g, false); g.restore();
 }
 function migrate(o) {
-  /* version 1 had one 32×32 island; keep the learning progress, start a fresh archipelago */
-  if (o.v === 2) return o;
+  /* older saves had a smaller world; keep the learning progress, coins, diary and backpack, start a fresh archipelago */
+  if (o.v === 3) return o;
   var f = freshState();
-  ["day", "coins", "cards", "stats", "recent", "log", "custom", "sound", "cutHidden", "crafts", "trades", "items"].forEach(function (k) { if (o[k] !== undefined) f[k] = o[k]; });
+  ["day", "coins", "cards", "stats", "recent", "log", "custom", "sound", "cutHidden", "crafts", "trades", "builds", "jobs", "voyages", "items", "diary", "oil", "parts", "gaps", "leafCount", "oreSeq"].forEach(function (k) { if (o[k] !== undefined) f[k] = o[k]; });
   if (f.custom) delete f.custom.goods;
-  f.blocks[8] = Math.max(40, (o.blocks && o.blocks[8]) || 0); f.migrated = true;
+  if (o.v === 2 && o.blocks) Object.keys(o.blocks).forEach(function (k) { f.blocks[k] = o.blocks[k]; });
+  f.blocks[8] = Math.max(40, f.blocks[8] || 0); f.migrated = true;
   return f;
 }
 function applyState(saved) {
   S = saved ? migrate(saved) : freshState();
-  S.player = S.player || { x: 48.5, z: 50.5 }; S.visited = S.visited || { home: true }; S.houses = S.houses || []; S.jobDay = S.jobDay || {}; S.mode = S.mode || "hero";
+  S.player = S.player || { x: 64.5, z: 66.5 }; S.visited = S.visited || { home: true }; S.houses = S.houses || []; S.jobDay = S.jobDay || {}; S.mode = S.mode || "hero";
   if (!S.villagers.some(function (v) { return v.id === "grisha"; })) S.villagers = defaultVillagers().concat(S.villagers.filter(function (v) { return !VNAME[v.id]; }));
-  if (!S.props.some(function (p) { return p.kind === "ship"; })) S.props.push({ kind: "ship", x: 48, z: 93 });
+  if (!S.props.some(function (p) { return p.kind === "ship" && p.id === "s1"; })) S.props = S.props.filter(function (p) { return p.kind !== "ship"; }).concat(defaultShips());
   var ok = S.world ? World.decode(S.world) : false;
   if (!ok) { World.generate(20261009); S.world = World.encode(); } else World.computeBridges();
   if (!S.quests.length) ensureQuests();
@@ -2167,7 +2184,7 @@ function boot() {
     $("start").hidden = true; Game.running = true; S.started = true;
     try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     if (S.t >= 1) nightFall();
-    else if (S.migrated) { S.migrated = false; hint("Блокоград вырос: теперь это архипелаг. Твои примеры, слова и монеты сохранились, остров новый.", 7000); }
+    else if (S.migrated) { S.migrated = false; hint("Карта стала больше: острова новые, а примеры, слова, монеты, рюкзак и дневник сохранились.", 7000); }
     else hint(S.day === 1 && !S.builds ? "Это Блокоград. Ты — человечек на площади. Нажми на землю, чтобы идти, или подойди к Мастеру Фёдору (с молотком)." : "С возвращением! Открой «Задания» или сходи к жителям.", 6000);
     save();
   });
@@ -2181,7 +2198,7 @@ function boot() {
         if (!db) return;
         var ref = db.doc("blokograd/save");
         ref.get().then(function (snap) {
-          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && (o.v === 1 || o.v === 2) && !Game.running) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
+          if (snap.exists) { var d = snap.data(); if (d && d.json && (!S.savedAt || d.savedAt > S.savedAt)) { try { var o = JSON.parse(d.json); if (o && (o.v === 1 || o.v === 2 || o.v === 3) && !Game.running) { applyState(o); try { localStorage.setItem(LS, d.json); } catch (e) {} } } catch (e) {} } }
           dbRef = ref; save();
         }, function () { dbRef = ref; });
       }, function () {});
