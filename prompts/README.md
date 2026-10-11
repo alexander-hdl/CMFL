@@ -5,7 +5,7 @@
 | Файл | В духе | Что тренирует |
 |---|---|---|
 | [`fable-blokograd.md`](fable-blokograd.md) | Minecraft | Умножение и площадь (стройка рамкой), состав слова, безударные и словарные слова (верстак), деньги (торговля) |
-| [`fable-oborona-tablicy.md`](fable-oborona-tablicy.md) | Clash Royale, Kingdom Rush | Таблица умножения и деления, пары множителей, разрезание трудных примеров, двузначное на однозначное |
+| [`fable-oborona-tablicy.md`](fable-oborona-tablicy.md) | Clash Royale, Kingdom Rush | Таблица умножения и деления, пары множителей, разрезание трудных примеров, двузначное на однозначное. **Сделана**: [`plan/oborona-tablicy.html`](../plan/oborona-tablicy.html), журнал в [`dev/oborona-tablicy/`](../dev/oborona-tablicy/00-plan.md) |
 | [`fable-ferma.md`](fable-ferma.md) | Stardew Valley, Harvest Moon | Часы и длительность, деньги и сдача, деление с остатком, масса, задачи в 2 действия, внимательное чтение |
 
 ## Общие принципы для всех игр
