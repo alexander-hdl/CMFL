@@ -1,0 +1,11 @@
+{
+  "name": "Студия комиксов",
+  "short": "Комиксы",
+  "source": "komiksy.html",
+  "out": "komiksy.html",
+  "color": "#eef0f4",
+  "icon": "comics",
+  "order": 30,
+  "card": "Для пера XP-PEN: рисовать и писать реплики",
+  "artifact": "78TnnhbtiWef319zJ2SQM8"
+}
