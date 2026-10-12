@@ -7,7 +7,8 @@
 //
 // Исходник страницы (поле source в app.json) оборачивается в полный документ так же,
 // как это делает tools/build_site.py, и открывается в headless Chromium (Playwright).
-// Проверки лежат в папке tests приложения (поле tests в app.json): каждый файл *.mjs
+// Если в app.json есть testCommand, выполняется она (у приложения свой запускатель).
+// Иначе проверки лежат в папке tests приложения (поле tests в app.json): каждый файл *.mjs
 // экспортирует register({ test, assert, eq }); тест получает { page, errors, shot, app }.
 // Страница должна выставить window.OT с функцией state(): по ней запускатель ждёт загрузки.
 
@@ -31,6 +32,12 @@ const DIR = path.join(ROOT, "apps", NAME);
 const MANIFEST = path.join(DIR, "app.json");
 if (!fs.existsSync(MANIFEST)) { console.error(`нет файла apps/${NAME}/app.json`); process.exit(2); }
 const APP = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
+// Приложение со своим запускателем (поле testCommand в app.json): просто выполняем команду из корня репозитория.
+if (APP.testCommand) {
+  const { spawnSync } = await import("node:child_process");
+  const r = spawnSync(APP.testCommand, { cwd: ROOT, shell: true, stdio: "inherit", env: process.env });
+  process.exit(r.status == null ? 1 : r.status);
+}
 const SRC = path.join(DIR, APP.source);
 const TESTS = path.join(DIR, APP.tests || "tests");
 const TMP = path.join(ROOT, "tools", `.test-${NAME}.html`);

@@ -312,6 +312,7 @@
   - [`apps/komiksy/`](apps/komiksy/README.md) — «Студия комиксов» для пера XP-PEN: [claude.ai/artifact/78TnnhbtiWef319zJ2SQM8](https://claude.ai/artifact/78TnnhbtiWef319zJ2SQM8).
   - [`apps/blokograd/`](apps/blokograd/README.md) — «Блокоград», песочница в духе Minecraft по заданию из `prompts/`: [claude.ai/artifact/6DiGYA6FVP3AJzrWKQjhSw](https://claude.ai/artifact/6DiGYA6FVP3AJzrWKQjhSw).
   - [`apps/oborona-tablicy/`](apps/oborona-tablicy/README.md) — «Оборона таблицы», защита крепости, где оружие — таблица умножения, по заданию из `prompts/`.
+  - [`apps/ferma/`](apps/ferma/README.md) — «Ферма у реки», спокойная ферма в духе Stardew Valley по заданию из `prompts/`: часы, деньги и сдача, посев и урожай, записки соседей.
 - [`research/08-russkiy-yazyk-9-let.md`](research/08-russkiy-yazyk-9-let.md) — русский язык в 9 лет: разбор диктантов по типам ошибок, мини-диктанты, морфологические игры, чтение, книги, когда к логопеду.
 - [`research/09-planshet-9-let.md`](research/09-planshet-9-let.md) — планшет в 9 лет: Shorts и Brawl Stars, пошаговая настройка iPad и Android, «последний матч», детский договор.
 - [`research/10-chtenie-interaktiv.md`](research/10-chtenie-interaktiv.md) — чтение: «таблица Брагиса» (скорее всего, Шульте), скорочтение, что реально работает, компьютерные инструменты.
