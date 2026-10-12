@@ -52,7 +52,7 @@ p { margin: 0; }
 
 /* Tabs */
 .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; background: var(--panel); padding: 5px; border-radius: var(--r); }
-.tabs button { border: 0; background: transparent; padding: 10px 2px; border-radius: 12px; font-weight: 800; font-size: clamp(0.78rem, 3.4vw, 0.95rem); cursor: pointer; color: var(--muted); min-height: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabs button { border: 0; background: transparent; padding: 10px 2px; border-radius: 12px; font-weight: 800; font-size: clamp(0.78rem, 3.4vw, 0.95rem); cursor: pointer; color: var(--muted); min-height: 48px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabs button[aria-selected="true"] { background: var(--gold); color: var(--gold-ink); }
 .today { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 999px; padding: 3px 10px; font-weight: 700; color: var(--muted); }
@@ -63,7 +63,7 @@ section[role="tabpanel"] { display: grid; gap: 16px; }
 .panel { background: var(--panel); border: 2px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; min-width: 0; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
-.seg button { border: 2px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 8px 12px; font-weight: 700; cursor: pointer; min-height: 42px; }
+.seg button { border: 2px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 8px 12px; font-weight: 700; cursor: pointer; min-height: 48px; }
 .seg button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
 .btn { border: 0; border-radius: 14px; padding: 14px 22px; font-weight: 800; font-size: 1.05rem; cursor: pointer; min-height: 52px; }
 .btn.gold { background: var(--gold); color: var(--gold-ink); box-shadow: 0 4px 0 #b9861a; }
@@ -160,7 +160,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
 /* Hunt and word family */
 .modebar { margin-bottom: 4px; }
 .sentence { background: var(--paper); color: #1b2333; border-radius: 14px; padding: 16px; font-size: 1.4rem; line-height: 2.1; font-weight: 700; }
-.sentence .tok { font: inherit; color: inherit; background: transparent; border: 2px solid transparent; border-radius: 8px; padding: 0 3px; cursor: pointer; line-height: 1.4; }
+.sentence .tok { font: inherit; color: inherit; background: transparent; border: 2px solid transparent; border-radius: 8px; padding: 0 6px; cursor: pointer; line-height: 1.4; display: inline-flex; align-items: center; min-height: 48px; vertical-align: middle; }
 .sentence .tok:hover { border-color: #c9d3e6; }
 .sentence .tok.sel { background: #ffe9a8; border-color: #e0a92a; }
 .sentence .tok.found { background: #c9f2d8; border-color: #2e9e5b; }
@@ -176,7 +176,7 @@ details.names summary { cursor: pointer; font-weight: 700; }
 .hunt-card { display: grid; gap: 10px; background: var(--panel-2); border-radius: 14px; padding: 14px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .chipwrap { display: inline-flex; gap: 2px; align-items: center; }
-.chipw { border: 2px solid var(--line); background: var(--paper); color: #1b2333; border-radius: 12px; padding: 8px 14px; font-weight: 800; font-size: 1.15rem; cursor: pointer; }
+.chipw { border: 2px solid var(--line); background: var(--paper); color: #1b2333; border-radius: 12px; padding: 8px 14px; min-height: 48px; font-weight: 800; font-size: 1.15rem; cursor: pointer; }
 .chipw.static { cursor: default; }
 .chipw.imp { background: var(--panel-2); color: var(--muted); text-decoration: line-through; }
 .spk { border: 0; background: transparent; cursor: pointer; font-size: 1.1rem; padding: 4px; }
@@ -422,15 +422,15 @@ details.q-gen[open] > summary::before { content: "▾"; }
 
 /* Gems, pet and his notes */
 .top-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.hdr-btn { height: 46px; min-width: 46px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; cursor: pointer; font: inherit; position: relative; }
+.hdr-btn { height: 48px; min-width: 48px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; cursor: pointer; font: inherit; position: relative; }
 .gem-btn b { font-family: var(--f-display); font-weight: 400; font-size: 1.2rem; color: #6fc3ff; font-variant-numeric: tabular-nums; }
 a.btn { display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
 a.hdr-btn { text-decoration: none; }
-.blok-btn { font-weight: 800; font-size: 0.9rem; min-height: 44px; }
+.blok-btn { font-weight: 800; font-size: 0.9rem; min-height: 48px; }
 .blok-panel .btn { justify-self: center; min-width: 200px; font-size: 1.3rem; }
-.pet-btn { padding: 0; width: 46px; overflow: hidden; font-size: 1.3rem; }
+.pet-btn { padding: 0; width: 48px; overflow: hidden; font-size: 1.3rem; }
 .pet-btn svg { width: 44px; height: 44px; display: block; }
-.note-btn { padding: 0; width: 46px; font-size: 1.2rem; }
+.note-btn { padding: 0; width: 48px; font-size: 1.2rem; }
 .nb { position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--bad); color: #fff; font-size: 0.75rem; font-style: normal; font-weight: 800; display: grid; place-items: center; padding: 0 5px; }
 .pet-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .pet-card { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 8px; display: grid; justify-items: center; gap: 4px; cursor: pointer; color: var(--ink); font: inherit; }
@@ -447,7 +447,7 @@ a.hdr-btn { text-decoration: none; }
 .shop-item { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: start; align-content: start; }
 .shop-item.on { border-color: var(--good); }
 .shop-e { font-size: 1.6rem; line-height: 1; }
-.btn.sm { min-height: 40px; padding: 8px 14px; font-size: 0.95rem; }
+.btn.sm { min-height: 48px; padding: 8px 14px; font-size: 0.95rem; }
 .note-list { display: grid; gap: 8px; }
 .note-item { background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 6px; }
 .note-item p { margin: 0; }
@@ -493,7 +493,7 @@ a.hdr-btn { text-decoration: none; }
   <header class="top">
     <div class="brand">
       <h1>Тренировочная арена</h1>
-      <p class="muted">Счёт, чтение и слова. Одна тренировка — 5 минут.</p>
+      <p class="muted">Счёт, чтение и слова. Тренировка дня — 7–10 минут.</p>
     </div>
     <div class="top-right">
       <div class="trophies" title="Трофей — это пример или слово, которое ты уже знаешь твёрдо">
@@ -525,8 +525,9 @@ a.hdr-btn { text-decoration: none; }
   <section id="view-read" role="tabpanel" aria-labelledby="tab-read" hidden></section>
   <!-- WORDS -->
   <section id="view-words" role="tabpanel" aria-labelledby="tab-words" hidden></section>
-  <!-- PROGRESS -->
+  <!-- GAMES -->
   <section id="view-games" role="tabpanel" aria-labelledby="tab-games" hidden></section>
+  <!-- PROGRESS -->
   <section id="view-prog" role="tabpanel" aria-labelledby="tab-prog" hidden></section>
 </div>
 
@@ -538,7 +539,10 @@ a.hdr-btn { text-decoration: none; }
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function pad2(n) { return n < 10 ? "0" + n : "" + n; }
-  function dayKey(d) { d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  // Only the test interface (OT.setDate) ever writes this key; a child's browser never has it.
+  var OT_DATE = "arena-ot-date", dateOverride = null;
+  try { var otd = localStorage.getItem(OT_DATE); if (otd && /^\d{4}-\d\d-\d\d$/.test(otd)) dateOverride = otd; } catch (e) {}
+  function dayKey(d) { if (!d && dateOverride) return dateOverride; d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
   function addDays(key, n) { var p = key.split("-"); var d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return dayKey(d); }
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function median(arr) { if (!arr.length) return 0; var s = arr.slice().sort(function (a, b) { return a - b; }); var m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
@@ -548,13 +552,16 @@ a.hdr-btn { text-decoration: none; }
 
   /* ---------- storage: shared db when available, browser otherwise ---------- */
   var DOCS = ["math", "words", "reading", "screen", "family"];
-  var data = {
-    math: { facts: {}, sessions: [], nl: [] },
-    words: { custom: [], prog: {}, sessions: [] },
-    reading: { custom: [], runs: [], schulte: [] },
-    screen: { budget: { wd: 25, we: 28 }, days: {}, acts: [] },
-    family: { quiz: {}, week: {} }
-  };
+  function blank() {
+    return {
+      math: { facts: {}, sessions: [], nl: [] },
+      words: { custom: [], prog: {}, sessions: [] },
+      reading: { custom: [], runs: [], schulte: [] },
+      screen: { budget: { wd: 25, we: 28 }, days: {}, acts: [] },
+      family: { quiz: {}, week: {} }
+    };
+  }
+  var data = blank();
   var LS = "arena-v1-";
   DOCS.forEach(function (k) {
     try { var v = JSON.parse(localStorage.getItem(LS + k) || "null"); if (v && typeof v === "object") data[k] = Object.assign(data[k], v); } catch (e) {}
@@ -698,7 +705,11 @@ a.hdr-btn { text-decoration: none; }
     return { k: it.k, op: "d", text: prod + " : " + a, ans: b, hint: divHint(prod, a, b), fact: prod + " : " + a + " = " + b };
   }
   // A round mixes a few hard facts with many known ones, so about 4 of 5 answers succeed.
-  function pickMath() {
+  // n is the round size (15 by default; "Тренировка дня" asks for 6): hard and new facts are picked before shuffling,
+  // in the same shares as in a full round, so a short round still repeats what is due.
+  function pickMath(n) {
+    n = n || ROUND;
+    var nHard = Math.round(n * 4 / 15), nNew = Math.round(n / 3);
     var today = dayKey();
     var ops = math.op === "x" ? ["m", "d"] : [math.op];
     var items = [];
@@ -717,13 +728,13 @@ a.hdr-btn { text-decoration: none; }
     });
     fresh.sort(function (x, y) { return ease(x) - ease(y) || Math.random() - 0.5; });
     shuffle(dueKnown); shuffle(known);
-    var chosen = hard.slice(0, 4).concat(fresh.slice(0, 5));
-    chosen = chosen.concat(dueKnown.slice(0, Math.max(0, ROUND - chosen.length)));
-    while (chosen.length < ROUND && known.length) chosen.push(known.pop());
-    var moreFresh = fresh.slice(5), moreHard = hard.slice(4);
-    while (chosen.length < ROUND && moreFresh.length) chosen.push(moreFresh.shift());
-    while (chosen.length < ROUND && moreHard.length) chosen.push(moreHard.shift());
-    return shuffle(chosen).map(buildItem);
+    var chosen = hard.slice(0, nHard).concat(fresh.slice(0, nNew));
+    chosen = chosen.concat(dueKnown.slice(0, Math.max(0, n - chosen.length)));
+    while (chosen.length < n && known.length) chosen.push(known.pop());
+    var moreFresh = fresh.slice(nNew), moreHard = hard.slice(nHard);
+    while (chosen.length < n && moreFresh.length) chosen.push(moreFresh.shift());
+    while (chosen.length < n && moreHard.length) chosen.push(moreHard.shift());
+    return shuffle(chosen.slice(0, n)).map(buildItem);
   }
 
   function renderMath() {
@@ -789,7 +800,7 @@ a.hdr-btn { text-decoration: none; }
   }
 
   function startMath() {
-    math.round = { items: sized(pickMath(), "math"), i: 0, input: "", results: [], times: [], phase: "ask", t0: performance.now() };
+    math.round = { items: pickMath(daily.size && daily.size.math), i: 0, input: "", results: [], times: [], phase: "ask", t0: performance.now() };
     renderMath();
   }
   function dotsHTML(R) {
@@ -850,27 +861,31 @@ a.hdr-btn { text-decoration: none; }
       else if (e.key === "Enter") { key("ok"); e.preventDefault(); }
     }
   });
+  // Box rules for one table fact (pure). A new fact answered quickly jumps to box 2 and counts as that day's move up,
+  // so mastery (box 4) always takes three different days. Later moves up need a confident answer, once a day.
+  function leitnerMath(s, ok, ms, today) {
+    s = s || { b: 0, n: 0, ok: 0 };
+    s.n = (s.n || 0) + 1;
+    if (ok) {
+      s.ok = (s.ok || 0) + 1;
+      if (!s.b) { s.b = ms <= 5000 ? 2 : 1; if (s.b === 2) s.up = today; }
+      else if (s.up !== today) {
+        var limit = s.b >= 3 ? 3500 : 5000;
+        if (ms <= limit) { s.b = Math.min(5, s.b + 1); s.up = today; }
+      }
+    } else s.b = 1;
+    s.due = addDays(today, INTERVALS[s.b] || 0);
+    s.last = today;
+    return s;
+  }
   function answerMath() {
     var R = math.round, it = R.items[R.i];
     var ms = Math.round(performance.now() - R.t0);
     var ok = parseInt(R.input, 10) === it.ans;
     var today = dayKey();
     if (!it.again) {
-      var s = data.math.facts[it.k] || { b: 0, n: 0, ok: 0 };
-      s.n = (s.n || 0) + 1;
-      if (ok) {
-        s.ok = (s.ok || 0) + 1;
-        if (!s.b) s.b = ms <= 5000 ? 2 : 1;
-        else if (s.up !== today) {
-          // Moving up needs a confident answer, and only once a day: mastery = three different days.
-          var limit = s.b >= 3 ? 3500 : 5000;
-          if (ms <= limit) { s.b = Math.min(5, s.b + 1); s.up = today; }
-        }
-        R.times.push(ms);
-      } else s.b = 1;
-      s.due = addDays(today, INTERVALS[s.b] || 0);
-      s.last = today;
-      data.math.facts[it.k] = s;
+      data.math.facts[it.k] = leitnerMath(data.math.facts[it.k], ok, ms, today);
+      if (ok) R.times.push(ms);
       save("math");
     }
     R.results[R.i] = ok;
@@ -3808,17 +3823,19 @@ a.hdr-btn { text-decoration: none; }
   try { var wc = localStorage.getItem(LS + "wcat"); if (wc) words.cat = wc; words.paper = localStorage.getItem(LS + "paper") !== "0"; } catch (e) {}
   var WROUND = 8;
   function wordPool() { return allWords().filter(function (w) { return words.cat === "all" || w.cat === words.cat; }); }
-  function pickWords() {
+  // n is the dictation size (8 by default; "Тренировка дня" asks for 4): words that are due go first, so a short dictation repeats them.
+  function pickWords(n) {
+    n = n || WROUND;
     var today = dayKey(), pool = wordPool(), prog = data.words.prog;
     var due = [], fresh = [], rest = [];
     pool.forEach(function (w) { var s = prog[w.id]; if (!s) fresh.push(w); else if ((s.due || today) <= today && (s.b || 1) < 5) due.push(w); else rest.push(w); });
     due.sort(function (x, y) { return (prog[x.id].b || 1) - (prog[y.id].b || 1); });
-    var chosen = due.slice(0, WROUND);
-    var nNew = Math.min(3, WROUND - chosen.length);
+    var chosen = due.slice(0, n);
+    var nNew = Math.min(3, n - chosen.length);
     chosen = chosen.concat(shuffle(fresh).slice(0, nNew));
     shuffle(rest);
-    while (chosen.length < WROUND && rest.length) chosen.push(rest.pop());
-    if (chosen.length < WROUND) chosen = chosen.concat(fresh.filter(function (w) { return chosen.indexOf(w) < 0; }).slice(0, WROUND - chosen.length));
+    while (chosen.length < n && rest.length) chosen.push(rest.pop());
+    if (chosen.length < n) chosen = chosen.concat(fresh.filter(function (w) { return chosen.indexOf(w) < 0; }).slice(0, n - chosen.length));
     return shuffle(chosen);
   }
   function renderWords() {
@@ -3868,7 +3885,7 @@ a.hdr-btn { text-decoration: none; }
     });
   }
   function startWords() {
-    var items = sized(pickWords(), "words"); if (!items.length) return;
+    var items = pickWords(daily.size && daily.size.words); if (!items.length) return;
     words.round = { items: items, i: 0, phase: "listen", results: [], retry: false };
     renderWords();
     sayCurrent();
@@ -3918,14 +3935,18 @@ a.hdr-btn { text-decoration: none; }
   }
   function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
   function plural(n, one, few, many) { var m10 = n % 10, m100 = n % 100; if (m10 === 1 && m100 !== 11) return one; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few; return many; }
+  // Box rules for one word (pure): every right answer moves up, a mistake goes back to box 1.
+  function leitnerWord(s, ok, today) {
+    s = s || { b: 0, n: 0, ok: 0 };
+    s.n = (s.n || 0) + 1;
+    if (ok) { s.ok = (s.ok || 0) + 1; s.b = Math.min(5, (s.b || 0) + 1); } else s.b = 1;
+    s.due = addDays(today, INTERVALS[s.b] || 0);
+    return s;
+  }
   function markWord(ok) {
     var R = words.round, w = R.items[R.i], today = dayKey();
-    var s = data.words.prog[w.id] || { b: 0, n: 0, ok: 0 };
     if (!R.retry) {
-      s.n = (s.n || 0) + 1;
-      if (ok) { s.ok = (s.ok || 0) + 1; s.b = Math.min(5, (s.b || 0) + 1); } else s.b = 1;
-      s.due = addDays(today, INTERVALS[s.b] || 0);
-      data.words.prog[w.id] = s;
+      data.words.prog[w.id] = leitnerWord(data.words.prog[w.id], ok, today);
       R.results[R.i] = ok;
       save("words");
     }
@@ -4535,7 +4556,7 @@ a.hdr-btn { text-decoration: none; }
         }).join("") + '</div><p class="muted small">Слов в минуту, прочитанных верно. Норм здесь нет: сравниваем его только с ним самим.</p>' : '<p class="muted">Чтений пока не было.</p>') +
       "</div>" + questProgressHTML() + theatreProgressHTML() +
       '<div class="panel"><h3>Как пользоваться</h3><ul class="tips">' +
-        "<li>1–2 тренировки в день по 5 минут. Это учебное время, а не развлекательное, и оно не входит в матчи Brawl Stars.</li>" +
+        "<li>Одна «Тренировка дня» на 7–10 минут, по желанию ещё один тренажёр. Это учебное время, а не развлекательное, и оно не входит в матчи Brawl Stars.</li>" +
         "<li>Не перед сном: последний час без экранов остаётся в силе.</li>" +
         "<li>Трофеи — это счёт выученного, а не валюта. Не меняйте их на планшет или подарки.</li>" +
         "<li>Гемы тратятся только на питомца внутри арены. Их тоже не меняют на матчи и подарки.</li>" +
@@ -4568,6 +4589,158 @@ a.hdr-btn { text-decoration: none; }
   renderAll();
   try { var tab = localStorage.getItem(LS + "tab"); if (tab && ["math", "read", "words", "games", "prog"].indexOf(tab) >= 0) showTab(tab); } catch (e) {}
   try { var hs = (location.hash || "").slice(1); if (["math", "read", "words", "games", "prog"].indexOf(hs) >= 0) showTab(hs); } catch (e) {}
+
+  /* ---------- debug interface for tests (window.OT) ---------- */
+  // Used only by tools/test_app.mjs. The child never calls it: nothing on the page does, and the date override
+  // is applied only when its localStorage key exists (only OT.setDate writes it).
+  (function () {
+    var nativeRandom = Math.random;
+    function J(x) { return x === undefined ? null : JSON.parse(JSON.stringify(x)); }
+    function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    var OVERLAYS = { day: "day-ov", week: "week-ov", pet: "pet-ov", notes: "note-ov", prompter: "prompter" };
+    function overlay() { var name = null; Object.keys(OVERLAYS).forEach(function (k) { if (!name && $(OVERLAYS[k])) name = k; }); return name; }
+    function wordById(id) { return allWords().filter(function (w) { return w.id === id; })[0]; }
+    function closeAll() {
+      ["day-ov", "week-ov", "pet-ov", "note-ov"].forEach(function (id) { var el = $(id); if (el) el.remove(); });
+      stopPrompter();
+      var pill = $("day-pill"); if (pill) pill.remove();
+    }
+    var OT = {
+      state: function () {
+        var pill = $("day-pill");
+        return {
+          date: dayKey(), dateOverride: dateOverride, tab: current, storeMode: store.mode,
+          docs: J(data), overlay: overlay(), pill: pill ? pill.textContent : null,
+          ui: {
+            math: J(math), words: J(words), reading: { view: reading.view, tid: reading.tid },
+            quest: { q: quest.q, page: quest.page }, play: { id: play.id, i: play.i, pr: play.pr }, quiz: !!quiz.g
+          },
+          daily: { plan: J(todayPlan()), size: J(daily.size), just: daily.just },
+          gems: J(gemLedger())
+        };
+      },
+      reset: function () {
+        try { Object.keys(localStorage).filter(function (k) { return k.indexOf(LS) === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+        Object.keys(store.timers).forEach(function (k) { clearTimeout(store.timers[k]); store.timers[k] = null; });
+        data = blank();
+        math.op = "m"; math.wpLevel = undefined;
+        math.round = math.wp = math.nl = math.df = math.cm = math.race = null;
+        words.cat = "all"; words.paper = true; words.mode = "dict"; words.huntTheme = "a"; words.round = words.hunt = words.fam = null;
+        reading.view = "list"; reading.tid = null; reading.big = false; reading.spaced = false; reading.errs = {}; reading.sch = null;
+        quest.q = null; quest.page = null; quest.cr = []; quest.hist = [];
+        play.id = null; play.i = 0; play.swap = false; play.pr = false;
+        quiz.g = null; quiz.pick = null; quiz.mode = "turns"; quiz.own = false;
+        report.days = 30; report.text = "";
+        daily.size = null; daily.just = null;
+        pet.msg = ""; note.kind = "bug"; games.result = null; games.respins = 1;
+        stopTimer(); stopSpeech(); closeAll();
+        showTab("math");
+        renderAll();
+      },
+      setDate: function (d) {
+        if (d != null && !/^\d{4}-\d\d-\d\d$/.test(d)) throw new Error("OT.setDate: ожидается YYYY-MM-DD или null");
+        try { if (d) localStorage.setItem(OT_DATE, d); else localStorage.removeItem(OT_DATE); } catch (e) {}
+        dateOverride = d || null;
+        OT.render();
+        return dayKey();
+      },
+      seed: function (n) { Math.random = n == null ? nativeRandom : mulberry32(n); },
+      showTab: function (name) {
+        if (["math", "read", "words", "games", "prog"].indexOf(name) < 0) throw new Error("OT.showTab: нет вкладки " + name);
+        daily.size = null; showTab(name);
+      },
+      render: function () {
+        renderAll();
+        if ($("day-ov")) renderDay();
+        if ($("week-ov")) renderWeek();
+        if ($("pet-ov")) renderPet();
+        if ($("note-ov")) renderNotes();
+        if (current === "prog") renderProgress();
+      },
+      set: function (doc, patch) {
+        if (DOCS.indexOf(doc) < 0) throw new Error("OT.set: нет документа " + doc);
+        Object.assign(data[doc], J(patch));
+        save(doc); OT.render();
+        return J(data[doc]);
+      },
+      save: function (doc) { (doc ? [doc] : DOCS).forEach(function (k) { save(k); }); },
+      flush: function (doc) {
+        (doc ? [doc] : DOCS).forEach(function (k) {
+          if (store.mode !== "db" || !store.refs[k]) return;
+          clearTimeout(store.timers[k]); store.timers[k] = null; flush(k);
+        });
+      },
+      play: function (kind, opts) {
+        opts = opts || {};
+        closeAll();
+        daily.size = opts.daily ? Object.assign({}, DAILY_SIZE) : null;
+        if (kind === "words" || kind === "hunt" || kind === "fam") {
+          showTab("words");
+          words.round = words.hunt = words.fam = null;
+          if (kind === "words") {
+            words.mode = "dict";
+            if (opts.cat) words.cat = opts.cat;
+            startWords();
+            if (opts.items) { words.round.items = opts.items.map(wordById).filter(Boolean); words.round.i = 0; renderWords(); }
+          } else if (kind === "hunt") {
+            words.mode = "hunt"; words.huntTheme = opts.theme === "b" ? "b" : "a"; renderWords();
+            $("h-start").click();
+            if (opts.list) { words.hunt.list = opts.list.map(function (i) { return (words.hunt.theme === "b" ? HUNT_B : HUNT_A)[i]; }); words.hunt.i = 0; startSentence(); renderHunt(); }
+          } else {
+            words.mode = "fam"; renderWords();
+            $("f-start").click();
+            if (opts.list) { words.fam.list = opts.list.slice(); words.fam.i = 0; prepFam(); renderFam(); }
+          }
+        } else if (kind === "quest" || kind === "play") {
+          showTab("read"); reading.view = "list";
+          if (kind === "quest") openQuest(opts.id || QUESTS[0].id); else openPlay(opts.id || PLAYS[0].id);
+        } else {
+          showTab("math"); quietMath();
+          if (kind === "math") {
+            startMath();
+            if (opts.items) {
+              math.round.items = opts.items.map(function (x) { var op = x[2] || "m"; return buildItem({ op: op, a: x[0], b: x[1], k: factKey(op, x[0], x[1]) }); });
+              renderMath();
+            }
+          } else if (kind === "nl") {
+            startNL();
+            if (opts.nums) { math.nl.nums = opts.nums.slice(); renderMath(); }
+          } else if (kind === "df") {
+            startDf(opts.mode || "boss");
+            if (opts.items) { math.df.items = J(opts.items); math.df.i = 0; prepDfItem(); renderMath(); }
+          } else if (kind === "cm") {
+            startCm(opts.mode || "mix");
+            if (opts.items) { math.cm.items = J(opts.items); math.cm.i = 0; prepCm(); renderMath(); }
+          } else if (kind === "wp") startWp();
+          else if (kind === "race") {
+            startRace();
+            if (opts.patch) { Object.assign(math.race, J(opts.patch)); raceKeep(); renderMath(); }
+          } else throw new Error("OT.play: неизвестный тренажёр " + kind);
+        }
+        return OT.state();
+      },
+      open: function (name) {
+        if (name === "day") openDay(); else if (name === "week") openWeek(); else if (name === "pet") openPet();
+        else if (name === "notes" || name === "note") openNotes();
+        else throw new Error("OT.open: нет окна " + name);
+      },
+      close: function () { closeAll(); renderHeader(); },
+      fn: {
+        plural: plural, dayKey: dayKey, addDays: addDays, weekStart: weekStart, isWeekend: isWeekend, factKey: factKey,
+        pickMath: pickMath, leitnerMath: leitnerMath, pickWords: pickWords, leitnerWord: leitnerWord,
+        trophyCount: trophyCount, dailyCounts: dailyCounts, makePlan: makePlan, gemLedger: gemLedger, petStage: petStage, buildReport: buildReport,
+        cmItems: cmItems, gen: { read: genRead, set: genSet, dur: genDur, conv: genConv, coins: genCoins, change: genChange, enough: genEnough, ice: genIce, kop: genKop },
+        minCoins: minCoins, raceCard: raceCard, raceHops: raceHops, racePads: racePads, wpPick: wpPick,
+        dfPaths: dfPaths, dfPickBosses: dfPickBosses, dfPickTwo: dfPickTwo, questValid: questValid, parseSent: parseSent,
+        weekCounts: weekCounts, goalNow: goalNow, goalOptions: goalOptions
+      },
+      consts: function () {
+        return J({ INTERVALS: INTERVALS, GEM: GEM, DAILY_SIZE: DAILY_SIZE, DAILY_NAMES: DAILY_NAMES, MOVES: MOVES, PAIRS: PAIRS, BOSSES: BOSSES, STARTER: STARTER,
+          HUNT_A: HUNT_A, HUNT_B: HUNT_B, FAMS: FAMS, QUESTS: QUESTS, SHOP: SHOP, TREATS: TREATS, PET_STAGES: PET_STAGES });
+      }
+    };
+    window.OT = OT;
+  })();
 
   try {
     if (window.claude && typeof window.claude.use === "function") {
