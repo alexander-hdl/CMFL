@@ -5,7 +5,7 @@
 ## Файлы
 
 - `oborona-tablicy.html` — игра, один файл.
-- `tests/` — автотесты Playwright: `node tools/test_app.mjs oborona-tablicy` из корня (84 проверки, около 100 с; `--grep текст`, `--shot`). Тесты «Сайт» сравнивают `docs/` с исходником, поэтому перед ними нужен `python3 tools/build_site.py`.
+- `tests/` — автотесты Playwright: `node tools/test_app.mjs oborona-tablicy` из корня (97 проверок, около 125 с; `--grep текст`, `--shot`). Тесты «Сайт» сравнивают `docs/` с исходником, поэтому перед ними нужен `python3 tools/build_site.py`.
 - `dev/` — рабочий журнал: план, архитектура с отладочным интерфейсом `window.OT`, отчёты по этапам, финальное ревью с таблицей требований и ручными проверками для родителя, скриншоты в `dev/shots/`.
 
 Пути в журналах записаны до переезда в `apps/`: `plan/oborona-tablicy.html` теперь `apps/oborona-tablicy/oborona-tablicy.html`, `tools/tests/oborona/` теперь `tests/`, `dev/oborona-tablicy/` теперь `dev/`.

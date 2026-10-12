@@ -276,7 +276,7 @@ const INTERVAL = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14 }, UNLOCK_BOX = 3, MASTER_BOX =
 const SPEEDS = { veryslow: 30, slow: 45, normal: 60, fast: 80 };   // лп/с
 const GAP = 150, GAP_BOSS = 225;                 // расстояние между врагами, лп
 const FIELD_TOP = 110, FIELD_BOTTOM = 790;       // зона поля; выше лента, ниже рука
-const MINUS = "−", TIMES = "×";
+const MINUS = "−", TIMES = "×", GATE_LIFE = 2.2;   // GATE_LIFE — сколько секунд боя у ворот висит пример
 
 /* ---------- 0 Util: мелочи и seeded RNG ---------- */
 const Util = {
@@ -385,6 +385,13 @@ const Content = {
     return m ? { op: m[1], a: +m[2], b: +m[3], n: +m[2] * +m[3] } : null;
   },
   cardNumber(key) { const c = Content.cardOf(key); return c ? c.n : 0; },
+  // Верное равенство для дошедшего врага: «56 = 7 × 8» (пара его карточки), для деления «56 : 7 = 8». Нет карточки — первая пара числа из руки земли, нет и её — null.
+  exampleOf(card, number, hand) {
+    const c = Content.cardOf(card);
+    if (c && c.n === number) return c.op === "d" ? number + " : " + c.a + " = " + c.b : number + " = " + c.a + " " + TIMES + " " + c.b;
+    const ps = Content.pairsOf(number, hand);
+    return ps.length ? number + " = " + ps[0][0] + " " + TIMES + " " + ps[0][1] : null;
+  },
   // Карточка числа: пара из 2–9, если есть, иначе пара с 10.
   cardForNumber(n) {
     const ps = Content.pairsOf(n, Content.HAND);
@@ -509,6 +516,7 @@ const Bus = {
     const t = L && (L.phase === "battle" || L.phase === "paused") ? +L.simT.toFixed(3) : Clock.nowMs();
     const ev = Object.assign({ seq: ++Bus.seq, t, type }, payload || {});
     Bus.log.push(ev);
+    Render.dirty = true;                          // всё, что меняет сцену, проходит через события
     if (Bus.log.length > 2000) Bus.log.shift();
     const list = Bus.subs[type];
     if (list) for (const fn of list) fn(ev);
@@ -549,6 +557,7 @@ const Store = {
         if (!obj(c)) { delete out.cards[key]; continue; }
         out.cards[key] = Object.assign({}, c, { b: c.b >= 1 && c.b <= 5 ? Math.round(c.b) : 1, due: typeof c.due === "string" && /^\d{4}-\d\d-\d\d$/.test(c.due) ? c.due : Clock.today(),
           seen: num(c.seen), ok: num(c.ok), miss: num(c.miss), tS: num(c.tS), tN: num(c.tN), pd: str(c.pd) });
+        out.cards[key].ever3 = c.ever3 === true || out.cards[key].b >= UNLOCK_BOX;   // записи без флага (старые сохранения): по текущей коробке
       }
       for (const key of Object.keys(out.hints)) {
         const h = out.hints[key];
@@ -668,16 +677,19 @@ const Store = {
 // Все данные лежат в Store.data.progress; модуль не знает ни DOM, ни canvas.
 const Learner = {
   P: () => Store.data.progress,
-  blank: (today) => ({ b: 1, due: today, seen: 0, ok: 0, miss: 0, tS: 0, tN: 0, pd: "" }),
+  blank: (today) => ({ b: 1, due: today, seen: 0, ok: 0, miss: 0, tS: 0, tN: 0, pd: "", ever3: false }),
   get: (k) => Store.data.progress.cards[k] || null,
   ensure(k, today) { const cs = Store.data.progress.cards; return cs[k] || (cs[k] = Learner.blank(today || Clock.today())); },
   isMastered(k) { const c = Learner.get(k); return !!c && c.b >= MASTER_BOX; },
   due(keys) { const t = Clock.today(); return keys.filter((k) => { const c = Learner.get(k); return c && c.due <= t; }); },
-  // Земля пройдена (открывает следующую): у всех её карточек коробка ≥ 3, то есть верно в два разных дня.
-  landDone(id) { const LD = Content.LANDS[id - 1]; return !!LD && LD.cards.every((k) => { const c = Learner.get(k); return c && c.b >= UNLOCK_BOX; }); },
+  // Карточка изучена для открытия земли: коробка ≥ 3 сейчас или хоть раз была (ever3). Ошибка возвращает карточку в коробку 1 для повторения,
+  // но уже достигнутое не отнимает: иначе ребёнок, у которого до крепости доходит каждый десятый враг, мог бы навсегда застрять на земле 1.
+  studied: (c) => !!c && (c.b >= UNLOCK_BOX || c.ever3 === true),
+  // Земля пройдена (открывает следующую): все её карточки изучены (верно в два разных дня, см. studied).
+  landDone(id) { const LD = Content.LANDS[id - 1]; return !!LD && LD.cards.every((k) => Learner.studied(Learner.get(k))); },
   landProgress(id) {
     const LD = Content.LANDS[id - 1];
-    return { done: LD.cards.filter((k) => { const c = Learner.get(k); return c && c.b >= UNLOCK_BOX; }).length, total: LD.cards.length };
+    return { done: LD.cards.filter((k) => Learner.studied(Learner.get(k))).length, total: LD.cards.length };
   },
   landOpen(id) { return id === 1 || Store.data.progress.lands.unlocked.includes(id); },
   checkUnlocks() {
@@ -710,6 +722,7 @@ const Learner = {
   setBox(key, c, to, today) {
     const from = c.b;
     c.b = to;
+    if (to >= UNLOCK_BOX) c.ever3 = true;
     if (from !== to) Bus.emit("card_changed", { key, from, to });
   },
   recordConfusion(a, b) {
@@ -829,7 +842,7 @@ const Solver = {
       const list = beams.filter((b) => b.cross[lane] !== undefined).sort((x, y) => x.cross[lane] - y.cross[lane] || x.id - y.id);
       let dead = false;
       for (const b of list) {
-        const r = Rules.apply(st, b);
+        const r = Rules.apply(st, b, level.hand);
         if (r.kind === "kill") { dead = true; break; }
         if (r.kind === "cut") st.rem = r.to;
       }
@@ -1254,7 +1267,7 @@ const Level = {
       land, idx, template: t.id, hand: Content.handOf(land),
       lanes: t.lanes.map((pts, i) => Geo.makeLane(i, pts)),
       pads: t.pads.map((p) => Object.assign({ fixed: false }, p)),
-      towers: {}, beams: [], enemies: [], queue: [], fx: [],
+      towers: {}, beams: [], enemies: [], queue: [], fx: [], gate: [],
       spawnT: 0, hearts: HEARTS, wave: null, waveIdx: 0,
       phase: "prep", simT: 0, plaqueT: 0, endT: 0, nextBeamId: 1, nextEnemyId: 1,
       prep: { startMs: 0, lastBuildMs: 0, pairEdits: {}, covered: {}, times: [] },
@@ -1406,11 +1419,23 @@ const Build = {
 
 /* ---------- 11 Rules: что делает луч с врагом (чистая функция) ---------- */
 // Обычный враг: p == rem — победа, иначе проходит. Железный: p < rem — число уменьшается, p == rem — победа, p > rem — проходит.
+// Остаток босса обязан оставаться бьющимся: если rem − p не равен ни одному произведению двух чисел из руки земли (3, 5, 11…),
+// луч не действует (kind "miss", dead: true, left — какой остаток получился бы). Тот же вызов делают Sim и Solver.simulate, поэтому план и бой не расходятся.
 const Rules = {
-  apply(enemy, beam) {
+  _prods: {},
+  products(hand) {                               // все a × b с a, b из руки (кэш по руке)
+    const key = hand.join(",");
+    if (!Rules._prods[key]) { const set = new Set(); for (const a of hand) for (const b of hand) set.add(a * b); Rules._prods[key] = set; }
+    return Rules._prods[key];
+  },
+  apply(enemy, beam, hand) {
     const p = beam.product, rem = enemy.rem;
     if (p === rem) return { kind: "kill", from: rem, to: 0 };
-    if (enemy.armored && p < rem) return { kind: "cut", from: rem, to: rem - p };
+    if (enemy.armored && p < rem) {
+      const left = rem - p;
+      if (hand && !Rules.products(hand).has(left)) return { kind: "miss", from: rem, to: rem, dead: true, left };
+      return { kind: "cut", from: rem, to: left };
+    }
     return { kind: "miss", from: rem, to: rem };
   },
 };
@@ -1440,7 +1465,7 @@ const Sim = {
     for (const b of L.beams) { const c = b.cross[lane.id]; if (c !== undefined && c > d0 && c <= d1) hits.push({ b, c }); }
     hits.sort((m, n) => m.c - n.c || m.b.id - n.b.id);
     for (const { b, c } of hits) {
-      const r = Rules.apply(e, b);
+      const r = Rules.apply(e, b, L.hand);
       if (r.kind === "kill") {
         e.alive = false; e.outcome = "killed"; e.d = c; e.deadT = 0; e.rem = 0;
         e.killedBy = { a: b.a, b: b.b, da: b.da, db: b.db, product: b.product, counted: b.born === "prep" && b.rebuilds <= 1 };   // засчитанный луч: построен в подготовке, пара переделана ≤ 2 раз
@@ -1459,15 +1484,19 @@ const Sim = {
       } else {
         b.blinkT = 0.4;
         e.passLog.push({ product: b.product, w: b.w });          // враг действительно прошёл сквозь этот неверный луч (для путаниц)
-        e.note = e.rem + ", а луч даёт " + b.product; e.noteT = 1;
-        Bus.emit("enemy_passed_beam", { id: e.id, number: e.number, product: b.product, rem: e.rem });
+        e.note = r.dead ? "Останется " + r.left + " — такого луча нет" : e.rem + ", а луч даёт " + b.product; e.noteT = r.dead ? 2 : 1;   // поучительную надпись читать дольше
+        Bus.emit("enemy_passed_beam", Object.assign({ id: e.id, number: e.number, product: b.product, rem: e.rem }, r.dead ? { dead: true, left: r.left } : {}));
       }
     }
     e.d = d1;
     if (e.d >= lane.len) {
       e.d = lane.len; e.alive = false; e.outcome = "castle";
       L.hearts = Math.max(0, L.hearts - 1);
-      Bus.emit("enemy_reached_castle", { id: e.id, number: e.number, hearts: L.hearts });
+      // У ворот остаётся верное равенство (пара карточки, из которой сделан враг): ребёнок видит ответ, даже если луча не было вовсе.
+      const example = Content.exampleOf(e.card, e.number, L.hand);
+      if (example) L.gate.push({ id: e.id, lane: e.lane, text: example, t: 0, life: GATE_LIFE });
+      if (L.gate.length > 3) L.gate.shift();
+      Bus.emit("enemy_reached_castle", Object.assign({ id: e.id, number: e.number, hearts: L.hearts }, example ? { example } : {}));
     }
   },
   timers(L, dt) {                                // надписи, мигание, гибель, звёздочки
@@ -1476,6 +1505,7 @@ const Sim = {
       if (e.noteT > 0) { e.noteT -= dt; if (e.noteT <= 0) { e.noteT = 0; e.note = e.cutNote; } }
     }
     for (const b of L.beams) if (b.blinkT > 0) b.blinkT = Math.max(0, b.blinkT - dt);
+    if (L.gate.length) { for (const g of L.gate) g.t += dt; L.gate = L.gate.filter((g) => g.t < g.life); }
     for (const f of L.fx) { f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 160 * dt; }
     if (L.fx.length) L.fx = L.fx.filter((f) => f.t < f.life);
   },
@@ -1555,7 +1585,7 @@ const Game = {
     const L = Game.level;
     L.wave = wave;
     L.queue = wave.enemies.map((e, i) => Object.assign({ ord: i }, e));
-    L.enemies = []; L.fx = []; L.spawnT = 0;
+    L.enemies = []; L.fx = []; L.gate = []; L.spawnT = 0;
     if (L.land === 5) {                          // земля деления: свободные башни и все лучи снимаются перед каждой волной
       for (const b of L.beams.slice()) Build._dropBeam(L, b);
       for (const id of Object.keys(L.towers)) delete L.towers[id];
@@ -1691,6 +1721,9 @@ const Game = {
 const Render = {
   cv: null, c: null, stage: null, rotate: null, s: 1, dpr: 1, t: 0, reduced: false,
   col: {}, deco: [], decoFor: undefined, shakes: {},
+  // Рисуем только при изменениях (раздел «Отрисовка»): dirty ставят события Bus, касания, смена UI.sync и OT; идущая анимация (бой, звёздочки, пунктир луча) просит кадры сама.
+  // bg — холст-кэш неподвижного фона (трава, дороги, крепость, пустые площадки), один на уровень и размер; lay — кэш раскладки подписей лучей.
+  dirty: true, frames: 0, bg: null, bgKey: "", lay: null, layKey: "", sprites: {}, sprK: 0, esprites: {}, esprK: 0, dashT: 0,
   last: { labels: [], notes: [], hints: [], del: null },   // что нарисовано в последнем кадре (OT.drawn, Input)
   F_NUM: '"Russo One","Nunito",system-ui,sans-serif', F_BODY: '"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
   init(canvas) {
@@ -1818,18 +1851,22 @@ const Render = {
     c.strokeStyle = k.ink; c.lineWidth = 5; c.beginPath(); c.moveTo(1540, 262); c.lineTo(1540, 236); c.stroke();   // ниже панели паузы (она кончается на y = 222)
     c.fillStyle = k.gold; c.beginPath(); c.moveTo(1542, 238); c.lineTo(1580, 248); c.lineTo(1542, 260); c.closePath(); c.fill(); c.stroke();
   },
-  pads(c, L) {
-    const k = Render.col, sel = Input.sel && L.towers[Input.sel] ? Input.sel : null;
+  pads(c, L) {                                   // сами площадки: неподвижны, лежат в кэше фона
+    const k = Render.col;
     for (const p of L.pads) {
       const g = c.createRadialGradient(p.x - 12, p.y - 14, 6, p.x, p.y, PAD_R);
       if (p.fixed) { g.addColorStop(0, "#69727d"); g.addColorStop(1, "#3f464f"); } else { g.addColorStop(0, "#c6ccd4"); g.addColorStop(1, k["stone-2"]); }
       c.fillStyle = g; c.strokeStyle = k.ink; c.lineWidth = 5;
       Render.circ(c, p.x, p.y, PAD_R); c.fill(); c.stroke();
       c.strokeStyle = "rgba(255,255,255,.4)"; c.lineWidth = 3; Render.circ(c, p.x, p.y, PAD_R - 10); c.stroke();
-      if (p.fixed && !L.towers[p.id]) { /* пустой замок не бывает */ }
-      if (sel && L.adj[sel].includes(p.id)) {    // соседи выбранной башни
-        c.save(); c.setLineDash([14, 10]); c.strokeStyle = k.gold; c.lineWidth = 6; Render.circ(c, p.x, p.y, PAD_R + 12); c.stroke(); c.restore();
-      }
+    }
+  },
+  padRings(c, L) {                               // соседи выбранной башни
+    const k = Render.col, sel = Input.sel && L.towers[Input.sel] ? Input.sel : null;
+    if (!sel) return;
+    for (const p of L.pads) {
+      if (!L.adj[sel].includes(p.id)) continue;
+      c.save(); c.setLineDash([14, 10]); c.strokeStyle = k.gold; c.lineWidth = 6; Render.circ(c, p.x, p.y, PAD_R + 12); c.stroke(); c.restore();
     }
   },
   // Облики башен (раздел 8): только внешний вид, цифра всегда по центру. skin: base | blizn | trilist | chetyre | zvezda | soty | mayak | osminog | kolokol | pushka.
@@ -1862,7 +1899,31 @@ const Render = {
     } else if (sk === "kolokol") { c.fillStyle = "#ffd23f"; c.beginPath(); c.arc(0, -36, 15, Math.PI, 0); c.closePath(); c.fill(); c.stroke(); Render.circ(c, 0, 42, 6); c.fill(); c.stroke(); }
     else if (sk === "pushka") { c.fillStyle = k.rivet; for (const [rx, ry] of [[-24, -24], [24, -24], [-24, 24], [24, 24]]) { Render.circ(c, rx, ry, 4); c.fill(); c.stroke(); } }
   },
+  // Башня целиком (тень, облик, цифра) рисуется в маленький холст один раз на сочетание «цифра, облик, замок» и размер окна, дальше это одно drawImage:
+  // градиенты башен были половиной стоимости кадра боя. Сбрасывается при смене размера и загрузке шрифтов.
+  SPR: 96,
+  sprite(digit, sk, fixed) {
+    const k = Render.s * Render.dpr, R = Render.SPR;
+    if (Render.sprK !== k) { Render.sprites = {}; Render.sprK = k; }
+    const key = digit + "|" + sk + "|" + (fixed ? 1 : 0);
+    let sp = Render.sprites[key];
+    if (!sp) {
+      sp = document.createElement("canvas"); sp.width = sp.height = Math.ceil(2 * R * k);
+      const g = sp.getContext("2d"); g.setTransform(k, 0, 0, k, R * k, R * k);
+      Render.towerDraw(g, 0, 0, digit, { fixed, skin: sk });
+      Render.sprites[key] = sp;
+    }
+    return sp;
+  },
   tower(c, x, y, digit, o) {
+    o = o || {};
+    if (o.scale) return Render.towerDraw(c, x, y, digit, o);             // перетаскиваемая башня (увеличена) рисуется напрямую
+    const sp = Render.sprite(digit, o.fixed ? "base" : o.skin || Learner.skinFor(digit), !!o.fixed), R = Render.SPR;
+    c.save(); c.globalAlpha = o.alpha === undefined ? 1 : o.alpha;
+    c.drawImage(sp, x - R, y - R, 2 * R, 2 * R);
+    c.restore();
+  },
+  towerDraw(c, x, y, digit, o) {
     const k = Render.col; o = o || {};
     const sk = o.fixed ? "base" : o.skin || Learner.skinFor(digit);
     c.save(); c.globalAlpha = o.alpha === undefined ? 1 : o.alpha; c.translate(x, y); if (o.scale) c.scale(o.scale, o.scale);
@@ -1910,21 +1971,33 @@ const Render = {
       c.lineCap = "round";
       c.strokeStyle = gray ? k.miss : k.beam; c.lineWidth = 10;
       c.beginPath(); c.moveTo(pa.x, pa.y); c.lineTo(pb.x, pb.y); c.stroke();
-      c.save(); c.setLineDash([18, 18]); c.lineDashOffset = Render.reduced ? 0 : -Render.t * 18;   // 0,5 периода в секунду
+      c.save(); c.setLineDash([18, 18]); c.lineDashOffset = Render.reduced ? 0 : -Render.dashT * 18;   // 0,5 периода в секунду
       c.strokeStyle = gray ? "#d0d4d9" : k["beam-core"]; c.lineWidth = 4;
       c.beginPath(); c.moveTo(pa.x, pa.y); c.lineTo(pb.x, pb.y); c.stroke(); c.restore();
       const cp = Render.crossPoint(L, b);        // кольцо там, где луч режет дорогу
       c.strokeStyle = gray ? k.miss : k.beam; c.lineWidth = 5; Render.circ(c, cp.x, cp.y, 14); c.stroke();
     }
   },
-  enemy(c, L, e, last) {
-    const k = Render.col, lane = L.lanes[e.lane] || L.lanes[0], pt = Geo.pointAt(lane, e.d);
-    let sc = 1;
-    if (!e.alive) { if (e.outcome !== "killed" || e.deadT >= 0.3) return; sc = 1 - e.deadT / 0.3; }
-    const R = e.armored ? 40 : 30, bob = Render.reduced ? 0 : Math.sin(L.simT * 5 + e.id * 1.3) * 3;
-    c.save(); c.translate(pt.x, pt.y + bob); c.scale(sc, sc); c.lineJoin = "round";
+  // Тело врага (тень, клякса или железный шлем, щит с числом) рисуется в холст-спрайт по паре «железный, число на щите» и размеру окна; бегущему врагу остаётся drawImage.
+  ESPR: 80,
+  enemySprite(armored, rem) {
+    const k = Render.s * Render.dpr, B = Render.ESPR;
+    if (Render.esprK !== k) { Render.esprites = {}; Render.esprK = k; }
+    const key = (armored ? "b" : "e") + rem;
+    let sp = Render.esprites[key];
+    if (!sp) {
+      sp = document.createElement("canvas"); sp.width = sp.height = Math.ceil(2 * B * k);
+      const g = sp.getContext("2d"); g.setTransform(k, 0, 0, k, B * k, B * k);
+      Render.enemyBody(g, armored, rem);
+      Render.esprites[key] = sp;
+    }
+    return sp;
+  },
+  enemyBody(c, armored, rem) {
+    const k = Render.col, R = armored ? 40 : 30;
+    c.lineJoin = "round";
     c.fillStyle = "rgba(0,0,0,.2)"; c.beginPath(); c.ellipse(0, R - 2, R * 0.9, 9, 0, 0, Math.PI * 2); c.fill();
-    if (!e.armored) {
+    if (!armored) {
       for (const pass of [0, 1]) {               // пушистая клякса: сначала обводка, потом заливка
         c.fillStyle = pass ? k.enemy : k.ink;
         const grow = pass ? 0 : 3.5;
@@ -1939,7 +2012,7 @@ const Render = {
       c.fillStyle = "#fff"; c.strokeStyle = k.ink; c.lineWidth = 4;          // круглый щит R 30
       Render.circ(c, 6, 14, 30); c.fill(); c.stroke();
       c.strokeStyle = k["enemy-2"]; c.lineWidth = 3; Render.circ(c, 6, 14, 25); c.stroke();
-      Render.txt(c, String(e.rem), 6, 15, Render.fit(c, String(e.rem), 42, 34, true), k.ink, null, 0, true);   // двух- и трёхзначные числа сжимаются, чтобы войти
+      Render.txt(c, String(rem), 6, 15, Render.fit(c, String(rem), 42, 34, true), k.ink, null, 0, true);   // двух- и трёхзначные числа сжимаются, чтобы войти
     } else {
       c.fillStyle = k.boss; c.strokeStyle = k.ink; c.lineWidth = 5;           // железный: шлем и квадратный клёпаный щит
       Render.circ(c, 0, 0, R - 2); c.fill(); c.stroke();
@@ -1950,11 +2023,19 @@ const Render = {
       Render.rr(c, -26, 8, 64, 58, 10); c.fill(); c.stroke();
       c.fillStyle = k.rivet; c.lineWidth = 2.5;
       for (const [rx, ry] of [[-18, 16], [30, 16], [-18, 58], [30, 58]]) { Render.circ(c, rx + 0, ry, 4.2); c.fill(); c.stroke(); }
-      Render.txt(c, String(e.rem), 6, 38, Render.fit(c, String(e.rem), 54, 38, true), k.ink, null, 0, true);
+      Render.txt(c, String(rem), 6, 38, Render.fit(c, String(rem), 54, 38, true), k.ink, null, 0, true);
     }
+  },
+  enemy(c, L, e, last) {
+    const k = Render.col, lane = L.lanes[e.lane] || L.lanes[0], pt = Geo.pointAt(lane, e.d);
+    let sc = 1;
+    if (!e.alive) { if (e.outcome !== "killed" || e.deadT >= 0.3) return; sc = 1 - e.deadT / 0.3; }
+    const R = e.armored ? 40 : 30, bob = Render.reduced ? 0 : Math.sin(L.simT * 5 + e.id * 1.3) * 3;
+    c.save(); c.translate(pt.x, pt.y + bob); c.scale(sc, sc);
+    c.drawImage(Render.enemySprite(e.armored, e.rem), -Render.ESPR, -Render.ESPR, 2 * Render.ESPR, 2 * Render.ESPR);   // тело врага готовым спрайтом (число на щите — часть спрайта)
     c.restore();
     if (e.alive && e.note) {                     // «56, а луч даёт 42» уходит вверх; «56 − 35 = 21» висит
-      const sticky = e.noteT <= 0, rise = sticky ? 0 : 20 * (1 - e.noteT);
+      const sticky = e.noteT <= 0, rise = sticky ? 0 : 20 * (1 - Math.min(1, e.noteT));
       const nk = Render.k(), nf = 30 * nk;
       c.font = "800 " + nf + "px " + Render.F_BODY;
       const w = c.measureText(e.note).width + 30, h = 44 * nk, busy = last.labels.concat(last.notes);
@@ -1982,6 +2063,30 @@ const Render = {
   enemies(c, L, last) {
     const list = L.enemies.slice().sort((a, b) => a.d - b.d);
     for (const e of list) Render.enemy(c, L, e, last);
+  },
+  // Пример у ворот: когда враг дошёл до крепости, рядом на ~2 с висит верное равенство «56 = 7 × 8» (L.gate). Это утверждение, не вопрос.
+  // Стоит у левой стены крепости рядом с концом дорожки, по которой пришёл враг, но не на дороге (идущие враги закрыли бы надпись); подписи, площадки и другие надписи обходит.
+  gates(c, L, last) {
+    const k = Render.col, kk = Render.k(), nf = 34 * kk;
+    for (const g of L.gate) {
+      c.font = "400 " + nf + "px " + Render.F_NUM;
+      const w = Math.ceil(c.measureText(g.text).width) + 40 * kk, h = 58 * kk, lane = L.lanes[g.lane] || L.lanes[0], end = Geo.pointAt(lane, lane.len), busy = last.labels.concat(last.notes);
+      const cl = (x, y) => ({ x: Util.clamp(x, 8, W - 8 - w), y: Util.clamp(y, FIELD_TOP + 8, FIELD_BOTTOM - 8 - h), w, h });
+      let best = null;
+      for (const dy of [-110, 110, -165, 165, -220, 220, -275, 275, -330, 330]) {
+        const q = cl(1420 - w, end.y + dy - h / 2);
+        let sc = Math.abs(dy) * 0.2 + busy.reduce((m, o) => m + (Render.overlap(q, o, 6) ? 1e5 : 0), 0);
+        for (const p of L.pads) { const ddx = Math.max(q.x - p.x, 0, p.x - (q.x + q.w)), ddy = Math.max(q.y - p.y, 0, p.y - (q.y + q.h)); if (Math.hypot(ddx, ddy) < PAD_R + 16) sc += 1e5; }
+        for (const ln of L.lanes) for (const fx of [0, 0.5, 1]) for (const fy of [0, 0.5, 1]) if (Geo.distToLane(ln, q.x + q.w * fx, q.y + q.h * fy) < 66) sc += 300;   // не на дороге: идущие враги закрыли бы надпись
+        if (!best || sc < best.sc) best = Object.assign(q, { sc });
+      }
+      const a = g.t > g.life - 0.4 ? Math.max(0, (g.life - g.t) / 0.4) : 1;
+      c.save(); c.globalAlpha = a; c.fillStyle = k.paper; c.strokeStyle = k["stone-2"]; c.lineWidth = 5;
+      Render.rr(c, best.x, best.y, w, h, 14); c.fill(); c.stroke();
+      Render.txt(c, g.text, best.x + w / 2, best.y + h / 2 + 2, nf, k.ink, null, 0, true);
+      c.restore();
+      last.notes.push({ enemyId: g.id, gate: true, text: g.text, x: best.x, y: best.y, w, h });
+    }
   },
   fx(c, L) {
     for (const f of L.fx) {
@@ -2039,14 +2144,21 @@ const Render = {
     return best;
   },
   labels(c, L, last) {
+    // Раскладка подписей — самое дорогое в кадре, а меняется только со стройкой: считаем по ключу и повторно используем.
+    const showHints = L.phase === "prep" || L.phase === "paused";
+    const hints = showHints ? ((L.wave && L.wave.hints) || []).filter((hn) => hn.mode !== "none" && !Build.beamBetween(L, hn.pads[0], hn.pads[1])) : [];
+    const key = JSON.stringify([L.template, Render.k(), L.beams.map((b) => [b.id, b.a, b.b, b.label]), L.pads.filter((p) => L.towers[p.id]).map((p) => p.id), hints.map((h) => [h.card, h.pads, h.mode, h.ghost])]);
+    if (Render.lay && Render.layKey === key) {
+      for (const r of Render.lay.labels) last.labels.push(r);
+      for (const r of Render.lay.hints) last.hints.push(r);
+      return;
+    }
     const placed = [], towers = L.pads.filter((p) => L.towers[p.id]), at = {};
     const len = (b) => { const pa = Level.pad(L, b.a), pb = Level.pad(L, b.b); return Util.dist(pa.x, pa.y, pb.x, pb.y); };
     // Короткие лучи раскладываются первыми: у них меньше всего чистых мест. В last.labels порядок остаётся по id.
     for (const b of L.beams.slice().sort((m, n) => len(m) - len(n) || m.id - n.id)) { const r = Render.spot(c, L, b.a, b.b, b.label, placed, towers); placed.push(r); at[b.id] = r; }
     for (const b of L.beams.slice().sort((m, n) => m.id - n.id)) { const r = at[b.id]; last.labels.push({ beamId: b.id, text: b.label, x: r.x, y: r.y, w: r.w, h: r.h, fs: r.fs }); }
-    if (L.phase !== "prep" && L.phase !== "paused") return;
-    for (const hn of (L.wave && L.wave.hints) || []) {   // подсказка-путь: пунктир и призрак «7 × 5», пока на паре нет луча
-      if (hn.mode === "none" || Build.beamBetween(L, hn.pads[0], hn.pads[1])) continue;
+    for (const hn of hints) {                    // подсказка-путь: пунктир и призрак «7 × 5», пока на паре нет луча
       const e = { card: hn.card, pads: hn.pads.slice(), mode: hn.mode, ghost: hn.mode === "full" ? hn.ghost : null };
       if (e.ghost) {
         const r = Render.spot(c, L, hn.pads[0], hn.pads[1], e.ghost, placed, towers);
@@ -2054,6 +2166,7 @@ const Render = {
       }
       last.hints.push(e);
     }
+    Render.lay = { labels: last.labels.slice(), hints: last.hints.slice() }; Render.layKey = key;
   },
   hintPaths(c, L, last) {                        // пунктир между площадками подсказки (штрих 18/12, без мигания)
     c.save(); c.setLineDash([18, 12]); c.lineCap = "butt"; c.strokeStyle = Render.col.hint; c.lineWidth = 8;
@@ -2111,17 +2224,47 @@ const Render = {
     if (pad) { c.strokeStyle = Render.col.gold; c.lineWidth = 8; Render.circ(c, pad.x, pad.y, PAD_R + 12); c.stroke(); }
     Render.tower(c, d.x, d.y - 10, d.digit, { alpha: 0.82, scale: 1.1 });
   },
+  // Холст-кэш фона: трава с украшениями, дороги, крепость, пустые площадки. Пересобирается при смене уровня (шаблон, замки площадок) и размера окна.
+  background(L) {
+    const cv = Render.cv, k = Render.s * Render.dpr;
+    const key = [cv.width, cv.height, k, L ? L.template + ":" + L.pads.map((p) => (p.fixed ? 1 : 0)).join("") : "-"].join("|");
+    if (Render.bg && Render.bgKey === key) return Render.bg;
+    const bg = Render.bg || (Render.bg = document.createElement("canvas"));
+    bg.width = cv.width; bg.height = cv.height;
+    const b = bg.getContext("2d");
+    b.setTransform(k, 0, 0, k, 0, 0);
+    Render.ground(b);
+    if (L) { Render.lanes(b, L); Render.castle(b); Render.pads(b, L); }
+    Render.bgKey = key;
+    return bg;
+  },
+  // Нужен ли ещё кадр, пока ничто не менялось: идёт бой, «✕» у подписи, покачивание; после боя (конец волны, уровня) — звёздочки, исчезающий враг, пример у ворот.
+  // Бегущий пунктир лучей идёт только в бою; в подготовке и на паузе он стоит (кадр 10 раз в секунду стоил 55 мс/с на программной растеризации).
+  animating() {
+    const L = Game.level;
+    if (!L || Game.screen !== "game") return false;
+    if (L.phase === "battle" || Input.delBeam) return true;
+    // На паузе Sim стоит: звёздочки, пример у ворот и исчезающий враг замирают, кадры им не нужны (иначе пауза сразу после события рисовала 60 кадров/с).
+    const live = L.phase === "waveEnd" || L.phase === "levelEnd";
+    if (live && (L.fx.length || L.gate.length || L.enemies.some((e) => !e.alive && e.outcome === "killed" && e.deadT < 0.3))) return true;
+    for (const id in Render.shakes) if (Render.shakes[id] > Render.t) return true;
+    return false;
+  },
   draw() {
     const c = Render.c;
     if (!c) return;
-    const k = Render.s * Render.dpr, L = Game.level;
-    c.setTransform(k, 0, 0, k, 0, 0); c.clearRect(0, 0, W, H);
+    Render.dirty = false; Render.frames++;
+    if (Game.level && Game.level.phase === "battle") Render.dashT = Render.t;   // пунктир луча бежит только в бою, иначе стоит
+    const k = Render.s * Render.dpr, L = Game.level, game = !!L && Game.screen === "game";
+    if (Render.decoFor !== (game ? L.template : null)) Render.makeDeco(game ? L : null);
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, Render.cv.width, Render.cv.height);
+    c.drawImage(Render.background(game ? L : null), 0, 0);
+    c.setTransform(k, 0, 0, k, 0, 0);
     const last = { labels: [], notes: [], hints: [], del: null, coach: "" };
-    if (Render.decoFor !== (L ? L.template : null)) Render.makeDeco(L);
-    Render.ground(c);
-    if (L && Game.screen === "game") {
+    if (game) {
       Render.labels(c, L, last);                 // сначала раскладка подписей: надписи над врагами её обходят
-      Render.lanes(c, L); Render.castle(c); Render.pads(c, L); Render.hintPaths(c, L, last); Render.beams(c, L); Render.towers(c, L);
+      Render.padRings(c, L); Render.hintPaths(c, L, last); Render.beams(c, L); Render.towers(c, L);
+      Render.gates(c, L, last);
       Render.enemies(c, L, last); Render.fx(c, L); Render.drawLabels(c, last); Render.coach(c, L, last); Render.drag(c);
     }
     Render.last = last;
@@ -2466,7 +2609,7 @@ const UI = {
     const sig = JSON.stringify([Game.screen, ph, inGame ? L.hearts : 0, rib, inGame ? L.waveIdx : 0, Input.armed, S.sound, S.big, S.perDay, last, atEnd, plaqueOn,
       inGame ? L.hand.length : 0, inGame ? L.land + "-" + L.idx : "", Game.screen === "map" ? UI.mapSig() : 0, night ? [day.done, day.started, day.up, day.down] : 0]);
     if (sig === UI.sig) return;
-    UI.sig = sig;
+    UI.sig = sig; Render.dirty = true;
     el["scr-title"].hidden = Game.screen !== "title";
     el["scr-map"].hidden = Game.screen !== "map";
     if (Game.screen === "map") UI.renderMap();
@@ -2573,7 +2716,7 @@ const Debug = {
       if (id === land && r.next() < 0.25) continue;
       const b = box1 < 3 && r.next() < 0.06 ? 1 : r.int(2, 5);
       if (b === 1) box1++;
-      cards[k] = { b, due: r.next() < 0.3 ? today : Clock.addDays(today, r.int(1, 10)), seen: 4, ok: 3, miss: 1, tS: 0, tN: 0, pd: "" };
+      cards[k] = { b, due: r.next() < 0.3 ? today : Clock.addDays(today, r.int(1, 10)), seen: 4, ok: 3, miss: 1, tS: 0, tN: 0, pd: "", ever3: b >= UNLOCK_BOX };
     }
     return cards;
   },
@@ -2591,7 +2734,7 @@ const Debug = {
         Input.reset(); Game.toTitle(); Store.reset(["progress", "day"]); Store.data.progress.seed = Game.seed; Game.waveCounter = 0; Bus.clear(); Render.shakes = {};
         const P = Store.data.progress, today = Clock.today();
         if (o.unlockAll || o.veteran) P.lands.unlocked = Content.LANDS.map((l) => l.id);
-        if (o.veteran) for (const LD of Content.LANDS) for (const k of LD.cards) P.cards[k] = Object.assign(Learner.blank(today), { b: 3, due: Clock.addDays(today, 7) });
+        if (o.veteran) for (const LD of Content.LANDS) for (const k of LD.cards) P.cards[k] = Object.assign(Learner.blank(today), { b: 3, ever3: true, due: Clock.addDays(today, 7) });
         redraw(); return Debug.state();
       },
       loadLevel: wrap((land, idx, o) => { Input.reset(); return Game.startLevel(land, idx, o); }),
@@ -2602,6 +2745,7 @@ const Debug = {
         if (!Content.ALL.has(key) && !Content.cardOf(key)) return Debug.fail("no_card");
         const c = Learner.ensure(key, Clock.today());
         Object.assign(c, { b: o.b === undefined ? c.b : o.b, due: o.due || (o.b !== undefined ? Clock.today() : c.due) }, o.seen !== undefined ? { seen: o.seen, ok: o.ok || 0, miss: o.miss || 0 } : {}, o.pd !== undefined ? { pd: o.pd } : o.b !== undefined ? { pd: "" } : {}, o.tS !== undefined ? { tS: o.tS, tN: o.tN || 1 } : {});
+        c.ever3 = o.ever3 !== undefined ? !!o.ever3 : c.ever3 === true || c.b >= UNLOCK_BOX;   // ever3 — «хоть раз была в коробке ≥ 3»; без явного значения ставится, если коробка ≥ 3
         return { ok: true };
       }),
       flush: () => { Store.flushAll(); Store.save("progress"); Store.save("settings"); Store.save("day"); Store.flushAll(); return Store.mode; },
@@ -2650,6 +2794,7 @@ const Debug = {
         redraw(); return S;
       },
       events: (o) => { const r = Bus.log.slice(); if (o && o.clear) Bus.clear(); return r; },
+      frames: () => Render.frames,                // сколько кадров реально нарисовано (тест «в подготовке почти не рисуем»)
       drawn: () => { Render.draw(); return Util.clone({ labels: Render.last.labels, notes: Render.last.notes, hints: Render.last.hints, coach: Render.last.coach || "" }); },
       toScreen: (x, y) => { const r = Render.cv.getBoundingClientRect(); return { x: r.left + (x * r.width) / W, y: r.top + (y * r.height) / H }; },
       show: (name) => {
@@ -2714,17 +2859,22 @@ window.addEventListener("pointerdown", () => Audio.unlock(), true);     // зв�
 window.addEventListener("resize", Render.resize);
 window.addEventListener("orientationchange", Render.resize);
 document.addEventListener("visibilitychange", () => { if (document.hidden) { Game.pause(); Store.flushAll(); } });
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => Render.draw());
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { Render.layKey = ""; Render.sprites = {}; Render.esprites = {}; Render.draw(); });   // шрифты загрузились: подписи измеряются заново
+// Любое касание, мышь, перо или клавиша могут менять сцену (выбор башни, перетаскивание): следующий кадр рисуется.
+for (const ev of ["pointerdown", "pointermove", "pointerup", "pointercancel", "keydown"]) window.addEventListener(ev, () => { Render.dirty = true; }, true);
 for (const [ev, snd] of [["beam_built", "build"], ["enemy_killed", "kill"], ["boss_hit", "cut"], ["enemy_passed_beam", "miss"], ["enemy_reached_castle", "castle"], ["wave_end", "wave"]]) Bus.on(ev, () => Audio.play(snd));
-let lastTs = performance.now(), acc = 0;
+let lastTs = performance.now(), acc = 0, syncT = 0;
 function frame(now) {
   const dt = Math.min(0.1, (now - lastTs) / 1000);
   lastTs = now;
+  const L0 = Game.level, simPhase = !Game.manual && !!L0 && L0.phase !== "prep" && L0.phase !== "paused";   // фаза идёт от Sim (бой, конец волны и уровня): DOM сверяем каждый кадр
   if (!Game.manual) {
     acc += dt;
     for (let n = 0; acc >= DT && n < 6; n++) { Sim.step(DT); acc -= DT; }
   } else acc = 0;
-  Render.tick(dt); Render.draw(); UI.sync();
+  Render.tick(dt);
+  // Без изменений и без анимации кадр не рисуется; DOM сверяется раз в 0,25 с (смена даты, окончание экрана итогов приходят сами).
+  if (Render.dirty || Render.animating()) { Render.draw(); UI.sync(); syncT = 0; } else { syncT += dt; if (simPhase || syncT >= 0.25) { syncT = 0; UI.sync(); } }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
