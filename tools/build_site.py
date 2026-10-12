@@ -16,7 +16,10 @@ color (theme), icon (prefix of docs/icons/<icon>-<size>.png; the app folder hold
 icons/180.png, 192.png and 512.png), order (position on the home page), card (one line
 under the title on the home page), title (optional card heading when it differs from name), artifact (optional claude.ai artifact id, so links
 to it become relative on the site), rewords (optional [old, new] pairs for texts that
-mention claude.ai-only features), tests (optional folder for tools/test_app.mjs).
+mention claude.ai-only features), tests (optional folder for tools/test_app.mjs),
+vendor (optional {url: local file}: an external library the page loads from a CDN is
+copied into docs/vendor/<app>/ and the page on the site uses that copy, so the service
+worker can cache it and the site works offline).
 """
 import hashlib
 import json
@@ -73,6 +76,10 @@ def page(a, artifacts):
             raise SystemExit(f"{a['dir'].name}/{a['source']}: expected one copy of {old!r}")
         s = s.replace(old, new)
     s = relink(s, artifacts)
+    for url, local in a.get("vendor", {}).items():
+        if s.count(url) != 1:
+            raise SystemExit(f"{a['dir'].name}/{a['source']}: ссылка {url!r} должна встречаться ровно один раз")
+        s = s.replace(url, vendor_path(a, local))
     if "</style>" not in s:
         raise SystemExit(f"{a['dir'].name}/{a['source']}: нет </style>")
     cut = s.index("</style>") + len("</style>")
@@ -194,6 +201,11 @@ self.addEventListener("fetch", (e) => {
 });
 """
 
+def vendor_path(a, local):
+    """Путь на сайте для местной копии внешней библиотеки: vendor/<папка приложения>/<имя файла>."""
+    return f"vendor/{a['dir'].name}/{pathlib.Path(local).name}"
+
+
 def card(a):
     return (f'    <a class="card" href="{a["out"]}"><img src="icons/{a["icon"]}-192.png" alt="">'
             f'<div><b>{a.get("title", a["name"])}</b><span>{a["card"]}</span></div></a>')
@@ -208,6 +220,16 @@ def main():
     for a in apps:
         for size in SIZES:
             shutil.copy(a["dir"] / "icons" / f"{size}.png", OUT / "icons" / f"{a['icon']}-{size}.png")
+    vendored = []
+    for a in apps:
+        for url, local in a.get("vendor", {}).items():
+            src = a["dir"] / local
+            if not src.is_file():
+                raise SystemExit(f"{a['dir'].name}: нет файла {local} для {url}")
+            dst = OUT / vendor_path(a, local)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src, dst)
+            vendored.append(vendor_path(a, local))
     files = {}
     for a in apps:
         files[a["out"]] = page(a, artifacts)
@@ -216,7 +238,7 @@ def main():
     files["manifest-home.webmanifest"] = manifest(HOME["name"], HOME["short"], "index.html", HOME["color"], HOME["icon"])
     files[".nojekyll"] = ""
     core = ["./", "index.html"] + [a["out"] for a in apps] + [f"manifest-{a['icon']}.webmanifest" for a in apps] + ["manifest-home.webmanifest"] + \
-        sorted("icons/" + f.name for f in (OUT / "icons").glob("*.png"))
+        sorted("icons/" + f.name for f in (OUT / "icons").glob("*.png")) + sorted(vendored)
     digest = hashlib.sha256("".join(files[k] for k in sorted(files)).encode("utf-8")).hexdigest()[:10]
     files["sw.js"] = SW.replace("__HASH__", digest).replace("__CORE__", json.dumps(core, ensure_ascii=False))
     for name, text in files.items():
