@@ -40,7 +40,7 @@ if (APP.testCommand) {
 }
 const SRC = path.join(DIR, APP.source);
 const TESTS = path.join(DIR, APP.tests || "tests");
-const TMP = path.join(ROOT, "tools", `.test-${NAME}.html`);
+const TMP = path.join(ROOT, "tools", `.test-${NAME}-${process.pid}.html`);   // уникально на процесс: два прогона не мешают друг другу
 const SHOTS = path.join(ROOT, "tools", ".shots");
 
 function wrap(src) {

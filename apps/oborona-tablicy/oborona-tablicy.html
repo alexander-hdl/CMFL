@@ -2238,13 +2238,15 @@ const Render = {
     Render.bgKey = key;
     return bg;
   },
-  // Нужен ли ещё кадр, пока ничто не менялось: идёт бой, звёздочки, исчезающий враг или пример у ворот, покачивание, «✕» у подписи.
+  // Нужен ли ещё кадр, пока ничто не менялось: идёт бой, «✕» у подписи, покачивание; после боя (конец волны, уровня) — звёздочки, исчезающий враг, пример у ворот.
   // Бегущий пунктир лучей идёт только в бою; в подготовке и на паузе он стоит (кадр 10 раз в секунду стоил 55 мс/с на программной растеризации).
   animating() {
     const L = Game.level;
     if (!L || Game.screen !== "game") return false;
-    if (L.phase === "battle" || L.fx.length || L.gate.length || Input.delBeam) return true;
-    if (L.enemies.some((e) => !e.alive && e.outcome === "killed" && e.deadT < 0.3)) return true;
+    if (L.phase === "battle" || Input.delBeam) return true;
+    // На паузе Sim стоит: звёздочки, пример у ворот и исчезающий враг замирают, кадры им не нужны (иначе пауза сразу после события рисовала 60 кадров/с).
+    const live = L.phase === "waveEnd" || L.phase === "levelEnd";
+    if (live && (L.fx.length || L.gate.length || L.enemies.some((e) => !e.alive && e.outcome === "killed" && e.deadT < 0.3))) return true;
     for (const id in Render.shakes) if (Render.shakes[id] > Render.t) return true;
     return false;
   },

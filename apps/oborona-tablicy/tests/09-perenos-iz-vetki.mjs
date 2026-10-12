@@ -272,6 +272,23 @@ export function register({ test, assert, eq }) {
     assert(b1 - b0 >= 25, `в бою за секунду нарисовано только ${b1 - b0} кадров`);
   });
 
+  test("Перенос 5: пауза сразу после врага у крепости не рисует кадры (Sim стоит, пример у ворот замер и виден)", async ({ page }) => {
+    await run(page, () => {
+      OT.manual(true); OT.seed(1); OT.newGame({ veteran: true }); OT.loadLevel(1, 0); OT.setWave([12, 24], { cards: { 12: "m:3x4" } }); OT.startWave();
+      let guard = 0;
+      while (!OT.events().some((e) => e.type === "enemy_reached_castle") && guard++ < 6000) OT.step(0.05);
+      OT.pause(); OT.manual(false);
+    });
+    await page.waitForTimeout(300);
+    const f0 = await run(page, () => OT.frames());
+    await page.waitForTimeout(1000);
+    const r = await run(page, () => ({ f: OT.frames(), phase: OT.state().phase }));
+    eq(r.phase, "paused");
+    assert(r.f - f0 <= 3, `на паузе за 1 с нарисовано ${r.f - f0} кадров`);
+    const gate = await run(page, () => OT.drawn().notes.filter((n) => n.gate).map((n) => n.text));
+    eq(gate, ["12 = 3 × 4"], "пример у ворот на паузе виден");
+  });
+
   test("Перенос 5: фон лежит в кэше и пересобирается при смене уровня и окна: центры площадок не травяные на всех шаблонах, дорога под ногами", async ({ page }) => {
     const sample = (w, h) => page.evaluate(() => {
       const out = [];
