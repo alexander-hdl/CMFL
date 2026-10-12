@@ -139,8 +139,8 @@ export function register({ test, assert, eq }) {
     const r = await run(page, () => {
       K.fresh(1, 0);
       const cards = OT.lands()[0].cards;
-      for (const k of cards) OT.setCard(k, { b: 3, due: "2099-01-01" });
-      OT.setCard("m:9x10", { b: 2, due: "2099-01-01" });
+      for (const k of cards) if (k !== "m:9x10") OT.setCard(k, { b: 3, due: "2099-01-01" });
+      OT.setCard("m:9x10", { b: 2, due: "2099-01-01" });   // эта карточка в коробке 3 не бывала (ever3 = false): держит замок
       const locked0 = OT.loadLevel(2, 0);
       K.wave([4]);
       const after1 = { unlocked: OT.state().unlocked, ev: OT.events().filter((e) => e.type === "land_unlocked").length, again: OT.loadLevel(2, 0) };
