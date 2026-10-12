@@ -365,7 +365,7 @@ details.q-gen[open] > summary::before { content: "▾"; }
 .pr-who.me { color: var(--gold); } .pr-who.other { color: #c79bff; }
 .pr-ready { font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 800; text-align: center; line-height: 1.4; color: #e8eef0; }
 .pr-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
-.pr-btn { font: inherit; font-weight: 800; background: #16303d; color: #fff; border: 2px solid #2a4d5d; border-radius: 12px; padding: 10px 16px; min-height: 48px; cursor: pointer; }
+.pr-btn { font: inherit; font-weight: 800; background: #16303d; color: #fff; border: 2px solid #2a4d5d; border-radius: 12px; padding: 10px 16px; min-height: 48px; min-width: 48px; cursor: pointer; }
 .pr-btn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
 .pr-wpm { color: #9db3bc; font-weight: 700; font-variant-numeric: tabular-nums; }
 
@@ -3824,6 +3824,7 @@ a.hdr-btn { text-decoration: none; }
   var WROUND = 8;
   function wordPool() { return allWords().filter(function (w) { return words.cat === "all" || w.cat === words.cat; }); }
   // n is the dictation size (8 by default; "Тренировка дня" asks for 4): words that are due go first, so a short dictation repeats them.
+  // New words keep the full dictation's share (3 of 8, so 2 of 4): a short dictation is not mostly new words.
   function pickWords(n) {
     n = n || WROUND;
     var today = dayKey(), pool = wordPool(), prog = data.words.prog;
@@ -3831,7 +3832,7 @@ a.hdr-btn { text-decoration: none; }
     pool.forEach(function (w) { var s = prog[w.id]; if (!s) fresh.push(w); else if ((s.due || today) <= today && (s.b || 1) < 5) due.push(w); else rest.push(w); });
     due.sort(function (x, y) { return (prog[x.id].b || 1) - (prog[y.id].b || 1); });
     var chosen = due.slice(0, n);
-    var nNew = Math.min(3, n - chosen.length);
+    var nNew = Math.min(Math.round(n * 3 / WROUND), n - chosen.length);
     chosen = chosen.concat(shuffle(fresh).slice(0, nNew));
     shuffle(rest);
     while (chosen.length < n && rest.length) chosen.push(rest.pop());

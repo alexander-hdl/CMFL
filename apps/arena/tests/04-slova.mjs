@@ -33,7 +33,7 @@ export function register({ test, assert, eq }) {
     assert((await TEXT(page)).includes("кОрова".toLowerCase()), "итог: «Эти слова вернутся завтра» — верное написание");
   });
 
-  test("Слова 2: Лейтнер слов без правила «раз в день», подбор pickWords — сначала то, что пора, новых не больше трёх", async ({ page }) => {
+  test("Слова 2: Лейтнер слов без правила «раз в день», подбор pickWords — сначала то, что пора, новых не больше трёх (в четвёрке дня — двух)", async ({ page }) => {
     await fresh(page);
     const r = await run(page, (today) => {
       const L = OT.fn.leitnerWord, out = {};
@@ -70,13 +70,25 @@ export function register({ test, assert, eq }) {
       OT.set("words", { prog });
       OT.seed(7);
       const four = OT.fn.pickWords(4).map((w) => w.id).sort();
-      return { out, bad, bad2: bad2.slice(0, 3), four, hard: ids.slice(0, 4).sort() };
+      // Короткий диктант, когда «пора» мало: 1 пора + 2 новых (доля полного диктанта 3 из 8) + 1 из «не пора», а не 3 новых.
+      const prog3 = { [ids[0]]: { b: 2, n: 1, ok: 1, due: today } };
+      ids.slice(1, 6).forEach((id) => { prog3[id] = { b: 3, n: 1, ok: 1, due: tomorrow }; });
+      OT.set("words", { prog: prog3 });
+      const bad4 = [];
+      for (let seed = 1; seed <= 30; seed++) {
+        OT.seed(seed);
+        const got = OT.fn.pickWords(4).map((w) => w.id);
+        const nNew = got.filter((id) => !prog3[id]).length;
+        if (got.length !== 4 || !got.includes(ids[0]) || nNew !== 2) bad4.push([seed, got]);
+      }
+      return { out, bad, bad2: bad2.slice(0, 3), four, hard: ids.slice(0, 4).sort(), bad4: bad4.slice(0, 3) };
     }, TODAY);
     eq(r.out.same, [1, 2, 3], "ящик растёт на каждом верном ответе, даже в один день");
     eq(r.out.miss, 1);
     eq(r.bad.slice(0, 3), [], "8 слов «пора»: лёгких новых и «не пора» среди них нет");
     eq(r.bad2, [], "3 пора + 3 новых + 2 из «не пора»");
     eq(r.four, r.hard, "в четвёрке дня самые трудные из «пора»");
+    eq(r.bad4, [], "в четвёрке дня новых слов два, как доля полного диктанта");
   });
 
   test("Слова 3: слова с ошибками не показываются нигде — диктант, охота A и B, семейка, «Прогресс», сводка", async ({ page }) => {

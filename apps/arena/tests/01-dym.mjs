@@ -127,6 +127,10 @@ export function register({ test, assert, eq }) {
     await run(page, () => { OT.reset(); OT.showTab("read"); }); await scan("чтение");
     await run(page, () => { OT.reset(); OT.play("quest"); }); await scan("квест");
     await run(page, () => { OT.reset(); OT.play("play", { id: "pl-coach" }); }); await scan("суфлёр");
+    // Суфлёр на весь экран, бегущий режим: «−» и «+» не уже 48 px.
+    await page.click("#pl-prompter"); await page.click("#pr-auto"); await scan("суфлёр на экране");
+    for (const s of await run(page, () => [...document.querySelectorAll("#prompter .pr-btn")].map((b) => [b.id, b.getBoundingClientRect().width]).filter(([, w]) => w < 47.9).map(([id, w]) => "#" + id + " шириной " + Math.round(w)))) small.push("суфлёр на экране: " + s);
+    await page.click("#pr-x");
     await run(page, () => { OT.reset(); OT.showTab("games"); }); await scan("матчи");
     for (const [open, name] of [["#day-open", "день"], ["#wk-open", "неделя"], ["#gem-btn", "питомец"], ["#note-btn", "заметки"]]) {
       await run(page, () => OT.reset());
