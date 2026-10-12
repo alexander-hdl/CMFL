@@ -600,7 +600,9 @@ input[type="text"] { background: var(--panel); border: 2px solid var(--line); bo
       var c = document.createElement("canvas"); c.width = L.W; c.height = L.H;
       var g = c.getContext("2d");
       g.fillStyle = "#fff"; g.fillRect(0, 0, L.W, L.H);
-      g.drawImage(cPaint, 0, 0); drawFrames(g); drawFrames(gFr);
+      // Порядок слоёв как на экране: белый фон, рисунок, рамки, облачка. Рамки берём с готового слоя:
+      // drawFrames начинает с очистки холста и стёр бы фон и рисунок (так и было до правки).
+      g.drawImage(cPaint, 0, 0); g.drawImage(cFr, 0, 0);
       drawBubbleShapes(g);
       g.fillStyle = "#111"; g.textAlign = "center"; g.textBaseline = "middle";
       st.bubbles.forEach(function (b) {
