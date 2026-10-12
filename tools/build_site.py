@@ -1,51 +1,55 @@
-#!/usr/bin/env python3
-"""Build the standalone site in docs/ from the Claude artifact sources in plan/.
+"""Build the standalone site in docs/ from the apps in apps/*/.
 
-The pages in plan/ are written for claude.ai artifacts: they have no <html>/<head>
-skeleton and may use window.claude for shared storage and AI. Here each page gets a
-full document, links between pages become relative, AI blocks say they live only in
-the claude.ai version, and a service worker makes the site work offline after the
-first visit. Run from the repository root:
+Every app lives in apps/<name>/ with an app.json manifest and a page written for
+claude.ai artifacts: no <html>/<head> skeleton, and it may use window.claude for
+shared storage and AI. Here each page gets a full document, links between pages
+become relative, AI blocks say they live only in the claude.ai version, and a
+service worker makes the site work offline after the first visit. docs/ is not
+committed: GitHub Actions builds it on every push to main (.github/workflows/pages.yml).
+Run locally from the repository root:
 
     python3 tools/build_site.py
+
+app.json fields: name, short (home-screen name), source (page file in the app folder),
+out (file name on the site; keep it stable, links and installed icons depend on it),
+color (theme), icon (prefix of docs/icons/<icon>-<size>.png; the app folder holds
+icons/180.png, 192.png and 512.png), order (position on the home page), card (one line
+under the title on the home page), title (optional card heading when it differs from name), artifact (optional claude.ai artifact id, so links
+to it become relative on the site), rewords (optional [old, new] pairs for texts that
+mention claude.ai-only features), tests (optional folder for tools/test_app.mjs).
 """
 import hashlib
 import json
 import pathlib
-import re
 import shutil
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SRC = ROOT / "plan"
+APPS = ROOT / "apps"
 OUT = ROOT / "docs"
-ICONS = ROOT / "tools" / "icons"
+HOME = {"name": "Учебный уголок", "short": "Уголок", "color": "#f6f7f3", "icon": "plan"}
+SIZES = (180, 192, 512)
 
-ARTIFACTS = {
-    "NUnVhvzy88WsXPZpf4yvSm": "trenazhery.html",
-    "LeApqezzcT228szk3Jidf2": "plan.html",
-    "78TnnhbtiWef319zJ2SQM8": "komiksy.html",
-    "6DiGYA6FVP3AJzrWKQjhSw": "blokograd.html",
-}
 
-PAGES = [
-    # source, output, app name, short name, theme colour, icon set
-    ("trenazhery.html", "trenazhery.html", "Тренировочная арена", "Арена", "#0e1d27", "arena"),
-    ("plan-9-let.html", "plan.html", "План: планшет и диктанты", "План", "#f6f7f3", "plan"),
-    ("komiksy.html", "komiksy.html", "Студия комиксов", "Комиксы", "#eef0f4", "comics"),
-    ("blokograd.html", "blokograd.html", "Блокоград", "Блокоград", "#8fd3ff", "blok"),
-]
+def load_apps():
+    apps = []
+    for folder in sorted(APPS.iterdir()):
+        mf = folder / "app.json"
+        if not mf.is_file():
+            continue
+        a = json.loads(mf.read_text(encoding="utf-8"))
+        for key in ("name", "short", "source", "out", "color", "icon", "order", "card"):
+            if key not in a:
+                raise SystemExit(f"{mf}: нет поля {key!r}")
+        a["dir"] = folder
+        for size in SIZES:
+            if not (folder / "icons" / f"{size}.png").is_file():
+                raise SystemExit(f"{folder.name}: нет иконки icons/{size}.png")
+        apps.append(a)
+    outs = [a["out"] for a in apps]
+    if len(set(outs)) != len(outs):
+        raise SystemExit("два приложения с одинаковым out: " + ", ".join(outs))
+    return sorted(apps, key=lambda a: (a["order"], a["out"]))
 
-# Texts shown where a feature needs claude.ai; each must exist in the source.
-REWORDS = {
-    "trenazhery.html": [
-        ("ИИ на этой странице сейчас недоступен. Тексты можно добавлять из его книг, ниже.",
-         "В этой версии нет ИИ: истории от ИИ есть в версии на claude.ai. Тексты можно добавлять из его книг, ниже."),
-        ("Новые квесты от ИИ сейчас недоступны на этой странице.",
-         "Новые квесты от ИИ есть только в версии на claude.ai."),
-        ("Новые сценки от ИИ сейчас недоступны на этой странице.",
-         "Новые сценки от ИИ есть только в версии на claude.ai."),
-    ],
-}
 
 RESET = "body{margin:0}[hidden]{display:none!important}"
 SW_REGISTER = ('<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) '
@@ -56,31 +60,33 @@ SW_REGISTER = ('<script>if ("serviceWorker" in navigator && (location.protocol =
                '}).catch(function () {});</script>')
 
 
-def relink(html):
-    def sub(m):
-        return ARTIFACTS[m.group(1)] + (m.group(2) or "")
-    return re.sub(r"https://claude\.ai/artifact/(" + "|".join(ARTIFACTS) + r")(#[\w-]+)?", sub, html)
+def relink(html, artifacts):
+    for art_id, out in artifacts.items():
+        html = html.replace("https://claude.ai/artifact/" + art_id, out)
+    return html
 
 
-def page(src_name, out_name, name, color, icon):
-    s = (SRC / src_name).read_text(encoding="utf-8")
-    for old, new in REWORDS.get(src_name, []):
+def page(a, artifacts):
+    s = (a["dir"] / a["source"]).read_text(encoding="utf-8")
+    for old, new in a.get("rewords", []):
         if s.count(old) != 1:
-            raise SystemExit(f"{src_name}: expected one copy of {old!r}")
+            raise SystemExit(f"{a['dir'].name}/{a['source']}: expected one copy of {old!r}")
         s = s.replace(old, new)
-    s = relink(s)
+    s = relink(s, artifacts)
+    if "</style>" not in s:
+        raise SystemExit(f"{a['dir'].name}/{a['source']}: нет </style>")
     cut = s.index("</style>") + len("</style>")
     head, body = s[:cut].strip(), s[cut:].strip()
-    manifest = f"manifest-{icon}.webmanifest"
+    manifest = f"manifest-{a['icon']}.webmanifest"
     return (
         "<!doctype html>\n<html lang=\"ru\">\n<head>\n"
         "<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n"
-        f"<meta name=\"theme-color\" content=\"{color}\">\n"
+        f"<meta name=\"theme-color\" content=\"{a['color']}\">\n"
         f"<link rel=\"manifest\" href=\"{manifest}\">\n"
-        f"<link rel=\"icon\" type=\"image/png\" href=\"icons/{icon}-192.png\">\n"
-        f"<link rel=\"apple-touch-icon\" href=\"icons/{icon}-180.png\">\n"
-        f"<meta name=\"apple-mobile-web-app-title\" content=\"{name}\">\n"
+        f"<link rel=\"icon\" type=\"image/png\" href=\"icons/{a['icon']}-192.png\">\n"
+        f"<link rel=\"apple-touch-icon\" href=\"icons/{a['icon']}-180.png\">\n"
+        f"<meta name=\"apple-mobile-web-app-title\" content=\"{a['name']}\">\n"
         f"<style>{RESET}</style>\n"
         f"{head}\n</head>\n<body>\n{body}\n{SW_REGISTER}\n</body>\n</html>\n"
     )
@@ -136,12 +142,9 @@ footer a { color: var(--accent); }
 <body>
 <main>
   <h1>Учебный уголок</h1>
-  <p class="lead">Тренажёры и игра-песочница для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
+  <p class="lead">Тренажёры и игры для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
   <div class="cards">
-    <a class="card" href="trenazhery.html"><img src="icons/arena-192.png" alt=""><div><b>Тренировочная арена</b><span>Для сына: «Тренировка дня», счёт, чтение, слова, игры вместе</span></div></a>
-    <a class="card" href="plan.html"><img src="icons/plan-192.png" alt=""><div><b>План для родителей</b><span>6 недель, распорядок, диктанты, планшет, дневник открытий</span></div></a>
-    <a class="card" href="komiksy.html"><img src="icons/comics-192.png" alt=""><div><b>Студия комиксов</b><span>Для пера XP-PEN: рисовать и писать реплики</span></div></a>
-    <a class="card" href="blokograd.html"><img src="icons/blok-192.png" alt=""><div><b>Блокоград</b><span>Песочница: стройка — умножение, верстак — слова, торговля — деньги</span></div></a>
+__CARDS__
   </div>
   <div class="note">
     <h2>Как пользоваться</h2>
@@ -191,54 +194,34 @@ self.addEventListener("fetch", (e) => {
 });
 """
 
-README = """# Автономная версия (GitHub Pages)
-
-Эта папка — готовый сайт: тренажёры, «Блокоград», план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
-
-## Как включить сайт
-
-1. На GitHub откройте репозиторий → **Settings** → **Pages**.
-2. В «Build and deployment» выберите **Source: Deploy from a branch**, ветку **main** и папку **/docs**, нажмите **Save**.
-3. Через минуту-две сайт появится по адресу `https://alexander-hdl.github.io/CMFL/`.
-
-## Как обновить после правок
-
-```
-python3 tools/build_site.py
-```
-
-Потом закоммитьте папку `docs/`. Открытые страницы подхватят новую версию при следующем запуске.
-
-## Что отличается от версии на claude.ai
-
-- Нет функций ИИ (истории, квесты, сценки и темы викторины от ИИ).
-- Прогресс хранится только в браузере устройства и не синхронизируется.
-- Альбом комиксов хранится в браузере (IndexedDB), скачивание — обычной ссылкой.
-- После первого открытия всё работает без интернета.
-"""
+def card(a):
+    return (f'    <a class="card" href="{a["out"]}"><img src="icons/{a["icon"]}-192.png" alt="">'
+            f'<div><b>{a.get("title", a["name"])}</b><span>{a["card"]}</span></div></a>')
 
 
 def main():
+    apps = load_apps()
+    artifacts = {a["artifact"]: a["out"] for a in apps if a.get("artifact")}
     if OUT.exists():
         shutil.rmtree(OUT)
     (OUT / "icons").mkdir(parents=True)
-    for f in ICONS.glob("*.png"):
-        shutil.copy(f, OUT / "icons" / f.name)
+    for a in apps:
+        for size in SIZES:
+            shutil.copy(a["dir"] / "icons" / f"{size}.png", OUT / "icons" / f"{a['icon']}-{size}.png")
     files = {}
-    for src, out, name, short, color, icon in PAGES:
-        files[out] = page(src, out, name, color, icon)
-        files[f"manifest-{icon}.webmanifest"] = manifest(name, short, out, color, icon)
-    files["index.html"] = INDEX.replace("__SW__", SW_REGISTER)
-    files["manifest-home.webmanifest"] = manifest("Учебный уголок", "Уголок", "index.html", "#f6f7f3", "plan")
-    files["README.md"] = README
+    for a in apps:
+        files[a["out"]] = page(a, artifacts)
+        files[f"manifest-{a['icon']}.webmanifest"] = manifest(a["name"], a["short"], a["out"], a["color"], a["icon"])
+    files["index.html"] = INDEX.replace("__CARDS__", "\n".join(card(a) for a in apps)).replace("__SW__", SW_REGISTER)
+    files["manifest-home.webmanifest"] = manifest(HOME["name"], HOME["short"], "index.html", HOME["color"], HOME["icon"])
     files[".nojekyll"] = ""
-    core = ["./", "index.html"] + [p[1] for p in PAGES] + [f"manifest-{p[5]}.webmanifest" for p in PAGES] + ["manifest-home.webmanifest"] + \
+    core = ["./", "index.html"] + [a["out"] for a in apps] + [f"manifest-{a['icon']}.webmanifest" for a in apps] + ["manifest-home.webmanifest"] + \
         sorted("icons/" + f.name for f in (OUT / "icons").glob("*.png"))
     digest = hashlib.sha256("".join(files[k] for k in sorted(files)).encode("utf-8")).hexdigest()[:10]
     files["sw.js"] = SW.replace("__HASH__", digest).replace("__CORE__", json.dumps(core, ensure_ascii=False))
     for name, text in files.items():
         (OUT / name).write_text(text, encoding="utf-8")
-    print(f"docs/ built: {len(files)} files, cache cmfl-{digest}")
+    print(f"docs/ built: {len(apps)} apps, {len(files)} files, cache cmfl-{digest}")
 
 
 if __name__ == "__main__":
