@@ -27,7 +27,7 @@
 
 ## Формат страницы приложения
 
-Страница пишется для артефакта claude.ai: **без** `<!doctype>`, `<html>`, `<head>`, `<body>`. Файл начинается с `<title>`, затем необязательные `<link>` на Google Fonts, `<style>`, разметка и один `<script>`. Сборка и запускатель тестов сами оборачивают её в документ. Всё в одном файле: без внешних картинок и звуков; canvas и WebAudio рисуют и звучат процедурно. Внешняя библиотека допустима только с cdnjs с точной версией (так сделан «Блокоград» с three.js), и тогда её надо учесть в кэше service worker, иначе сайт не работает офлайн (открытое замечание в `apps/blokograd/dev/STATUS.md`). Прогресс хранится в `localStorage`, а при наличии `window.claude.use("db")` зеркалится в хранилище артефакта (образец: `attachDb` в `apps/oborona-tablicy/oborona-tablicy.html` или блок `store` в `apps/arena/trenazhery.html`). Функции ИИ работают только на claude.ai; текст, который это объясняет, на сайте подменяется через `rewords` в `app.json`.
+Страница пишется для артефакта claude.ai: **без** `<!doctype>`, `<html>`, `<head>`, `<body>`. Файл начинается с `<title>`, затем необязательные `<link>` на Google Fonts, `<style>`, разметка и один `<script>`. Сборка и запускатель тестов сами оборачивают её в документ. Всё в одном файле: без внешних картинок и звуков; canvas и WebAudio рисуют и звучат процедурно. Внешняя библиотека допустима только с cdnjs с точной версией, и её копия обязательно лежит в `apps/<имя>/vendor/` с указанием в `app.json` (поле `vendor`): на сайте сборка подставляет местную копию, и service worker кэширует её для офлайна. Образец: three.js в «Блокограде». Прогресс хранится в `localStorage`, а при наличии `window.claude.use("db")` зеркалится в хранилище артефакта (образец: `attachDb` в `apps/oborona-tablicy/oborona-tablicy.html` или блок `store` в `apps/arena/trenazhery.html`). Функции ИИ работают только на claude.ai; текст, который это объясняет, на сайте подменяется через `rewords` в `app.json`.
 
 ## `app.json`
 
@@ -45,7 +45,8 @@
   "artifact": "NUnVhvzy88WsXPZpf4yvSm", // необязательно: id артефакта claude.ai, ссылки на него станут относительными
   "rewords": [["текст в исходнике", "текст на сайте"]], // необязательно
   "tests": "tests",                   // необязательно: папка автотестов в формате register({test, assert, eq})
-  "testCommand": "node apps/ferma/tests/ferma.test.cjs" // необязательно: свой запускатель вместо tests
+  "testCommand": "node apps/ferma/tests/ferma.test.cjs", // необязательно: свой запускатель вместо tests
+  "vendor": { "https://cdnjs.cloudflare.com/…/three.min.js": "vendor/three.min.js" } // необязательно: копия внешней библиотеки для сайта
 }
 ```
 

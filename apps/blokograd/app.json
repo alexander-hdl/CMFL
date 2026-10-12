@@ -7,5 +7,9 @@
   "icon": "blok",
   "order": 40,
   "card": "Песочница: стройка — умножение, верстак — слова, торговля — деньги",
-  "artifact": "6DiGYA6FVP3AJzrWKQjhSw"
+  "artifact": "6DiGYA6FVP3AJzrWKQjhSw",
+  "vendor": {
+    "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js": "vendor/three.min.js"
+  },
+  "testCommand": "node apps/blokograd/tests/sessiya.test.cjs && node apps/blokograd/tests/offline.test.cjs"
 }
