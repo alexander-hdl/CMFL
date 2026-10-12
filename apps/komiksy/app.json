@@ -7,5 +7,6 @@
   "icon": "comics",
   "order": 30,
   "card": "Для пера XP-PEN: рисовать и писать реплики",
-  "artifact": "78TnnhbtiWef319zJ2SQM8"
+  "artifact": "78TnnhbtiWef319zJ2SQM8",
+  "testCommand": "node apps/komiksy/tests/eksport.test.cjs"
 }
