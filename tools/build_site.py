@@ -239,7 +239,12 @@ def main():
     files[".nojekyll"] = ""
     core = ["./", "index.html"] + [a["out"] for a in apps] + [f"manifest-{a['icon']}.webmanifest" for a in apps] + ["manifest-home.webmanifest"] + \
         sorted("icons/" + f.name for f in (OUT / "icons").glob("*.png")) + sorted(vendored)
-    digest = hashlib.sha256("".join(files[k] for k in sorted(files)).encode("utf-8")).hexdigest()[:10]
+    # Имя кэша меняется при любой правке страниц и местных копий библиотек: иначе новая копия дошла бы до
+    # планшета только со второго открытия.
+    hasher = hashlib.sha256("".join(files[k] for k in sorted(files)).encode("utf-8"))
+    for v in sorted(vendored):
+        hasher.update((OUT / v).read_bytes())
+    digest = hasher.hexdigest()[:10]
     files["sw.js"] = SW.replace("__HASH__", digest).replace("__CORE__", json.dumps(core, ensure_ascii=False))
     for name, text in files.items():
         (OUT / name).write_text(text, encoding="utf-8")

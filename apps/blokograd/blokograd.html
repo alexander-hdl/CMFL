@@ -114,7 +114,7 @@ p { margin: 0; }
 @keyframes rise { 0% { opacity: 0; translate: 0 10px; } 15% { opacity: 1; translate: 0 0; } 80% { opacity: 1; } 100% { opacity: 0; translate: 0 -40px; } }
 
 /* Modal boards */
-#modal { position: absolute; inset: 0; z-index: 50; background: rgba(20, 30, 40, 0.45); display: grid; place-items: center; padding: 12px; overflow: auto; }
+#modal { position: absolute; inset: 0; z-index: 80; background: rgba(20, 30, 40, 0.45); display: grid; place-items: center; padding: 12px; overflow: auto; }
 #modal[hidden] { display: none; }
 .board { width: min(100%, 720px); min-width: 0; max-width: 100%; max-height: calc(100% - 8px); overflow: auto; background: var(--board); border: 4px solid var(--wood); border-radius: 22px; box-shadow: 0 8px 0 var(--wood-line), 0 20px 40px rgba(0,0,0,0.35); padding: 18px; display: grid; gap: 14px; }
 .board.wide { width: min(100%, 860px); }
@@ -203,6 +203,7 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
 #night[hidden] { display: none; }
 #start { position: absolute; inset: 0; z-index: 70; background: linear-gradient(#5ab8ff, #8fd3ff 60%, #6fbf5e); display: grid; place-items: center; padding: 16px; text-align: center; }
 #start[hidden] { display: none; }
+#b-gear2 { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; opacity: .85; }
 #start h1 { font-size: clamp(2.4rem, 9vw, 4.5rem); color: #fff; text-shadow: 0 4px 0 #2b5a2e, 0 8px 16px rgba(0,0,0,0.3); }
 #start canvas { image-rendering: pixelated; width: min(60vw, 220px); height: auto; }
 .tip { font-size: 0.95rem; color: var(--muted); }
@@ -274,6 +275,7 @@ textarea { width: 100%; min-height: 160px; font: 14px/1.4 ui-monospace, Menlo, C
   </div>
 
   <div id="start">
+    <button class="ibtn" id="b-gear2" hidden aria-label="Для взрослого (удерживать 2 секунды)">⚙</button>
     <div style="display:grid;gap:18px;justify-items:center;max-width:520px">
       <canvas id="startart" width="96" height="64"></canvas>
       <h1 id="start-title">Блокоград</h1>
@@ -1109,7 +1111,7 @@ function bindInput() {
   var gearT = null;
   function gearDown(e) { e.preventDefault(); clearTimeout(gearT); gearT = setTimeout(function () { gearT = null; openParent(); }, 2000); }
   function gearUp() { if (gearT) { clearTimeout(gearT); gearT = null; hint("Экран для взрослого: удерживай ⚙ две секунды.", 2500); } }
-  $("b-gear").addEventListener("pointerdown", gearDown); $("b-gear").addEventListener("pointerup", gearUp); $("b-gear").addEventListener("pointerleave", gearUp); $("b-gear").addEventListener("pointercancel", gearUp);
+  ["b-gear", "b-gear2"].forEach(function (id) { var g = $(id); g.addEventListener("pointerdown", gearDown); g.addEventListener("pointerup", gearUp); g.addEventListener("pointerleave", gearUp); g.addEventListener("pointercancel", gearUp); });
   document.querySelectorAll("#tools button").forEach(function (b) {
     b.addEventListener("click", function () {
       var t = b.getAttribute("data-tool"); SFX.tap();
@@ -2026,7 +2028,8 @@ function endDay() {
   $("night").hidden = true; Game.night = false; Game.modal = true;
   var dueM = allFacts().filter(function (id) { var c = S.cards[id]; return c && c.due && c.due <= todayKey(1); }).length;
   var dueW = Object.keys(S.cards).filter(function (id) { var c = S.cards[id]; return id[0] !== "m" && c.due && c.due <= todayKey(1); }).length;
-  var lit = (S.houses || []).filter(function (hs) { return Mobs.lit(hs); }).length; if (lit && S.oil > 0) S.oil = Math.max(0, S.oil - lit);
+  var first = !S.today.summed; S.today.summed = true; /* the diary reopens this summary: burn the oil and log the day only once */
+  var lit = (S.houses || []).filter(function (hs) { return Mobs.lit(hs); }).length; if (first && lit && S.oil > 0) S.oil = Math.max(0, S.oil - lit);
   var board = $("board"); board.innerHTML = "";
   board.appendChild(h("div", { class: "bhead" }, [h("h2", { text: "Итоги дня " + S.day })]));
   var built = S.today.built, words = S.today.words, bit = houseHoles().length;
@@ -2039,19 +2042,20 @@ function endDay() {
   ]));
   board.appendChild(h("div", { class: "row end" }, [h("button", { class: "btn", text: "📓 Написать в дневник", onclick: function () { openDiary(function () { endDay(); }); } }), h("button", { class: "btn primary big", text: "Спать", onclick: sleep })]));
   $("modal").hidden = false;
-  S.log.push({ day: S.day, date: S.today.date, built: built.length, words: words.length, coinsIn: S.today.coinsIn }); if (S.log.length > 60) S.log.shift();
+  if (first) S.log.push({ day: S.day, date: S.today.date, built: built.length, words: words.length, coinsIn: S.today.coinsIn }); if (S.log.length > 60) S.log.shift();
 }
 function limitDays() { return Math.max(1, Math.min(3, Math.round(+S.limitDays) || 1)); }
 function canStartDay() { var L = S.dayLog; return !L || L.date !== todayKey() || L.started < limitDays(); }
 function countStart() { var t = todayKey(); if (S.dayLog && S.dayLog.date === t) S.dayLog.started++; else S.dayLog = { date: t, started: 1 }; }
 /* the game day ends here: remember it, stop the loop and show the rest screen until the limit allows another day */
 function sleep() {
+  if (!S.dayLog || S.dayLog.date !== todayKey()) S.dayLog = { date: todayKey(), started: 1 }; /* played past midnight: counts for today, like a day continued after reload */
   S.slept = true; save(true); closeModal(); Game.running = false; Game.night = false; $("night").hidden = true;
   showStart();
 }
 function showStart() {
   var title = $("start-title"), msg = $("start-msg"), play = $("b-play"), again = $("b-again");
-  $("start").hidden = false; again.hidden = true; play.hidden = false;
+  $("start").hidden = false; again.hidden = true; play.hidden = false; $("b-gear2").hidden = !S.slept;
   if (!S.slept) { title.textContent = "Блокоград"; msg.textContent = "Остров, где ты копаешь, строишь, крафтишь и торгуешь."; play.textContent = "Играть"; return; }
   play.hidden = true;
   if (!canStartDay()) { title.textContent = "Блокоград спит"; msg.textContent = "День " + S.day + " закончен. Город отдыхает до завтра."; return; }
@@ -2122,7 +2126,7 @@ function openParent() {
   var visited = ISLANDS.filter(function (I) { return S.visited[I.id]; }).map(function (I) { return I.name; }).join(", ");
   board.appendChild(h("p", { class: "small muted", text: "Карточек всего: " + Object.keys(S.cards).length + ", ждут повторения сегодня: " + due + ". День в игре: " + S.day + ". Открытые острова: " + visited + ". Подсказка «Разрезать» скрыта для " + Object.keys(S.cutHidden).length + " " + plural(Object.keys(S.cutHidden).length, "примера", "примеров", "примеров") + "." }));
   var limVal = h("strong", { text: String(limitDays()), style: "min-width:1.5em;text-align:center;font-size:1.3rem" });
-  var setLim = function (d) { S.limitDays = Math.max(1, Math.min(3, limitDays() + d)); limVal.textContent = String(S.limitDays); save(true); };
+  var setLim = function (d) { S.limitDays = Math.max(1, Math.min(3, limitDays() + d)); limVal.textContent = String(S.limitDays); save(true); if (S.slept && !Game.running) showStart(); };
   board.appendChild(h("div", { class: "row" }, [h("span", { text: "Игровых дней за один настоящий день:" }), h("button", { class: "btn sq", text: "−", "aria-label": "Меньше", onclick: function () { setLim(-1); } }), limVal, h("button", { class: "btn sq", text: "+", "aria-label": "Больше", onclick: function () { setLim(1); } })]));
   board.appendChild(h("p", { class: "small muted", text: "Один игровой день — одно занятие на 10–15 минут. Когда лимит исчерпан, Блокоград спит до завтра." }));
   board.appendChild(h("h3", { text: "Дневник ребёнка" }));
@@ -2225,7 +2229,8 @@ function boot() {
   showStart();
   $("b-sleep").addEventListener("click", endDay);
   $("b-more").addEventListener("click", moreTime);
-  document.addEventListener("visibilitychange", function () { if (document.hidden) save(true); });
+  document.addEventListener("visibilitychange", function () { if (document.hidden) save(true); else if (S.slept && !Game.running) showStart(); });
+  setInterval(function () { if (S.slept && !Game.running && !$("start").hidden) showStart(); }, 60000);
   window.addEventListener("pagehide", function () { save(true); });
   try {
     if (window.claude && typeof window.claude.use === "function") {

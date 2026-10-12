@@ -106,6 +106,55 @@ function wrap(src) {
     await page.waitForFunction(() => window.BLOKOGRAD.Game.running);
     ok((await st()).day === 3, "«Играть» продолжает текущий день");
 
+    // Ревью: дневник с итогов дня не сжигает масло и не пишет журнал дня второй раз.
+    await page.evaluate(() => { window.BLOKOGRAD.state().t = 1; });
+    await page.waitForSelector("#night:not([hidden])", { timeout: 10000 });
+    await page.click("#b-sleep");
+    await page.waitForSelector("#board .bhead h2");
+    const before = await page.evaluate(() => ({ log: window.BLOKOGRAD.state().log.length, oil: window.BLOKOGRAD.state().oil }));
+    await page.click("#board button:has-text('Написать в дневник')");
+    await page.click("#board button:has-text('Закрыть')");
+    await page.waitForSelector("#board button:has-text('Спать')");
+    const after = await page.evaluate(() => ({ log: window.BLOKOGRAD.state().log.length, oil: window.BLOKOGRAD.state().oil }));
+    ok(after.log === before.log && after.oil === before.oil, "дневник и обратно на итоги: журнал дня и масло не меняются");
+    await page.click("#board button:has-text('Спать')");
+    await page.waitForSelector("#start:not([hidden])", { timeout: 5000 });
+
+    // Ревью: экран для взрослого открывается удержанием ⚙ на экране отдыха, поверх заставки.
+    ok((await vis("#b-gear2")) && !(await vis("#b-again")), "на экране отдыха есть ⚙ для взрослого");
+    await page.dispatchEvent("#b-gear2", "pointerdown");
+    await page.waitForSelector("#board .btn.sq:has-text('+')", { timeout: 4000 });
+    const onTop = await page.evaluate(() => { const b = [...document.querySelectorAll("#board .btn.sq")].find((x) => x.textContent === "+"); const r = b.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === b; });
+    ok(onTop, "экран для взрослого поверх заставки, «+» нажимается");
+    await page.click("#board .btn.sq:has-text('+')");
+    await page.click("#board .bhead button:has-text('Закрыть')");
+    ok((await st()).limit === 2 && (await vis("#b-again")) && /2 из 2/.test(await text("#start-msg")), "после «+» на заставке сразу «Ещё один день» (2 из 2)");
+    await page.click("#b-again");
+    await page.waitForFunction(() => window.BLOKOGRAD.Game.running);
+    ok(!(await vis("#b-gear2")), "во время игры ⚙ заставки не виден");
+
+    // Ревью: полночь посреди дня не выкидывает из игры, а день засчитывается дате, когда он закончен.
+    await page.evaluate(() => window.BLOKOGRAD.setDate("2026-10-14"));
+    await page.waitForTimeout(300);
+    ok((await st()).running && !(await vis("#start")), "смена даты посреди дня: игра продолжается");
+    await goToSleep();
+    s = await st();
+    ok(s.dayLog.date === "2026-10-14" && s.dayLog.started === 1 && /спит/.test(await text("#start-title")) && /2 из 2/.test(await text("#start-msg")), "день через полночь засчитан новой дате: после «Спать» отдых, а не «Новый день»");
+
+    // Ревью: открытый всю ночь экран отдыха сам замечает новую дату.
+    await page.dispatchEvent("#b-gear2", "pointerdown");
+    await page.waitForSelector("#board .btn.sq:has-text('−')", { timeout: 4000 });
+    await page.click("#board .btn.sq:has-text('−')");
+    await page.click("#board .bhead button:has-text('Закрыть')");
+    ok((await st()).limit === 1 && !(await vis("#b-again")) && /отдыхает/.test(await text("#start-msg")), "«−» на заставке: лимит 1, снова отдых без кнопки");
+    await page.evaluate(() => { window.BLOKOGRAD.setDate("2026-10-15"); document.dispatchEvent(new Event("visibilitychange")); });
+    ok((await vis("#b-again")) && /Играть/.test(await text("#b-again")), "новая дата без перезагрузки: на заставке «Играть»");
+
+    // Подделанный лимит в сохранении приводится к 1–3.
+    await page.evaluate(() => { const S = window.BLOKOGRAD.state(); S.limitDays = 99; window.BLOKOGRAD.save(true); });
+    await open();
+    ok((await st()).limit === 3, "лимит 99 в сохранении читается как 3");
+
     ok(errors.length === 0, "нет ошибок в консоли" + (errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""));
   } catch (e) {
     ok(false, "тест упал: " + (e && e.stack || e));
