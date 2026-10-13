@@ -427,7 +427,12 @@ details.q-gen[open] > summary::before { content: "▾"; }
 a.btn { display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
 a.hdr-btn { text-decoration: none; }
 .blok-btn { font-weight: 800; font-size: 0.9rem; min-height: 48px; }
-.blok-panel .btn { justify-self: center; min-width: 200px; font-size: 1.3rem; }
+.blok-panel .btn { min-width: 140px; font-size: 1.15rem; flex: none; }
+.games-list { display: grid; gap: 10px; }
+.game-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 2px solid var(--line); border-radius: var(--r); }
+.game-row b { font-size: 1.1rem; }
+.game-row p { margin-top: 2px; }
+@media (max-width: 520px) { .game-row { flex-direction: column; align-items: stretch; } .blok-panel .btn { width: 100%; } }
 .pet-btn { padding: 0; width: 48px; overflow: hidden; font-size: 1.3rem; }
 .pet-btn svg { width: 44px; height: 44px; display: block; }
 .note-btn { padding: 0; width: 48px; font-size: 1.2rem; }
@@ -503,6 +508,8 @@ a.hdr-btn { text-decoration: none; }
     </div>
       <button type="button" class="hdr-btn gem-btn" id="gem-btn" aria-label="Гемы и питомец"><span aria-hidden="true">💎</span><b id="gem-count">0</b></button>
       <a class="hdr-btn blok-btn" href="https://claude.ai/artifact/6DiGYA6FVP3AJzrWKQjhSw" rel="noopener" aria-label="Играть в Блокоград"><span aria-hidden="true">🧱</span>Блокоград</a>
+      <a class="hdr-btn blok-btn" href="https://alexander-hdl.github.io/CMFL/oborona-tablicy.html" rel="noopener" aria-label="Играть в Оборону таблицы"><span aria-hidden="true">🏰</span>Оборона</a>
+      <a class="hdr-btn blok-btn" href="https://alexander-hdl.github.io/CMFL/ferma.html" rel="noopener" aria-label="Играть в Ферму у реки"><span aria-hidden="true">🌾</span>Ферма</a>
       <button type="button" class="hdr-btn pet-btn" id="pet-btn" aria-label="Питомец"><span aria-hidden="true">🐾</span></button>
       <button type="button" class="hdr-btn note-btn" id="note-btn" aria-label="Мои заметки: что подлатать"><span aria-hidden="true">📝</span><i class="nb" id="note-badge" hidden></i></button>
     </div>
@@ -4414,9 +4421,12 @@ a.hdr-btn { text-decoration: none; }
     var d = keyDate(t);
     v.innerHTML =
       '<div class="panel blok-panel">' +
-        "<h2>Блокоград</h2>" +
-        '<p class="muted">Песочница: стройка — умножение, верстак — слова, торговля — деньги</p>' +
-        '<a class="btn gold" href="https://claude.ai/artifact/6DiGYA6FVP3AJzrWKQjhSw" rel="noopener">Играть</a>' +
+        "<h2>Игры</h2>" +
+        '<div class="games-list">' +
+          '<div class="game-row"><div><b>🧱 Блокоград</b><p class="muted small">Песочница: стройка — умножение, верстак — слова, торговля — деньги</p></div><a class="btn gold" href="https://claude.ai/artifact/6DiGYA6FVP3AJzrWKQjhSw" rel="noopener">Играть</a></div>' +
+          '<div class="game-row"><div><b>🏰 Оборона таблицы</b><p class="muted small">Защита крепости: враг несёт число, бьёт его только луч между башнями с таким произведением</p></div><a class="btn gold" href="https://alexander-hdl.github.io/CMFL/oborona-tablicy.html" rel="noopener">Играть</a></div>' +
+          '<div class="game-row"><div><b>🌾 Ферма у реки</b><p class="muted small">Часы и длительность, деньги и сдача, посев с остатком, весы, записки соседей</p></div><a class="btn gold" href="https://alexander-hdl.github.io/CMFL/ferma.html" rel="noopener">Играть</a></div>' +
+        "</div>" +
       "</div>" +
       '<div class="panel">' +
         '<div class="row" style="justify-content:space-between"><h2>Бюджет матчей</h2><span class="muted small">' + rangeLabel(ws) + "</span></div>" +
