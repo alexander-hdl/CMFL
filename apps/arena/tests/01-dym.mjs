@@ -141,6 +141,19 @@ export function register({ test, assert, eq }) {
     eq(small, [], "кнопки ниже 48 px");
   });
 
+  test("Дым 7: ссылки на три игры в шапке и на вкладке «Матчи» ведут на Блокоград, Оборону и Ферму", async ({ page }) => {
+    await run(page, () => OT.reset());
+    const hdr = await page.$$eval("header a.hdr-btn", (as) => as.map((a) => a.getAttribute("href")));
+    assert(hdr.some((h) => h.includes("6DiGYA6FVP3AJzrWKQjhSw")), "в шапке есть Блокоград");
+    assert(hdr.some((h) => h.endsWith("/oborona-tablicy.html")), "в шапке есть Оборона таблицы");
+    assert(hdr.some((h) => h.endsWith("/ferma.html")), "в шапке есть Ферма у реки");
+    await run(page, () => OT.showTab("games"));
+    const rows = await page.$$eval("#view-games .game-row", (rs) => rs.map((r) => ({ name: r.querySelector("b").textContent, href: r.querySelector("a").getAttribute("href"), h: r.querySelector("a").getBoundingClientRect().height })));
+    eq(rows.map((r) => r.name.replace(/^\S+\s/, "")), ["Блокоград", "Оборона таблицы", "Ферма у реки"], "три игры по порядку");
+    assert(rows.every((r) => r.h >= 48), "кнопки «Играть» не ниже 48 px");
+    assert(rows[1].href.endsWith("/oborona-tablicy.html") && rows[2].href.endsWith("/ferma.html"), "адреса игр на сайте");
+  });
+
   test("Дым 6: вкладка запоминается, #prog в адресе открывает «Прогресс», во время раунда вкладки заперты", async ({ page }) => {
     await fresh(page);
     await run(page, () => OT.showTab("words"));
