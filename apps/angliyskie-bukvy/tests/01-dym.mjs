@@ -104,4 +104,24 @@ export function register({ test, assert, eq }) {
     const s = await st(page);
     eq([s.tab, s.cur, s.accent], ["card", "Z", "us"]);
   });
+
+  test("Дым 7: письменные буквы без Google Fonts — шрифт прописей встроен в страницу", async ({ page, shot, errors }) => {
+    await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+    await page.reload();
+    await page.waitForFunction(() => window.OT && window.OT.state);
+    const r = await page.evaluate(async () => {
+      await document.fonts.load('40px "CMFL Propisi"', "Bb");
+      const face = [...document.fonts].find((f) => f.family.replace(/"/g, "") === "CMFL Propisi");
+      const tile = getComputedStyle(document.querySelector("#grid .tile .hw")).fontFamily;
+      return { status: face && face.status, ok: document.fonts.check('40px "CMFL Propisi"', "Bb"), tile, m: window.OT.state().metrics };
+    });
+    eq(r.status, "loaded", "встроенный шрифт загружен");
+    eq(r.ok, true);
+    assert(r.tile.startsWith('"CMFL Propisi"'), "плитки пишут шрифтом прописей: " + r.tile);
+    eq([Math.round(r.m.top), Math.round(r.m.x), Math.round(r.m.bot)], [102, 52, 52], "линейки по метрикам прописей, а не запасного шрифта");
+    await shot("bukvy-bez-google");
+    // Заблокированные запросы к Google Fonts пишут в консоль ERR_FAILED; другие ошибки остаются.
+    const rest = errors.filter((e) => !/ERR_FAILED/.test(e));
+    errors.length = 0; errors.push(...rest);
+  });
 }
