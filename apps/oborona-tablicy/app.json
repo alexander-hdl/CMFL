@@ -1,0 +1,11 @@
+{
+  "name": "Оборона таблицы",
+  "short": "Оборона",
+  "source": "oborona-tablicy.html",
+  "out": "oborona-tablicy.html",
+  "color": "#17324a",
+  "icon": "tower",
+  "order": 50,
+  "card": "Для сына: защита крепости, где оружие — таблица умножения",
+  "tests": "tests"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Английские буквы",
+  "short": "Буквы",
+  "source": "angliyskie-bukvy.html",
+  "out": "angliyskie-bukvy.html",
+  "color": "#2a55c4",
+  "icon": "letters",
+  "order": 35,
+  "card": "Для сына: печатные и письменные английские буквы, названия вслух, диктант",
+  "artifact": "VWWuDbAsZXkaUSrAkvTdkT",
+  "tests": "tests"
+}

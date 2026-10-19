@@ -1,0 +1,11 @@
+{
+  "name": "Ферма у реки",
+  "short": "Ферма",
+  "source": "ferma.html",
+  "out": "ferma.html",
+  "color": "#2f4a2a",
+  "icon": "ferma",
+  "order": 60,
+  "card": "Для сына: часы, деньги и сдача, посев и урожай, записки соседей",
+  "testCommand": "node apps/ferma/tests/ferma.test.cjs"
+}
