@@ -24,6 +24,7 @@ ARTIFACTS = {
     "NUnVhvzy88WsXPZpf4yvSm": "trenazhery.html",
     "LeApqezzcT228szk3Jidf2": "plan.html",
     "78TnnhbtiWef319zJ2SQM8": "komiksy.html",
+    "VWWuDbAsZXkaUSrAkvTdkT": "angliyskie-bukvy.html",
 }
 
 PAGES = [
@@ -31,6 +32,7 @@ PAGES = [
     ("trenazhery.html", "trenazhery.html", "Тренировочная арена", "Арена", "#0e1d27", "arena"),
     ("plan-9-let.html", "plan.html", "План: планшет и диктанты", "План", "#f6f7f3", "plan"),
     ("komiksy.html", "komiksy.html", "Студия комиксов", "Комиксы", "#eef0f4", "comics"),
+    ("angliyskie-bukvy.html", "angliyskie-bukvy.html", "Английские буквы", "Буквы", "#eef3f9", "letters"),
 ]
 
 # Texts shown where a feature needs claude.ai; each must exist in the source.
@@ -130,11 +132,12 @@ footer a { color: var(--accent); }
 <body>
 <main>
   <h1>Учебный уголок</h1>
-  <p class="lead">Тренажёры для сына, план для родителей и студия комиксов. Всё работает прямо в браузере.</p>
+  <p class="lead">Тренажёры для сына, план для родителей, студия комиксов и английские буквы. Всё работает прямо в браузере.</p>
   <div class="cards">
     <a class="card" href="trenazhery.html"><img src="icons/arena-192.png" alt=""><div><b>Тренировочная арена</b><span>Для сына: «Тренировка дня», счёт, чтение, слова, игры вместе</span></div></a>
     <a class="card" href="plan.html"><img src="icons/plan-192.png" alt=""><div><b>План для родителей</b><span>6 недель, распорядок, диктанты, планшет, дневник открытий</span></div></a>
     <a class="card" href="komiksy.html"><img src="icons/comics-192.png" alt=""><div><b>Студия комиксов</b><span>Для пера XP-PEN: рисовать и писать реплики</span></div></a>
+    <a class="card" href="angliyskie-bukvy.html"><img src="icons/letters-192.png" alt=""><div><b>Английские буквы</b><span>Печатные и письменные буквы, названия вслух, диктант по прописям</span></div></a>
   </div>
   <div class="note">
     <h2>Как пользоваться</h2>
@@ -186,7 +189,7 @@ self.addEventListener("fetch", (e) => {
 
 README = """# Автономная версия (GitHub Pages)
 
-Эта папка — готовый сайт: тренажёры, план и студия комиксов без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
+Эта папка — готовый сайт: тренажёры, план, студия комиксов и английские буквы без claude.ai. Её собирает скрипт `tools/build_site.py` из исходников в `plan/`. Руками здесь ничего не правьте: после следующей сборки правки пропадут.
 
 ## Как включить сайт
 
